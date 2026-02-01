@@ -64,3 +64,8 @@ export type PostResponseJson<Path extends AnyPath, Code extends ResponseCodes<Re
 export type GetResponseJsonAny<Path extends AnyPath> = ResponseJson<ResponseFor<Path, "get">>
 
 export type PostResponseJsonAny<Path extends AnyPath> = ResponseJson<ResponseFor<Path, "post">>
+
+export type GetQueryParams<Path extends AnyPath> =
+    OperationFor<Path, "get"> extends { parameters: { query: infer Query } }
+        ? Query
+        : unknown

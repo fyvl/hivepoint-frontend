@@ -1,13 +1,55 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 
-import { createCatalogApi, type CatalogProduct, type CatalogVersion } from "@/api/catalog"
+import {
+    createCatalogApi,
+    type CatalogProduct,
+    type CatalogVersion,
+    type GetProductResponse,
+    type GetVersionsResponse
+} from "@/api/catalog"
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+    return typeof value === "object" && value !== null
+}
+
+const getString = (record: Record<string, unknown> | null, key: string) => {
+    if (!record) {
+        return undefined
+    }
+    const value = record[key]
+    return typeof value === "string" ? value : undefined
+}
+
+const getStringArray = (record: Record<string, unknown> | null, key: string) => {
+    if (!record) {
+        return []
+    }
+    const value = record[key]
+    if (!Array.isArray(value)) {
+        return []
+    }
+    return value.filter((item) => typeof item === "string")
+}
+
+const extractVersions = (payload: GetVersionsResponse): CatalogVersion[] => {
+    if (Array.isArray(payload)) {
+        return payload
+    }
+
+    if (!isRecord(payload)) {
+        return []
+    }
+
+    const items = payload.items
+    return Array.isArray(items) ? items : []
+}
 
 export const ProductDetailsPage = () => {
     const { id } = useParams<{ id: string }>()
@@ -46,8 +88,8 @@ export const ProductDetailsPage = () => {
                     return
                 }
 
-                setProduct(productResponse)
-                setVersions(versionResponse)
+                setProduct(productResponse as GetProductResponse)
+                setVersions(extractVersions(versionResponse))
             } catch (err) {
                 if (!isActive) {
                     return
@@ -137,20 +179,19 @@ export const ProductDetailsPage = () => {
         )
     }
 
-    const tags = Array.isArray(product.tags)
-        ? product.tags.filter((tag) => typeof tag === "string")
-        : []
+    const productRecord = isRecord(product) ? product : null
+    const tags = getStringArray(productRecord, "tags")
 
     return (
         <div className="grid gap-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>{product.title ?? "Untitled product"}</CardTitle>
-                    <CardDescription>{product.category ?? "Uncategorized"}</CardDescription>
+                    <CardTitle>{getString(productRecord, "title") ?? "Untitled product"}</CardTitle>
+                    <CardDescription>{getString(productRecord, "category") ?? "Uncategorized"}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                        {product.description ?? "No description available."}
+                        {getString(productRecord, "description") ?? "No description available."}
                     </p>
                     <div className="flex flex-wrap gap-2">
                         {tags.map((tag) => (
@@ -158,8 +199,8 @@ export const ProductDetailsPage = () => {
                                 {tag}
                             </Badge>
                         ))}
-                        {product.status ? (
-                            <Badge variant="outline">{product.status}</Badge>
+                        {getString(productRecord, "status") ? (
+                            <Badge variant="outline">{getString(productRecord, "status")}</Badge>
                         ) : null}
                     </div>
                 </CardContent>
@@ -174,28 +215,32 @@ export const ProductDetailsPage = () => {
                     {versions.length === 0 ? (
                         <p className="text-sm text-muted-foreground">No versions available.</p>
                     ) : (
-                        versions.map((version, index) => (
-                            <div
-                                key={version.id ?? `${version.version ?? "version"}-${index}`}
-                                className="flex flex-col gap-2 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
-                            >
-                                <div>
-                                    <p className="font-medium">
-                                        {version.version ?? "Unnamed version"}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                        {version.status ?? ""}
-                                    </p>
+                        versions.map((version, index) => {
+                            const versionRecord = isRecord(version) ? version : null
+                            const versionId = getString(versionRecord, "id")
+                            const versionLabel = getString(versionRecord, "version") ?? "Unnamed version"
+                            const status = getString(versionRecord, "status") ?? ""
+                            const openApiUrl = getString(versionRecord, "openApiUrl")
+
+                            return (
+                                <div
+                                    key={versionId ?? `${versionLabel}-${index}`}
+                                    className="flex flex-col gap-2 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
+                                >
+                                    <div>
+                                        <p className="font-medium">{versionLabel}</p>
+                                        <p className="text-sm text-muted-foreground">{status}</p>
+                                    </div>
+                                    {openApiUrl ? (
+                                        <Button asChild variant="link">
+                                            <a href={openApiUrl} target="_blank" rel="noreferrer">
+                                                OpenAPI
+                                            </a>
+                                        </Button>
+                                    ) : null}
                                 </div>
-                                {version.openApiUrl && typeof version.openApiUrl === "string" ? (
-                                    <Button asChild variant="link">
-                                        <a href={version.openApiUrl} target="_blank" rel="noreferrer">
-                                            OpenAPI
-                                        </a>
-                                    </Button>
-                                ) : null}
-                            </div>
-                        ))
+                            )
+                        })
                     )}
                 </CardContent>
             </Card>

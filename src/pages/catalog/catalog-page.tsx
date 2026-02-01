@@ -3,8 +3,8 @@ import { Link } from "react-router-dom"
 
 import {
     createCatalogApi,
-    type CatalogListResult,
-    type CatalogProduct
+    type CatalogProduct,
+    type ListProductsResponse
 } from "@/api/catalog"
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
@@ -37,6 +37,51 @@ type CatalogFetchState = {
     total?: number
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+    return typeof value === "object" && value !== null
+}
+
+const getString = (record: Record<string, unknown> | null, key: string) => {
+    if (!record) {
+        return undefined
+    }
+    const value = record[key]
+    return typeof value === "string" ? value : undefined
+}
+
+const getStringArray = (record: Record<string, unknown> | null, key: string) => {
+    if (!record) {
+        return []
+    }
+    const value = record[key]
+    if (!Array.isArray(value)) {
+        return []
+    }
+    return value.filter((item) => typeof item === "string")
+}
+
+const extractListItems = (payload: ListProductsResponse): CatalogProduct[] => {
+    if (Array.isArray(payload)) {
+        return payload
+    }
+
+    if (!isRecord(payload)) {
+        return []
+    }
+
+    const items = payload.items
+    return Array.isArray(items) ? items : []
+}
+
+const extractListTotal = (payload: ListProductsResponse): number | undefined => {
+    if (!isRecord(payload)) {
+        return undefined
+    }
+
+    const total = payload.total
+    return typeof total === "number" ? total : undefined
+}
+
 export const CatalogPage = () => {
     const { accessToken, refresh } = useAuth()
     const { toast } = useToast()
@@ -67,20 +112,28 @@ export const CatalogPage = () => {
             setIsLoading(true)
             setError(null)
             try {
-                const result = (await catalogApi.listProducts({
-                    search: debouncedSearch || undefined,
-                    category: debouncedCategory || undefined,
+                const query: Record<string, unknown> = {
                     limit,
                     offset
-                })) as CatalogListResult
+                }
+
+                if (debouncedSearch) {
+                    query.search = debouncedSearch
+                }
+
+                if (debouncedCategory) {
+                    query.category = debouncedCategory
+                }
+
+                const result = await catalogApi.listProducts(query)
 
                 if (!isActive) {
                     return
                 }
 
                 setState({
-                    items: result.items,
-                    total: result.total
+                    items: extractListItems(result),
+                    total: extractListTotal(result)
                 })
             } catch (err) {
                 if (!isActive) {
@@ -212,7 +265,7 @@ export const CatalogPage = () => {
             {!isLoading && state.items.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {state.items.map((product, index) => (
-                        <CatalogCard key={product.id ?? `product-${index}`} product={product} />
+                        <CatalogCard key={getCardKey(product, index)} product={product} />
                     ))}
                 </div>
             ) : null}
@@ -237,13 +290,20 @@ export const CatalogPage = () => {
     )
 }
 
+const getCardKey = (product: CatalogProduct, index: number) => {
+    const record = isRecord(product) ? product : null
+    const id = getString(record, "id")
+    return id ?? `product-${index}`
+}
+
 const CatalogCard = ({ product }: { product: CatalogProduct }) => {
-    const title = product.title ?? "Untitled product"
-    const description = product.description ?? "No description available yet."
-    const category = product.category ?? "Uncategorized"
-    const tags = Array.isArray(product.tags)
-        ? product.tags.filter((tag) => typeof tag === "string")
-        : []
+    const record = isRecord(product) ? product : null
+    const title = getString(record, "title") ?? "Untitled product"
+    const description = getString(record, "description") ?? "No description available yet."
+    const category = getString(record, "category") ?? "Uncategorized"
+    const status = getString(record, "status") ?? ""
+    const tags = getStringArray(record, "tags")
+    const productId = getString(record, "id")
 
     return (
         <Card className="flex h-full flex-col">
@@ -266,14 +326,14 @@ const CatalogCard = ({ product }: { product: CatalogProduct }) => {
                 ) : null}
             </CardContent>
             <CardFooter className="justify-between">
-                <span className="text-xs text-muted-foreground">{product.status ?? ""}</span>
-                {product.id ? (
+                <span className="text-xs text-muted-foreground">{status}</span>
+                {productId ? (
                     <Button asChild size="sm">
-                        <Link to={`/products/${product.id}`}>View</Link>
+                        <Link to={`/products/${productId}`}>Open</Link>
                     </Button>
                 ) : (
                     <Button size="sm" disabled>
-                        View
+                        Open
                     </Button>
                 )}
             </CardFooter>

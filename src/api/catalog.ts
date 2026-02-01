@@ -1,34 +1,26 @@
 import { type HttpOptions, http, httpWithRetry } from "@/api/http"
+import type { GetQueryParams, GetResponseJsonAny } from "@/api/types"
 
-export type CatalogListParams = {
-    search?: string
-    category?: string
-    limit?: number
-    offset?: number
-}
+export type ListProductsQuery = GetQueryParams<"/catalog/products">
+export type ListProductsResponse = GetResponseJsonAny<"/catalog/products">
+export type GetProductResponse = GetResponseJsonAny<"/catalog/products/{id}">
+export type GetVersionsResponse = GetResponseJsonAny<"/catalog/products/{id}/versions">
 
-export type CatalogProduct = {
-    id?: string
-    title?: string
-    description?: string
-    category?: string
-    tags?: string[]
-    status?: string
-    [key: string]: unknown
-}
+export type CatalogProduct = ListProductsResponse extends { items: (infer Item)[] }
+    ? Item
+    : ListProductsResponse extends Array<infer Item>
+        ? Item
+        : unknown
 
-export type CatalogVersion = {
-    id?: string
-    version?: string
-    status?: string
-    openApiUrl?: string
-    [key: string]: unknown
-}
+export type CatalogVersion = GetVersionsResponse extends Array<infer Item>
+    ? Item
+    : GetVersionsResponse extends { items: (infer Item)[] }
+        ? Item
+        : unknown
 
-export type CatalogListResult = {
-    items: CatalogProduct[]
-    total?: number
-}
+type AsRecord<T> = T extends Record<string, unknown> ? T : Record<string, unknown>
+
+export type ListProductsQueryInput = Partial<AsRecord<ListProductsQuery>>
 
 type CatalogClient = {
     accessToken?: string | null
@@ -37,63 +29,27 @@ type CatalogClient = {
 
 type Requester = <T>(path: string, options?: HttpOptions) => Promise<T>
 
-const buildQuery = (params: CatalogListParams) => {
+type QueryValue = string | number | boolean
+
+const buildQuery = (params: Record<string, unknown>) => {
     const searchParams = new URLSearchParams()
 
-    if (params.search) {
-        searchParams.set("search", params.search)
-    }
+    Object.entries(params).forEach(([key, value]) => {
+        if (value === undefined || value === null) {
+            return
+        }
 
-    if (params.category) {
-        searchParams.set("category", params.category)
-    }
+        if (typeof value === "string" && value.trim() === "") {
+            return
+        }
 
-    if (typeof params.limit === "number") {
-        searchParams.set("limit", params.limit.toString())
-    }
-
-    if (typeof params.offset === "number") {
-        searchParams.set("offset", params.offset.toString())
-    }
+        if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+            searchParams.set(key, String(value as QueryValue))
+        }
+    })
 
     const query = searchParams.toString()
     return query ? `?${query}` : ""
-}
-
-const normalizeListResponse = (payload: unknown): CatalogListResult => {
-    if (Array.isArray(payload)) {
-        return { items: payload as CatalogProduct[] }
-    }
-
-    if (!payload || typeof payload !== "object") {
-        return { items: [] }
-    }
-
-    const record = payload as Record<string, unknown>
-    const itemsValue = Array.isArray(record.items) ? record.items : []
-    const totalValue = typeof record.total === "number" ? record.total : undefined
-
-    return {
-        items: itemsValue as CatalogProduct[],
-        total: totalValue
-    }
-}
-
-const normalizeArrayResponse = (payload: unknown): CatalogVersion[] => {
-    if (Array.isArray(payload)) {
-        return payload as CatalogVersion[]
-    }
-
-    if (!payload || typeof payload !== "object") {
-        return []
-    }
-
-    const record = payload as Record<string, unknown>
-    if (Array.isArray(record.items)) {
-        return record.items as CatalogVersion[]
-    }
-
-    return []
 }
 
 const createRequester = (client?: CatalogClient): Requester => {
@@ -125,23 +81,23 @@ export const createCatalogApi = (client?: CatalogClient) => {
     const request = createRequester(client)
 
     return {
-        listProducts: async (params: CatalogListParams): Promise<CatalogListResult> => {
-            const query = buildQuery(params)
-            const response = await request<unknown>(`/catalog/products${query}`, {
-                method: "GET"
-            })
-            return normalizeListResponse(response)
-        },
-        getProduct: async (id: string): Promise<CatalogProduct> => {
-            return await request<CatalogProduct>(`/catalog/products/${id}`, {
+        listProducts: async (params: ListProductsQueryInput = {}): Promise<ListProductsResponse> => {
+            const query = buildQuery(params as Record<string, unknown>)
+            return await request<ListProductsResponse>(`/catalog/products${query}`, {
                 method: "GET"
             })
         },
-        getVersions: async (productId: string): Promise<CatalogVersion[]> => {
-            const response = await request<unknown>(`/catalog/products/${productId}/versions`, {
+        getProduct: async (id: string): Promise<GetProductResponse> => {
+            const encodedId = encodeURIComponent(id)
+            return await request<GetProductResponse>(`/catalog/products/${encodedId}`, {
                 method: "GET"
             })
-            return normalizeArrayResponse(response)
+        },
+        getVersions: async (productId: string): Promise<GetVersionsResponse> => {
+            const encodedId = encodeURIComponent(productId)
+            return await request<GetVersionsResponse>(`/catalog/products/${encodedId}/versions`, {
+                method: "GET"
+            })
         }
     }
 }
