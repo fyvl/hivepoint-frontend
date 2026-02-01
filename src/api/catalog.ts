@@ -81,21 +81,33 @@ export const createCatalogApi = (client?: CatalogClient) => {
     const request = createRequester(client)
 
     return {
-        listProducts: async (params: ListProductsQueryInput = {}): Promise<ListProductsResponse> => {
+        listProducts: async (
+            params: ListProductsQueryInput = {},
+            options: HttpOptions = {}
+        ): Promise<ListProductsResponse> => {
             const query = buildQuery(params as Record<string, unknown>)
             return await request<ListProductsResponse>(`/catalog/products${query}`, {
+                ...options,
                 method: "GET"
             })
         },
-        getProduct: async (id: string): Promise<GetProductResponse> => {
+        getProduct: async (
+            id: string,
+            options: HttpOptions = {}
+        ): Promise<GetProductResponse> => {
             const encodedId = encodeURIComponent(id)
             return await request<GetProductResponse>(`/catalog/products/${encodedId}`, {
+                ...options,
                 method: "GET"
             })
         },
-        getVersions: async (productId: string): Promise<GetVersionsResponse> => {
+        getVersions: async (
+            productId: string,
+            options: HttpOptions = {}
+        ): Promise<GetVersionsResponse> => {
             const encodedId = encodeURIComponent(productId)
             return await request<GetVersionsResponse>(`/catalog/products/${encodedId}/versions`, {
+                ...options,
                 method: "GET"
             })
         }

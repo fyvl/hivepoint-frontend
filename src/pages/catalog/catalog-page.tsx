@@ -26,6 +26,7 @@ import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { notifyError } from "@/lib/notify"
+import { fetchWithCache } from "@/lib/request-cache"
 
 const limitOptions = [6, 12, 24]
 
@@ -43,6 +44,14 @@ type CatalogFetchState = {
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
     return typeof value === "object" && value !== null
+}
+
+const isAbortError = (error: unknown) => {
+    if (!isRecord(error)) {
+        return false
+    }
+    const name = error.name
+    return typeof name === "string" && name === "AbortError"
 }
 
 const getString = (record: Record<string, unknown> | null, key: string) => {
@@ -110,6 +119,7 @@ export const CatalogPage = () => {
     }, [debouncedSearch, debouncedCategory, limit])
 
     useEffect(() => {
+        const controller = new AbortController()
         let isActive = true
 
         const load = async () => {
@@ -129,7 +139,14 @@ export const CatalogPage = () => {
                     query.category = debouncedCategory
                 }
 
-                const result = await catalogApi.listProducts(query)
+                const cacheKey = `catalog:list:${accessToken ?? "public"}:${JSON.stringify(
+                    query
+                )}`
+                const result = await fetchWithCache(
+                    cacheKey,
+                    async () => await catalogApi.listProducts(query, { signal: controller.signal }),
+                    30000
+                )
 
                 if (!isActive) {
                     return
@@ -140,6 +157,10 @@ export const CatalogPage = () => {
                     total: extractListTotal(result)
                 })
             } catch (err) {
+                if (isAbortError(err)) {
+                    return
+                }
+
                 if (!isActive) {
                     return
                 }
@@ -160,6 +181,7 @@ export const CatalogPage = () => {
 
         return () => {
             isActive = false
+            controller.abort()
         }
     }, [catalogApi, debouncedSearch, debouncedCategory, limit, offset, retryKey])
 

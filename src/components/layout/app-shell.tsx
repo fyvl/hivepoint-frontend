@@ -44,6 +44,8 @@ export const AppShell = ({ children }: AppShellProps) => {
     const [user, setUser] = useState<UserMeResponse | null>(null)
     const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
 
+    const themeLabel = theme === "system" ? "System" : theme === "light" ? "Light" : "Dark"
+
     useEffect(() => {
         let isActive = true
 
@@ -133,7 +135,7 @@ export const AppShell = ({ children }: AppShellProps) => {
                     <div className="flex items-center gap-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" aria-label="Toggle theme">
+                                <Button variant="ghost" size="sm" className="gap-2" aria-label="Toggle theme">
                                     {theme === "dark" ? (
                                         <Moon className="h-4 w-4" />
                                     ) : theme === "light" ? (
@@ -141,22 +143,49 @@ export const AppShell = ({ children }: AppShellProps) => {
                                     ) : (
                                         <Laptop className="h-4 w-4" />
                                     )}
+                                    <span className="hidden sm:inline">{themeLabel}</span>
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Theme</DropdownMenuLabel>
+                                <DropdownMenuLabel className="space-y-1">
+                                    <div className="text-xs uppercase text-muted-foreground">Theme</div>
+                                    <div className="text-sm font-medium">{themeLabel}</div>
+                                    {theme === "system" ? (
+                                        <div className="text-xs text-muted-foreground">
+                                            Follows OS appearance
+                                        </div>
+                                    ) : null}
+                                </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => setTheme("system")}>
+                                <DropdownMenuItem
+                                    className={theme === "system" ? "font-medium" : undefined}
+                                    onClick={() => setTheme("system")}
+                                >
                                     <Laptop className="mr-2 h-4 w-4" />
                                     System
+                                    {theme === "system" ? (
+                                        <span className="ml-auto text-xs text-muted-foreground">Active</span>
+                                    ) : null}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setTheme("light")}>
+                                <DropdownMenuItem
+                                    className={theme === "light" ? "font-medium" : undefined}
+                                    onClick={() => setTheme("light")}
+                                >
                                     <Sun className="mr-2 h-4 w-4" />
                                     Light
+                                    {theme === "light" ? (
+                                        <span className="ml-auto text-xs text-muted-foreground">Active</span>
+                                    ) : null}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                                <DropdownMenuItem
+                                    className={theme === "dark" ? "font-medium" : undefined}
+                                    onClick={() => setTheme("dark")}
+                                >
                                     <Moon className="mr-2 h-4 w-4" />
                                     Dark
+                                    {theme === "dark" ? (
+                                        <span className="ml-auto text-xs text-muted-foreground">Active</span>
+                                    ) : null}
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

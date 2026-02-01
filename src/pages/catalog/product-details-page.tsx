@@ -35,6 +35,7 @@ import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { LoadingBlock } from "@/components/ui-states/loading-block"
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
+import { formatCurrency, formatNumber } from "@/lib/format"
 import { DevMockPaymentActions } from "@/pages/billing/dev-mock-payment"
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
@@ -75,17 +76,6 @@ const extractVersions = (payload: GetVersionsResponse): CatalogVersion[] => {
 
 const extractPlans = (payload: ListPlansResponse): Plan[] => {
     return payload.items ?? []
-}
-
-const formatPrice = (priceCents: number, currency: string) => {
-    try {
-        return new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency
-        }).format(priceCents / 100)
-    } catch {
-        return `${priceCents / 100} ${currency}`
-    }
 }
 
 export const ProductDetailsPage = () => {
@@ -441,7 +431,7 @@ const PlanCard = ({ plan, onSubscribe, isSubscribing, isAuthenticated }: PlanCar
                     <div>
                         <CardTitle>{plan.name}</CardTitle>
                         <CardDescription>
-                            {formatPrice(plan.priceCents, plan.currency)} · {plan.period}
+                            {formatCurrency(plan.priceCents, plan.currency)} · {plan.period}
                         </CardDescription>
                     </div>
                     <Badge variant={plan.isActive ? "default" : "secondary"}>
@@ -450,7 +440,7 @@ const PlanCard = ({ plan, onSubscribe, isSubscribing, isAuthenticated }: PlanCar
                 </div>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
-                {plan.quotaRequests} requests per period
+                {formatNumber(plan.quotaRequests)} requests per period
             </CardContent>
             <CardContent className="flex items-center justify-between">
                 {isAuthenticated ? (

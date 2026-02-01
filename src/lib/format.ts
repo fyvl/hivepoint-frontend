@@ -17,4 +17,15 @@ export const formatNumber = (value: number) => {
     }
 }
 
+export const formatCurrency = (priceCents: number, currency: string) => {
+    try {
+        return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency
+        }).format(priceCents / 100)
+    } catch {
+        return `${priceCents / 100} ${currency}`
+    }
+}
+
 

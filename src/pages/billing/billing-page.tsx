@@ -25,18 +25,7 @@ import {
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { notifyError, notifySuccess } from "@/lib/notify"
-import { formatDate } from "@/lib/format"
-
-const formatPrice = (priceCents: number, currency: string) => {
-    try {
-        return new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency
-        }).format(priceCents / 100)
-    } catch {
-        return `${priceCents / 100} ${currency}`
-    }
-}
+import { formatCurrency, formatDate, formatNumber } from "@/lib/format"
 
 export const BillingPage = () => {
     const { accessToken, refresh } = useAuth()
@@ -219,12 +208,12 @@ const SubscriptionCard = ({ subscription, onCancel, isCanceling }: SubscriptionC
                         {formatDate(subscription.currentPeriodStart)} - {formatDate(subscription.currentPeriodEnd)}
                     </div>
                 </div>
-                <div>
-                    <div className="text-xs uppercase">Plan</div>
                     <div>
-                        {formatPrice(plan.priceCents, plan.currency)} · {plan.quotaRequests} requests
+                        <div className="text-xs uppercase">Plan</div>
+                        <div>
+                            {formatCurrency(plan.priceCents, plan.currency)} · {formatNumber(plan.quotaRequests)} requests
+                        </div>
                     </div>
-                </div>
                 <div>
                     <div className="text-xs uppercase">Cancel at period end</div>
                     <div>{subscription.cancelAtPeriodEnd ? "Yes" : "No"}</div>
