@@ -15,6 +15,13 @@ import {
     CardHeader,
     CardTitle
 } from "@/components/ui/card"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle
+} from "@/components/ui/dialog"
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { notifyError, notifySuccess } from "@/lib/notify"
@@ -43,6 +50,8 @@ export const BillingPage = () => {
     const [error, setError] = useState<ApiError | null>(null)
     const [cancelingId, setCancelingId] = useState<string | null>(null)
     const [retryKey, setRetryKey] = useState(0)
+    const [pendingCancel, setPendingCancel] = useState<Subscription | null>(null)
+    const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
 
     const loadSubscriptions = async () => {
         setIsLoading(true)
@@ -75,6 +84,18 @@ export const BillingPage = () => {
             notifyError(apiError ?? err, "Cancel failed")
         } finally {
             setCancelingId(null)
+        }
+    }
+
+    const handleOpenCancel = (subscription: Subscription) => {
+        setPendingCancel(subscription)
+        setIsCancelDialogOpen(true)
+    }
+
+    const handleCancelDialogChange = (open: boolean) => {
+        setIsCancelDialogOpen(open)
+        if (!open) {
+            setPendingCancel(null)
         }
     }
 
@@ -113,19 +134,60 @@ export const BillingPage = () => {
                         <SubscriptionCard
                             key={subscription.id}
                             subscription={subscription}
-                            onCancel={handleCancel}
+                            onCancel={handleOpenCancel}
                             isCanceling={cancelingId === subscription.id}
                         />
                     ))}
                 </div>
             ) : null}
+
+            <Dialog open={isCancelDialogOpen} onOpenChange={handleCancelDialogChange}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Cancel subscription</DialogTitle>
+                        <DialogDescription>
+                            This will mark the subscription to cancel at period end.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="text-sm text-muted-foreground">
+                            {pendingCancel
+                                ? `${pendingCancel.product.title} · ${pendingCancel.plan.name}`
+                                : "Select a subscription to cancel."}
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsCancelDialogOpen(false)}
+                            >
+                                Keep subscription
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                disabled={!pendingCancel || cancelingId === pendingCancel?.id}
+                                onClick={() => {
+                                    if (!pendingCancel) {
+                                        return
+                                    }
+                                    handleCancel(pendingCancel.id)
+                                    setIsCancelDialogOpen(false)
+                                }}
+                            >
+                                Confirm cancel
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
 
 type SubscriptionCardProps = {
     subscription: Subscription
-    onCancel: (id: string) => void
+    onCancel: (subscription: Subscription) => void
     isCanceling: boolean
 }
 
@@ -173,7 +235,7 @@ const SubscriptionCard = ({ subscription, onCancel, isCanceling }: SubscriptionC
                     variant="outline"
                     size="sm"
                     disabled={!canCancel || isCanceling}
-                    onClick={() => onCancel(subscription.id)}
+                    onClick={() => onCancel(subscription)}
                 >
                     {subscription.cancelAtPeriodEnd
                         ? "Cancellation scheduled"

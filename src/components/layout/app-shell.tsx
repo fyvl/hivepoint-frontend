@@ -1,7 +1,9 @@
-import { Laptop, Moon, Sun } from "lucide-react"
+import { Laptop, Menu, Moon, Sun } from "lucide-react"
 import { Link, NavLink } from "react-router-dom"
+import { useEffect, useMemo, useState } from "react"
 
 import { useAuth } from "@/auth/auth-context"
+import { getMe, type UserMeResponse } from "@/api/users"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -12,6 +14,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useTheme } from "@/theme/theme-context"
 
@@ -36,14 +39,93 @@ type AppShellProps = {
 }
 
 export const AppShell = ({ children }: AppShellProps) => {
-    const { accessToken, logout } = useAuth()
+    const { accessToken, refresh, logout } = useAuth()
     const { theme, setTheme } = useTheme()
+    const [user, setUser] = useState<UserMeResponse | null>(null)
+    const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
+
+    useEffect(() => {
+        let isActive = true
+
+        const loadUser = async () => {
+            if (!accessToken) {
+                setUser(null)
+                return
+            }
+            try {
+                const data = await getMe(accessToken, refresh)
+                if (isActive) {
+                    setUser(data)
+                }
+            } catch {
+                if (isActive) {
+                    setUser(null)
+                }
+            }
+        }
+
+        loadUser()
+
+        return () => {
+            isActive = false
+        }
+    }, [accessToken, refresh])
+
+    const accountLabel = useMemo(() => {
+        if (!user || typeof user !== "object") {
+            return "Account"
+        }
+        const email = (user as { email?: string }).email
+        return email || "Account"
+    }, [user])
+
+    const accountRole = useMemo(() => {
+        if (!user || typeof user !== "object") {
+            return null
+        }
+        return (user as { role?: string }).role ?? null
+    }, [user])
 
     return (
         <div className="min-h-screen bg-muted/40">
             <header className="border-b bg-background">
                 <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
                     <div className="flex items-center gap-3">
+                        <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
+                                    <Menu className="h-4 w-4" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent>
+                                <SheetHeader>
+                                    <SheetTitle>Navigation</SheetTitle>
+                                </SheetHeader>
+                                <div className="mt-6 flex flex-col gap-2">
+                                    {publicNav.map((item) => (
+                                        <MobileNavLink
+                                            key={item.to}
+                                            to={item.to}
+                                            label={item.label}
+                                            onNavigate={() => setIsMobileNavOpen(false)}
+                                        />
+                                    ))}
+                                    {accessToken ? (
+                                        <>
+                                            <Separator className="my-2" />
+                                            {protectedNav.map((item) => (
+                                                <MobileNavLink
+                                                    key={item.to}
+                                                    to={item.to}
+                                                    label={item.label}
+                                                    onNavigate={() => setIsMobileNavOpen(false)}
+                                                />
+                                            ))}
+                                        </>
+                                    ) : null}
+                                </div>
+                            </SheetContent>
+                        </Sheet>
                         <Link className="text-lg font-semibold" to="/">
                             HivePoint
                         </Link>
@@ -82,11 +164,16 @@ export const AppShell = ({ children }: AppShellProps) => {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="sm">
-                                        Account
+                                        {accountLabel}
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Account</DropdownMenuLabel>
+                                    <DropdownMenuLabel className="space-y-1">
+                                        <div className="text-sm font-medium">{accountLabel}</div>
+                                        {accountRole ? (
+                                            <div className="text-xs text-muted-foreground">{accountRole}</div>
+                                        ) : null}
+                                    </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem asChild>
                                         <Link to="/debug/connection">Debug connection</Link>
@@ -149,6 +236,30 @@ const NavItemLink = ({ to, label }: NavItemLinkProps) => {
                     isActive && "bg-accent text-accent-foreground"
                 )
             }
+        >
+            {label}
+        </NavLink>
+    )
+}
+
+type MobileNavLinkProps = {
+    to: string
+    label: string
+    onNavigate?: () => void
+}
+
+const MobileNavLink = ({ to, label, onNavigate }: MobileNavLinkProps) => {
+    return (
+        <NavLink
+            to={to}
+            className={({ isActive }) =>
+                cn(
+                    buttonVariants({ variant: "ghost", size: "sm" }),
+                    "w-full justify-start",
+                    isActive && "bg-accent text-accent-foreground"
+                )
+            }
+            onClick={onNavigate}
         >
             {label}
         </NavLink>

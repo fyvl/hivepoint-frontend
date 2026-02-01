@@ -16,11 +16,32 @@ export const LoginPage = () => {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
 
     const from = (location.state as { from?: string } | null)?.from ?? "/"
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
+        const nextErrors: { email?: string; password?: string } = {}
+        const trimmedEmail = email.trim()
+
+        if (!trimmedEmail) {
+            nextErrors.email = "Email is required."
+        } else if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+            nextErrors.email = "Enter a valid email."
+        }
+
+        if (!password) {
+            nextErrors.password = "Password is required."
+        } else if (password.length < 8) {
+            nextErrors.password = "Password must be at least 8 characters."
+        }
+
+        setErrors(nextErrors)
+        if (Object.keys(nextErrors).length > 0) {
+            return
+        }
+
         setIsSubmitting(true)
         try {
             await login({ email, password })
@@ -50,9 +71,21 @@ export const LoginPage = () => {
                                 type="email"
                                 autoComplete="email"
                                 value={email}
-                                onChange={(event) => setEmail(event.target.value)}
+                                onChange={(event) => {
+                                    setEmail(event.target.value)
+                                    if (errors.email) {
+                                        setErrors((prev) => ({ ...prev, email: undefined }))
+                                    }
+                                }}
+                                aria-invalid={Boolean(errors.email)}
+                                aria-describedby={errors.email ? "email-error" : undefined}
                                 required
                             />
+                            {errors.email ? (
+                                <p id="email-error" className="text-xs text-destructive">
+                                    {errors.email}
+                                </p>
+                            ) : null}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
@@ -61,9 +94,21 @@ export const LoginPage = () => {
                                 type="password"
                                 autoComplete="current-password"
                                 value={password}
-                                onChange={(event) => setPassword(event.target.value)}
+                                onChange={(event) => {
+                                    setPassword(event.target.value)
+                                    if (errors.password) {
+                                        setErrors((prev) => ({ ...prev, password: undefined }))
+                                    }
+                                }}
+                                aria-invalid={Boolean(errors.password)}
+                                aria-describedby={errors.password ? "password-error" : undefined}
                                 required
                             />
+                            {errors.password ? (
+                                <p id="password-error" className="text-xs text-destructive">
+                                    {errors.password}
+                                </p>
+                            ) : null}
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-3">

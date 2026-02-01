@@ -46,6 +46,8 @@ export const KeysPage = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [revokingId, setRevokingId] = useState<string | null>(null)
     const [retryKey, setRetryKey] = useState(0)
+    const [pendingRevoke, setPendingRevoke] = useState<KeyItem | null>(null)
+    const [isRevokeDialogOpen, setIsRevokeDialogOpen] = useState(false)
 
     const loadKeys = async () => {
         setIsLoading(true)
@@ -95,6 +97,18 @@ export const KeysPage = () => {
         if (!open) {
             setRawKey(null)
             setNewKeyMeta(null)
+        }
+    }
+
+    const handleOpenRevoke = (item: KeyItem) => {
+        setPendingRevoke(item)
+        setIsRevokeDialogOpen(true)
+    }
+
+    const handleRevokeDialogChange = (open: boolean) => {
+        setIsRevokeDialogOpen(open)
+        if (!open) {
+            setPendingRevoke(null)
         }
     }
 
@@ -179,7 +193,7 @@ export const KeysPage = () => {
                                 <KeyRow
                                     key={key.id}
                                     item={key}
-                                    onRevoke={handleRevoke}
+                                    onRevoke={handleOpenRevoke}
                                     isRevoking={revokingId === key.id}
                                 />
                             ))}
@@ -213,13 +227,54 @@ export const KeysPage = () => {
                     )}
                 </DialogContent>
             </Dialog>
+
+            <Dialog open={isRevokeDialogOpen} onOpenChange={handleRevokeDialogChange}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Revoke API key</DialogTitle>
+                        <DialogDescription>
+                            This action cannot be undone. The key will stop working immediately.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="text-sm text-muted-foreground">
+                            {pendingRevoke
+                                ? `Key: ${pendingRevoke.label}`
+                                : "Select a key to revoke."}
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsRevokeDialogOpen(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                disabled={!pendingRevoke || revokingId === pendingRevoke?.id}
+                                onClick={() => {
+                                    if (!pendingRevoke) {
+                                        return
+                                    }
+                                    handleRevoke(pendingRevoke.id)
+                                    setIsRevokeDialogOpen(false)
+                                }}
+                            >
+                                Revoke key
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
 
 type KeyRowProps = {
     item: KeyItem
-    onRevoke: (id: string) => void
+    onRevoke: (item: KeyItem) => void
     isRevoking: boolean
 }
 
@@ -241,7 +296,7 @@ const KeyRow = ({ item, onRevoke, isRevoking }: KeyRowProps) => {
                 variant="outline"
                 size="sm"
                 disabled={isRevoked || isRevoking}
-                onClick={() => onRevoke(item.id)}
+                onClick={() => onRevoke(item)}
             >
                 {isRevoking ? "Revoking..." : "Revoke"}
             </Button>
