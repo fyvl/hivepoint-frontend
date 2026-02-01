@@ -10,6 +10,7 @@ import { ProductDetailsPage } from "@/pages/catalog/product-details-page"
 import { KeysPage } from "@/pages/keys/keys-page"
 import { LoginPage } from "@/pages/login-page"
 import { RegisterPage } from "@/pages/register-page"
+import { UsagePage } from "@/pages/usage/usage-page"
 
 export default function App() {
     const { accessToken, logout } = useAuth()
@@ -33,6 +34,9 @@ export default function App() {
                                     </Button>
                                     <Button asChild variant="ghost" size="sm">
                                         <Link to="/keys">Keys</Link>
+                                    </Button>
+                                    <Button asChild variant="ghost" size="sm">
+                                        <Link to="/usage">Usage</Link>
                                     </Button>
                                     <Button asChild variant="ghost" size="sm">
                                         <Link to="/debug/connection">Debug</Link>
@@ -69,6 +73,7 @@ export default function App() {
                     <Route element={<RequireAuth />}>
                         <Route path="/billing" element={<BillingPage />} />
                         <Route path="/keys" element={<KeysPage />} />
+                        <Route path="/usage" element={<UsagePage />} />
                         <Route path="/debug/connection" element={<DebugConnectionPage />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/catalog" replace />} />

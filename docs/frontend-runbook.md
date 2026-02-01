@@ -36,6 +36,12 @@ Then visit `/catalog` to browse products. Use `/login` or `/register` and verify
 - Visit `/keys` to create and manage API keys.
 - The raw key is shown only once after creation; store it securely.
 
+## Usage
+- Visit `/usage` to view current billing-period usage per subscription.
+- In DEV only, the page exposes a usage ingest tool that calls:
+  - `POST /usage/record` with header `x-usage-secret`
+  - Use the backend `USAGE_INGEST_SECRET` value for the header.
+
 ## Generating API types
 - Ensure the backend is running locally and serves `/openapi.json`.
 - Run: `npm run api:generate`

@@ -7,6 +7,7 @@
 - `src/api/catalog.ts` implements catalog endpoints using OpenAPI-derived types for `/catalog/products`, `/catalog/products/{id}`, `/catalog/products/{id}/versions`.
 - `src/api/billing.ts` implements plan listing, subscribe, subscription list/cancel, and DEV mock payment helpers using OpenAPI-derived types.
 - `src/api/keys.ts` implements key creation, listing, and revocation using OpenAPI-derived types.
+- `src/api/usage.ts` implements usage summary plus DEV usage ingestion helpers using OpenAPI-derived types.
 - `src/api/generated/schema.d.ts` is generated from OpenAPI (`/openapi.json`) via `openapi-typescript`.
 - `src/api/types.ts` provides helper types for schema-derived request/response typing.
 - `src/api/users.ts` wraps `/users/me` with typed request/response shapes.
@@ -30,6 +31,7 @@
 - `src/pages/billing/billing-page.tsx` renders `/billing` with subscriptions and cancel actions.
 - `src/pages/billing/dev-mock-payment.tsx` renders DEV-only mock payment controls in the subscribe dialog.
 - `src/pages/keys/keys-page.tsx` renders `/keys` with key creation, listing, and revocation.
+- `src/pages/usage/usage-page.tsx` renders `/usage` with per-subscription usage cards and DEV ingest tools.
 
 ## UI system
 - UI uses shadcn/ui components (Button, Card, Input, Label, Toast, Tabs, Dialog, Dropdown Menu, Badge).
