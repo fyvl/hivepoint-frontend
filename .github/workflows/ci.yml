@@ -30,7 +30,7 @@ jobs:
       - name: Detect scripts
         id: scripts
         run: |
-          node -e "const pkg=require('./package.json');const s=pkg.scripts||{};const has=(n)=>Object.prototype.hasOwnProperty.call(s,n);const fs=require('fs');fs.appendFileSync(process.env.GITHUB_OUTPUT,`hasLint=${has('lint')}\n`);fs.appendFileSync(process.env.GITHUB_OUTPUT,`hasTest=${has('test')}\n`);fs.appendFileSync(process.env.GITHUB_OUTPUT,`hasTestUnit=${has('test:unit')}\n`);"
+          node -e "const pkg=require('./package.json');const s=pkg.scripts||{};const has=(n)=>Object.prototype.hasOwnProperty.call(s,n);const fs=require('fs');const out=process.env.GITHUB_OUTPUT;const line=(k,v)=>fs.appendFileSync(out,k+'='+v+'\\n');line('hasLint',has('lint'));line('hasTest',has('test'));line('hasTestUnit',has('test:unit'));"
 
       - name: Lint
         if: steps.scripts.outputs.hasLint == 'true'
