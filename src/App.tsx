@@ -4,6 +4,7 @@ import { useAuth } from "@/auth/auth-context"
 import { RequireAuth } from "@/auth/require-auth"
 import { Button } from "@/components/ui/button"
 import { DebugConnectionPage } from "@/pages/debug-connection-page"
+import { BillingPage } from "@/pages/billing/billing-page"
 import { CatalogPage } from "@/pages/catalog/catalog-page"
 import { ProductDetailsPage } from "@/pages/catalog/product-details-page"
 import { LoginPage } from "@/pages/login-page"
@@ -25,9 +26,14 @@ export default function App() {
                                 <Link to="/catalog">Catalog</Link>
                             </Button>
                             {accessToken ? (
-                                <Button asChild variant="ghost" size="sm">
-                                    <Link to="/debug/connection">Debug</Link>
-                                </Button>
+                                <>
+                                    <Button asChild variant="ghost" size="sm">
+                                        <Link to="/billing">Billing</Link>
+                                    </Button>
+                                    <Button asChild variant="ghost" size="sm">
+                                        <Link to="/debug/connection">Debug</Link>
+                                    </Button>
+                                </>
                             ) : null}
                         </nav>
                     </div>
@@ -57,6 +63,7 @@ export default function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route element={<RequireAuth />}>
+                        <Route path="/billing" element={<BillingPage />} />
                         <Route path="/debug/connection" element={<DebugConnectionPage />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/catalog" replace />} />

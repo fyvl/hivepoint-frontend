@@ -24,6 +24,14 @@ Then visit `/catalog` to browse products. Use `/login` or `/register` and verify
 - Protected requests attach `Authorization: Bearer <accessToken>` when available.
 - On app start, the auth context calls `POST /auth/refresh` once to hydrate the access token.
 
+## Billing (dev flow)
+- Go to a product page and subscribe to a plan to get a `paymentLink` + `invoiceId`.
+- In DEV only, the subscribe dialog exposes mock payment buttons.
+- Provide the backend `MOCK_PAYMENT_SECRET` and the UI will call:
+  - `POST /billing/mock/succeed?invoiceId=...` with header `x-mock-payment-secret`
+  - `POST /billing/mock/fail?invoiceId=...` with header `x-mock-payment-secret`
+- After a mock succeed, refresh `/billing` to see the subscription become ACTIVE.
+
 ## Generating API types
 - Ensure the backend is running locally and serves `/openapi.json`.
 - Run: `npm run api:generate`
