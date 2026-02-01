@@ -7,6 +7,7 @@ import { DebugConnectionPage } from "@/pages/debug-connection-page"
 import { BillingPage } from "@/pages/billing/billing-page"
 import { CatalogPage } from "@/pages/catalog/catalog-page"
 import { ProductDetailsPage } from "@/pages/catalog/product-details-page"
+import { KeysPage } from "@/pages/keys/keys-page"
 import { LoginPage } from "@/pages/login-page"
 import { RegisterPage } from "@/pages/register-page"
 
@@ -29,6 +30,9 @@ export default function App() {
                                 <>
                                     <Button asChild variant="ghost" size="sm">
                                         <Link to="/billing">Billing</Link>
+                                    </Button>
+                                    <Button asChild variant="ghost" size="sm">
+                                        <Link to="/keys">Keys</Link>
                                     </Button>
                                     <Button asChild variant="ghost" size="sm">
                                         <Link to="/debug/connection">Debug</Link>
@@ -64,6 +68,7 @@ export default function App() {
                     <Route path="/register" element={<RegisterPage />} />
                     <Route element={<RequireAuth />}>
                         <Route path="/billing" element={<BillingPage />} />
+                        <Route path="/keys" element={<KeysPage />} />
                         <Route path="/debug/connection" element={<DebugConnectionPage />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/catalog" replace />} />

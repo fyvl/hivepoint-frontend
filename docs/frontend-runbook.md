@@ -32,6 +32,10 @@ Then visit `/catalog` to browse products. Use `/login` or `/register` and verify
   - `POST /billing/mock/fail?invoiceId=...` with header `x-mock-payment-secret`
 - After a mock succeed, refresh `/billing` to see the subscription become ACTIVE.
 
+## API keys
+- Visit `/keys` to create and manage API keys.
+- The raw key is shown only once after creation; store it securely.
+
 ## Generating API types
 - Ensure the backend is running locally and serves `/openapi.json`.
 - Run: `npm run api:generate`
