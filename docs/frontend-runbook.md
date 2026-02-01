@@ -16,7 +16,7 @@
 ```bash
 npm run dev
 ```
-Then visit `/login` or `/register`, and verify `/debug/connection` once authenticated.
+Then visit `/catalog` to browse products. Use `/login` or `/register` and verify `/debug/connection` once authenticated.
 
 ## Integration notes
 - The HTTP client always sends `credentials: "include"` so the refresh cookie can be sent.
