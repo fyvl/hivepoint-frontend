@@ -4,6 +4,7 @@ import { ApiError } from "@/api/http"
 import { createKeysApi, type CreateKeyResponse, type KeyItem } from "@/api/keys"
 import { useAuth } from "@/auth/auth-context"
 import { CopyButton } from "@/components/copy-button"
+import { KeysTableSkeleton } from "@/components/skeletons/keys-table-skeleton"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,13 +26,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
-import { LoadingBlock } from "@/components/ui-states/loading-block"
-import { useToast } from "@/hooks/use-toast"
+import { notifyError, notifySuccess } from "@/lib/notify"
 import { formatDate } from "@/lib/format"
 
 export const KeysPage = () => {
     const { accessToken, refresh } = useAuth()
-    const { toast } = useToast()
     const keysApi = useMemo(
         () => createKeysApi({ accessToken, refresh }),
         [accessToken, refresh]
@@ -58,11 +57,7 @@ export const KeysPage = () => {
             const apiError = err instanceof ApiError ? err : null
             setError(apiError)
             setKeys([])
-            toast({
-                title: apiError?.code ?? "Keys error",
-                description: apiError?.message ?? "Unable to load API keys.",
-                variant: "destructive"
-            })
+            notifyError(apiError ?? err, "Keys error")
         } finally {
             setIsLoading(false)
         }
@@ -85,18 +80,11 @@ export const KeysPage = () => {
             setRawKey(response.rawKey)
             setNewKeyMeta(response)
             setIsDialogOpen(true)
-            toast({
-                title: "Key created",
-                description: "Copy the key now. It will not be shown again."
-            })
+            notifySuccess("API key created", "Copy the key now. It will not be shown again.")
             await loadKeys()
         } catch (err) {
             const apiError = err instanceof ApiError ? err : null
-            toast({
-                title: apiError?.code ?? "Create failed",
-                description: apiError?.message ?? "Unable to create key.",
-                variant: "destructive"
-            })
+            notifyError(apiError ?? err, "Create failed")
         } finally {
             setIsCreating(false)
         }
@@ -114,18 +102,11 @@ export const KeysPage = () => {
         setRevokingId(keyId)
         try {
             await keysApi.revokeKey(keyId)
-            toast({
-                title: "Key revoked",
-                description: "The key has been revoked."
-            })
+            notifySuccess("API key revoked", "The key has been revoked.")
             await loadKeys()
         } catch (err) {
             const apiError = err instanceof ApiError ? err : null
-            toast({
-                title: apiError?.code ?? "Revoke failed",
-                description: apiError?.message ?? "Unable to revoke key.",
-                variant: "destructive"
-            })
+            notifyError(apiError ?? err, "Revoke failed")
         } finally {
             setRevokingId(null)
         }
@@ -168,9 +149,7 @@ export const KeysPage = () => {
                 </form>
             </Card>
 
-            {isLoading ? (
-                <LoadingBlock title="Loading keys..." count={2} />
-            ) : null}
+            {isLoading ? <KeysTableSkeleton /> : null}
 
             {error && !isLoading ? (
                 <ErrorBlock

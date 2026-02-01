@@ -9,6 +9,7 @@ import {
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
 import { StatusBadge } from "@/components/status-badge"
+import { CatalogGridSkeleton } from "@/components/skeletons/catalog-grid-skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,9 +24,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
-import { LoadingBlock } from "@/components/ui-states/loading-block"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
-import { useToast } from "@/hooks/use-toast"
+import { notifyError } from "@/lib/notify"
 
 const limitOptions = [6, 12, 24]
 
@@ -88,7 +88,6 @@ const extractListTotal = (payload: ListProductsResponse): number | undefined => 
 
 export const CatalogPage = () => {
     const { accessToken, refresh } = useAuth()
-    const { toast } = useToast()
     const catalogApi = useMemo(
         () => createCatalogApi({ accessToken, refresh }),
         [accessToken, refresh]
@@ -149,11 +148,7 @@ export const CatalogPage = () => {
                 setError(apiError)
                 setState({ items: [] })
 
-                toast({
-                    title: apiError?.code ?? "Catalog error",
-                    description: apiError?.message ?? "Unable to load the catalog.",
-                    variant: "destructive"
-                })
+                notifyError(apiError ?? err, "Catalog error")
             } finally {
                 if (isActive) {
                     setIsLoading(false)
@@ -166,7 +161,7 @@ export const CatalogPage = () => {
         return () => {
             isActive = false
         }
-    }, [catalogApi, debouncedSearch, debouncedCategory, limit, offset, toast, retryKey])
+    }, [catalogApi, debouncedSearch, debouncedCategory, limit, offset, retryKey])
 
     const hasPrev = offset > 0
     const hasNext = state.total !== undefined
@@ -228,10 +223,7 @@ export const CatalogPage = () => {
             </div>
 
             {isLoading ? (
-                <LoadingBlock
-                    title="Loading catalog..."
-                    count={Math.min(limit, 6)}
-                />
+                <CatalogGridSkeleton count={Math.min(limit, 6)} />
             ) : null}
 
             {error && !isLoading ? (

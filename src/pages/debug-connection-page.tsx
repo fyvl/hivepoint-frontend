@@ -23,7 +23,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useToast } from "@/hooks/use-toast"
+import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
 
 const formatJson = (value: unknown) => {
     if (value === null || value === undefined) {
@@ -34,7 +34,6 @@ const formatJson = (value: unknown) => {
 
 export const DebugConnectionPage = () => {
     const { accessToken, refresh, logout } = useAuth()
-    const { toast } = useToast()
     const [isLoading, setIsLoading] = useState(false)
     const [response, setResponse] = useState<UserMeResponse | null>(null)
     const [error, setError] = useState<ApiError | null>(null)
@@ -45,18 +44,11 @@ export const DebugConnectionPage = () => {
         try {
             const data = await getMe(accessToken, refresh)
             setResponse(data)
-            toast({
-                title: "Connected",
-                description: "Fetched /users/me successfully."
-            })
+            notifySuccess("Connected", "Fetched /users/me successfully.")
         } catch (err) {
             const apiError = err instanceof ApiError ? err : null
             setError(apiError)
-            toast({
-                title: apiError?.code ?? "Request failed",
-                description: apiError?.message ?? "Unable to reach /users/me.",
-                variant: "destructive"
-            })
+            notifyError(apiError ?? err, "Request failed")
         } finally {
             setIsLoading(false)
         }
@@ -65,25 +57,15 @@ export const DebugConnectionPage = () => {
     const handleRefresh = async () => {
         const token = await refresh()
         if (token) {
-            toast({
-                title: "Session refreshed",
-                description: "Received a new access token."
-            })
+            notifySuccess("Session refreshed", "Received a new access token.")
         } else {
-            toast({
-                title: "Refresh failed",
-                description: "No refresh cookie or refresh was rejected.",
-                variant: "destructive"
-            })
+            notifyInfo("Refresh failed", "No refresh cookie or refresh was rejected.")
         }
     }
 
     const handleLogout = async () => {
         await logout()
-        toast({
-            title: "Logged out",
-            description: "Refresh cookie cleared on the backend."
-        })
+        notifySuccess("Logged out", "Refresh cookie cleared on the backend.")
     }
 
     return (

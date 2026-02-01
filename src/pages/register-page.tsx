@@ -7,11 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
+import { notifyError, notifySuccess } from "@/lib/notify"
 
 export const RegisterPage = () => {
     const { register } = useAuth()
-    const { toast } = useToast()
     const navigate = useNavigate()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -22,25 +21,11 @@ export const RegisterPage = () => {
         setIsSubmitting(true)
         try {
             await register({ email, password })
-            toast({
-                title: "Registration complete",
-                description: "You can now sign in with your credentials."
-            })
+            notifySuccess("Registration complete", "You can now sign in with your credentials.")
             navigate("/login")
         } catch (error) {
-            if (error instanceof ApiError) {
-                toast({
-                    title: error.code ?? "Registration failed",
-                    description: error.message,
-                    variant: "destructive"
-                })
-            } else {
-                toast({
-                    title: "Registration failed",
-                    description: "Unexpected error while registering.",
-                    variant: "destructive"
-                })
-            }
+            const apiError = error instanceof ApiError ? error : null
+            notifyError(apiError ?? error, apiError?.code ?? "Registration failed")
         } finally {
             setIsSubmitting(false)
         }

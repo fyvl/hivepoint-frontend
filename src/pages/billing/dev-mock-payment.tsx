@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
+import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
 
 const isDev = import.meta.env.DEV
 
@@ -16,7 +16,6 @@ type DevMockPaymentProps = {
 }
 
 export const DevMockPaymentActions = ({ invoiceId, onSuccess }: DevMockPaymentProps) => {
-    const { toast } = useToast()
     const [secret, setSecret] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -26,11 +25,7 @@ export const DevMockPaymentActions = ({ invoiceId, onSuccess }: DevMockPaymentPr
 
     const runAction = async (action: "succeed" | "fail") => {
         if (!secret.trim()) {
-            toast({
-                title: "Missing secret",
-                description: "Provide MOCK_PAYMENT_SECRET to call mock endpoints.",
-                variant: "destructive"
-            })
+            notifyInfo("Missing secret", "Provide MOCK_PAYMENT_SECRET to call mock endpoints.")
             return
         }
 
@@ -38,25 +33,15 @@ export const DevMockPaymentActions = ({ invoiceId, onSuccess }: DevMockPaymentPr
         try {
             if (action === "succeed") {
                 await mockPayment.succeed(invoiceId, secret)
-                toast({
-                    title: "Mock payment succeeded",
-                    description: "Invoice marked PAID."
-                })
+                notifySuccess("Payment marked as paid", "Invoice marked PAID.")
             } else {
                 await mockPayment.fail(invoiceId, secret)
-                toast({
-                    title: "Mock payment failed",
-                    description: "Invoice marked VOID."
-                })
+                notifySuccess("Payment marked as failed", "Invoice marked VOID.")
             }
             onSuccess?.()
         } catch (error) {
             const apiError = error instanceof ApiError ? error : null
-            toast({
-                title: apiError?.code ?? "Mock payment failed",
-                description: apiError?.message ?? "Unable to call mock endpoint.",
-                variant: "destructive"
-            })
+            notifyError(apiError ?? error, "Mock payment failed")
         } finally {
             setIsSubmitting(false)
         }

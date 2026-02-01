@@ -1,5 +1,5 @@
 import { Button, type ButtonProps } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
+import { notifyError, notifySuccess } from "@/lib/notify"
 
 type CopyButtonProps = {
     value: string
@@ -14,24 +14,15 @@ export const CopyButton = ({
     variant = "outline",
     size = "sm"
 }: CopyButtonProps) => {
-    const { toast } = useToast()
-
     const handleCopy = async () => {
         if (!value) {
             return
         }
         try {
             await navigator.clipboard.writeText(value)
-            toast({
-                title: "Copied",
-                description: "Copied to clipboard."
-            })
+            notifySuccess("Copied", "Copied to clipboard.")
         } catch {
-            toast({
-                title: "Copy failed",
-                description: "Unable to copy to clipboard.",
-                variant: "destructive"
-            })
+            notifyError(new Error("Unable to copy to clipboard."), "Copy failed")
         }
     }
 

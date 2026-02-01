@@ -9,6 +9,7 @@ import {
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
 import { Badge } from "@/components/ui/badge"
+import { UsageSkeleton } from "@/components/skeletons/usage-skeleton"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -31,8 +32,7 @@ import {
 } from "@/components/ui/select"
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
-import { LoadingBlock } from "@/components/ui-states/loading-block"
-import { useToast } from "@/hooks/use-toast"
+import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
 import { formatDate, formatNumber } from "@/lib/format"
 
 const clampPercent = (value: number) => {
@@ -54,7 +54,6 @@ const resolvePercent = (item: UsageSummaryItem) => {
 
 export const UsagePage = () => {
     const { accessToken, refresh } = useAuth()
-    const { toast } = useToast()
     const usageApi = useMemo(
         () => createUsageApi({ accessToken, refresh }),
         [accessToken, refresh]
@@ -81,11 +80,7 @@ export const UsagePage = () => {
             const apiError = err instanceof ApiError ? err : null
             setError(apiError)
             setItems([])
-            toast({
-                title: apiError?.code ?? "Usage error",
-                description: apiError?.message ?? "Unable to load usage summary.",
-                variant: "destructive"
-            })
+            notifyError(apiError ?? err, "Usage error")
         } finally {
             setIsLoading(false)
         }
@@ -117,41 +112,25 @@ export const UsagePage = () => {
         }
 
         if (!devSubscriptionId) {
-            toast({
-                title: "Missing subscription",
-                description: "Select a subscription before sending usage.",
-                variant: "destructive"
-            })
+            notifyInfo("Missing subscription", "Select a subscription before sending usage.")
             return
         }
 
         const endpoint = devEndpoint.trim()
         if (!endpoint) {
-            toast({
-                title: "Endpoint required",
-                description: "Provide an endpoint label to ingest usage.",
-                variant: "destructive"
-            })
+            notifyInfo("Endpoint required", "Provide an endpoint label to ingest usage.")
             return
         }
 
         const requestCount = Number(devRequestCount)
         if (!Number.isFinite(requestCount) || requestCount <= 0) {
-            toast({
-                title: "Invalid request count",
-                description: "Request count must be a positive number.",
-                variant: "destructive"
-            })
+            notifyInfo("Invalid request count", "Request count must be a positive number.")
             return
         }
 
         const secret = devSecret.trim()
         if (!secret) {
-            toast({
-                title: "Secret required",
-                description: "Enter the usage ingest secret to continue.",
-                variant: "destructive"
-            })
+            notifyInfo("Secret required", "Enter the usage ingest secret to continue.")
             return
         }
 
@@ -164,18 +143,11 @@ export const UsagePage = () => {
         setIsIngesting(true)
         try {
             await ingestUsageRecord(payload, secret)
-            toast({
-                title: "Usage recorded",
-                description: "Usage ingestion succeeded."
-            })
+            notifySuccess("Usage record added", "Usage ingestion succeeded.")
             await loadSummary()
         } catch (err) {
             const apiError = err instanceof ApiError ? err : null
-            toast({
-                title: apiError?.code ?? "Usage ingest failed",
-                description: apiError?.message ?? "Unable to record usage.",
-                variant: "destructive"
-            })
+            notifyError(apiError ?? err, "Usage ingest failed")
         } finally {
             setIsIngesting(false)
         }
@@ -210,9 +182,7 @@ export const UsagePage = () => {
                 ) : null}
             </div>
 
-            {isLoading ? (
-                <LoadingBlock title="Loading usage..." count={2} />
-            ) : null}
+            {isLoading ? <UsageSkeleton /> : null}
 
             {error && !isLoading ? (
                 <ErrorBlock

@@ -3,6 +3,7 @@
 import { createBillingApi, type Subscription } from "@/api/billing"
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
+import { SubscriptionsSkeleton } from "@/components/skeletons/subscriptions-skeleton"
 import { StatusBadge } from "@/components/status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -16,8 +17,7 @@ import {
 } from "@/components/ui/card"
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
-import { LoadingBlock } from "@/components/ui-states/loading-block"
-import { useToast } from "@/hooks/use-toast"
+import { notifyError, notifySuccess } from "@/lib/notify"
 import { formatDate } from "@/lib/format"
 
 const formatPrice = (priceCents: number, currency: string) => {
@@ -33,7 +33,6 @@ const formatPrice = (priceCents: number, currency: string) => {
 
 export const BillingPage = () => {
     const { accessToken, refresh } = useAuth()
-    const { toast } = useToast()
     const billingApi = useMemo(
         () => createBillingApi({ accessToken, refresh }),
         [accessToken, refresh]
@@ -55,11 +54,7 @@ export const BillingPage = () => {
             const apiError = err instanceof ApiError ? err : null
             setError(apiError)
             setSubscriptions([])
-            toast({
-                title: apiError?.code ?? "Billing error",
-                description: apiError?.message ?? "Unable to load subscriptions.",
-                variant: "destructive"
-            })
+            notifyError(apiError ?? err, "Billing error")
         } finally {
             setIsLoading(false)
         }
@@ -73,18 +68,11 @@ export const BillingPage = () => {
         setCancelingId(subscriptionId)
         try {
             await billingApi.cancelSubscription(subscriptionId)
-            toast({
-                title: "Subscription canceled",
-                description: "Cancel at period end has been set."
-            })
+            notifySuccess("Subscription cancellation scheduled", "Cancel at period end has been set.")
             await loadSubscriptions()
         } catch (err) {
             const apiError = err instanceof ApiError ? err : null
-            toast({
-                title: apiError?.code ?? "Cancel failed",
-                description: apiError?.message ?? "Unable to cancel subscription.",
-                variant: "destructive"
-            })
+            notifyError(apiError ?? err, "Cancel failed")
         } finally {
             setCancelingId(null)
         }
@@ -99,9 +87,7 @@ export const BillingPage = () => {
                 </p>
             </div>
 
-            {isLoading ? (
-                <LoadingBlock title="Loading subscriptions..." count={2} />
-            ) : null}
+            {isLoading ? <SubscriptionsSkeleton /> : null}
 
             {error && !isLoading ? (
                 <ErrorBlock

@@ -7,11 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
+import { notifyError, notifySuccess } from "@/lib/notify"
 
 export const LoginPage = () => {
     const { login } = useAuth()
-    const { toast } = useToast()
     const navigate = useNavigate()
     const location = useLocation()
     const [email, setEmail] = useState("")
@@ -25,25 +24,11 @@ export const LoginPage = () => {
         setIsSubmitting(true)
         try {
             await login({ email, password })
-            toast({
-                title: "Logged in",
-                description: "Access token stored in memory."
-            })
+            notifySuccess("Signed in", "Access token stored in memory.")
             navigate(from, { replace: true })
         } catch (error) {
-            if (error instanceof ApiError) {
-                toast({
-                    title: error.code ?? "Login failed",
-                    description: error.message,
-                    variant: "destructive"
-                })
-            } else {
-                toast({
-                    title: "Login failed",
-                    description: "Unexpected error while logging in.",
-                    variant: "destructive"
-                })
-            }
+            const apiError = error instanceof ApiError ? error : null
+            notifyError(apiError ?? error, apiError?.code ?? "Login failed")
         } finally {
             setIsSubmitting(false)
         }

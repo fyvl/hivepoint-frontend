@@ -17,6 +17,7 @@ import {
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
 import { CopyButton } from "@/components/copy-button"
+import { ProductDetailsSkeleton } from "@/components/skeletons/product-details-skeleton"
 import { StatusBadge } from "@/components/status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -33,7 +34,7 @@ import { Label } from "@/components/ui/label"
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { LoadingBlock } from "@/components/ui-states/loading-block"
-import { useToast } from "@/hooks/use-toast"
+import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
 import { DevMockPaymentActions } from "@/pages/billing/dev-mock-payment"
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
@@ -90,7 +91,6 @@ const formatPrice = (priceCents: number, currency: string) => {
 export const ProductDetailsPage = () => {
     const { id } = useParams<{ id: string }>()
     const { accessToken, refresh } = useAuth()
-    const { toast } = useToast()
     const catalogApi = useMemo(
         () => createCatalogApi({ accessToken, refresh }),
         [accessToken, refresh]
@@ -148,11 +148,7 @@ export const ProductDetailsPage = () => {
                 setProduct(null)
                 setVersions([])
 
-                toast({
-                    title: apiError?.code ?? "Product error",
-                    description: apiError?.message ?? "Unable to load product details.",
-                    variant: "destructive"
-                })
+                notifyError(apiError ?? err, "Product error")
             } finally {
                 if (isActive) {
                     setIsLoading(false)
@@ -165,7 +161,7 @@ export const ProductDetailsPage = () => {
         return () => {
             isActive = false
         }
-    }, [catalogApi, id, toast, retryKey])
+    }, [catalogApi, id, retryKey])
 
     useEffect(() => {
         if (!id) {
@@ -191,11 +187,7 @@ export const ProductDetailsPage = () => {
                 const apiError = err instanceof ApiError ? err : null
                 setPlansError(apiError)
                 setPlans([])
-                toast({
-                    title: apiError?.code ?? "Plans error",
-                    description: apiError?.message ?? "Unable to load plans.",
-                    variant: "destructive"
-                })
+                notifyError(apiError ?? err, "Plans error")
             } finally {
                 if (isActive) {
                     setIsPlansLoading(false)
@@ -208,15 +200,11 @@ export const ProductDetailsPage = () => {
         return () => {
             isActive = false
         }
-    }, [billingApi, id, toast, plansRetryKey])
+    }, [billingApi, id, plansRetryKey])
 
     const handleSubscribe = async (planId: string) => {
         if (!accessToken) {
-            toast({
-                title: "Sign in required",
-                description: "Please sign in to subscribe to a plan.",
-                variant: "destructive"
-            })
+            notifyInfo("Sign in required", "Please sign in to subscribe to a plan.")
             return
         }
 
@@ -225,24 +213,17 @@ export const ProductDetailsPage = () => {
             const response = await billingApi.subscribe({ planId })
             setSubscribeResult(response)
             setIsDialogOpen(true)
-            toast({
-                title: "Subscription created",
-                description: "Use the payment link to complete checkout."
-            })
+            notifySuccess("Subscription created", "Complete payment to activate.")
         } catch (err) {
             const apiError = err instanceof ApiError ? err : null
-            toast({
-                title: apiError?.code ?? "Subscribe failed",
-                description: apiError?.message ?? "Unable to subscribe to this plan.",
-                variant: "destructive"
-            })
+            notifyError(apiError ?? err, "Subscribe failed")
         } finally {
             setSubscribingPlanId(null)
         }
     }
 
     if (isLoading) {
-        return <LoadingBlock title="Loading product..." count={2} />
+        return <ProductDetailsSkeleton />
     }
 
     if (error) {
@@ -427,10 +408,10 @@ export const ProductDetailsPage = () => {
                             <DevMockPaymentActions
                                 invoiceId={subscribeResult.invoiceId}
                                 onSuccess={() => {
-                                    toast({
-                                        title: "Mock payment sent",
-                                        description: "Refresh /billing to see updated status."
-                                    })
+                                    notifySuccess(
+                                        "Mock payment sent",
+                                        "Refresh /billing to see updated status."
+                                    )
                                 }}
                             />
                         </div>

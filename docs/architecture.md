@@ -37,6 +37,8 @@
 - `src/components/ui-states/error-block.tsx` standardizes error states with retry actions.
 - `src/components/copy-button.tsx` centralizes copy-to-clipboard behavior with toasts.
 - `src/components/status-badge.tsx` renders consistent status badges across the app.
+- `src/lib/notify.ts` provides centralized toast helpers for success/error/info.
+- `src/components/skeletons/*` holds page-level skeleton loaders for major screens.
 
 ## Debug connection page
 - `src/pages/debug-connection-page.tsx` calls `GET /users/me` using the typed `src/api/users.ts` wrapper and displays the response/error.
