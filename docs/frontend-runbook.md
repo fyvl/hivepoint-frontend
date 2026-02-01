@@ -18,6 +18,11 @@ npm run dev
 ```
 Then visit `/catalog` to browse products. Use `/login` or `/register` and verify `/debug/connection` once authenticated.
 
+## Routes
+- `/` Dashboard (public)
+- `/catalog` Product catalog (public)
+- `/billing`, `/keys`, `/usage` (protected)
+
 ## Integration notes
 - The HTTP client always sends `credentials: "include"` so the refresh cookie can be sent.
 - Access tokens come from `/auth/login` and `/auth/refresh` and are stored in memory by `AuthProvider`.

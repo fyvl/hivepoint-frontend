@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+﻿import { useEffect, useMemo, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 
 import {
@@ -16,6 +16,7 @@ import {
 } from "@/api/billing"
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
+import { CopyButton } from "@/components/copy-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -28,6 +29,9 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { EmptyBlock } from "@/components/ui-states/empty-block"
+import { ErrorBlock } from "@/components/ui-states/error-block"
+import { LoadingBlock } from "@/components/ui-states/loading-block"
 import { useToast } from "@/hooks/use-toast"
 import { DevMockPaymentActions } from "@/pages/billing/dev-mock-payment"
 
@@ -105,6 +109,8 @@ export const ProductDetailsPage = () => {
     const [subscribeResult, setSubscribeResult] = useState<SubscribeResponse | null>(null)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [subscribingPlanId, setSubscribingPlanId] = useState<string | null>(null)
+    const [retryKey, setRetryKey] = useState(0)
+    const [plansRetryKey, setPlansRetryKey] = useState(0)
 
     useEffect(() => {
         if (!id) {
@@ -158,7 +164,7 @@ export const ProductDetailsPage = () => {
         return () => {
             isActive = false
         }
-    }, [catalogApi, id, toast])
+    }, [catalogApi, id, toast, retryKey])
 
     useEffect(() => {
         if (!id) {
@@ -201,7 +207,7 @@ export const ProductDetailsPage = () => {
         return () => {
             isActive = false
         }
-    }, [billingApi, id, toast])
+    }, [billingApi, id, toast, plansRetryKey])
 
     const handleSubscribe = async (planId: string) => {
         if (!accessToken) {
@@ -234,83 +240,34 @@ export const ProductDetailsPage = () => {
         }
     }
 
-    const handleCopyLink = async () => {
-        if (!subscribeResult?.paymentLink) {
-            return
-        }
-
-        try {
-            await navigator.clipboard.writeText(subscribeResult.paymentLink)
-            toast({
-                title: "Payment link copied",
-                description: "The link is now in your clipboard."
-            })
-        } catch {
-            toast({
-                title: "Copy failed",
-                description: "Unable to copy payment link.",
-                variant: "destructive"
-            })
-        }
-    }
-
     if (isLoading) {
-        return (
-            <div className="grid gap-4">
-                <Card className="animate-pulse">
-                    <CardHeader>
-                        <div className="h-4 w-1/3 rounded bg-muted" />
-                        <div className="h-3 w-1/2 rounded bg-muted" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="h-3 w-full rounded bg-muted" />
-                        <div className="mt-2 h-3 w-2/3 rounded bg-muted" />
-                    </CardContent>
-                </Card>
-                <Card className="animate-pulse">
-                    <CardHeader>
-                        <div className="h-4 w-1/4 rounded bg-muted" />
-                        <div className="h-3 w-1/2 rounded bg-muted" />
-                    </CardHeader>
-                </Card>
-            </div>
-        )
+        return <LoadingBlock title="Loading product..." count={2} />
     }
 
     if (error) {
         const isForbidden = error.status === 403 || error.code === "FORBIDDEN"
         return (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Product unavailable</CardTitle>
-                    <CardDescription>
-                        {error.message || "Unable to load this product."}
-                    </CardDescription>
-                </CardHeader>
-                {isForbidden ? (
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                            This product might be private. Try signing in to access it.
-                        </p>
-                        <div className="mt-4">
-                            <Button asChild variant="outline" size="sm">
-                                <Link to="/login">Go to login</Link>
-                            </Button>
-                        </div>
-                    </CardContent>
-                ) : null}
-            </Card>
+            <ErrorBlock
+                title="Product unavailable"
+                description={
+                    isForbidden
+                        ? "This product might be private. Sign in to access it."
+                        : error.message || "Unable to load this product."
+                }
+                code={error.code}
+                onRetry={() => setRetryKey((prev) => prev + 1)}
+            />
         )
     }
 
     if (!product) {
         return (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Product not found</CardTitle>
-                    <CardDescription>No product data was returned.</CardDescription>
-                </CardHeader>
-            </Card>
+            <EmptyBlock
+                title="Product not found"
+                description="No product data was returned."
+                actionLabel="Back to catalog"
+                actionTo="/catalog"
+            />
         )
     }
 
@@ -342,64 +299,59 @@ export const ProductDetailsPage = () => {
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Plans</CardTitle>
-                        <CardDescription>Choose a plan to subscribe.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {plansError && !isPlansLoading ? (
-                            <div className="text-sm text-muted-foreground">
-                                {plansError.message || "Unable to load plans."}
-                            </div>
-                        ) : null}
+                {isPlansLoading ? (
+                    <LoadingBlock title="Loading plans..." count={2} />
+                ) : null}
 
-                        {isPlansLoading ? (
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                {Array.from({ length: 2 }).map((_, index) => (
-                                    <Card key={`plan-skeleton-${index}`} className="animate-pulse">
-                                        <CardHeader>
-                                            <div className="h-4 w-1/3 rounded bg-muted" />
-                                            <div className="h-3 w-1/2 rounded bg-muted" />
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="h-3 w-2/3 rounded bg-muted" />
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        ) : null}
+                {plansError && !isPlansLoading ? (
+                    <ErrorBlock
+                        title="Plans unavailable"
+                        description={plansError.message || "Unable to load plans."}
+                        code={plansError.code}
+                        onRetry={() => setPlansRetryKey((prev) => prev + 1)}
+                    />
+                ) : null}
 
-                        {!isPlansLoading && plans.length === 0 && !plansError ? (
-                            <div className="text-sm text-muted-foreground">No plans available.</div>
-                        ) : null}
+                {!isPlansLoading && plans.length === 0 && !plansError ? (
+                    <EmptyBlock
+                        title="No plans available"
+                        description="There are no active plans for this product yet."
+                    />
+                ) : null}
 
-                        {!isPlansLoading && plans.length > 0 ? (
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                {plans.map((plan) => (
-                                    <PlanCard
-                                        key={plan.id}
-                                        plan={plan}
-                                        onSubscribe={handleSubscribe}
-                                        isSubscribing={subscribingPlanId === plan.id}
-                                        isAuthenticated={Boolean(accessToken)}
-                                    />
-                                ))}
-                            </div>
-                        ) : null}
-                    </CardContent>
-                </Card>
+                {!isPlansLoading && plans.length > 0 ? (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Plans</CardTitle>
+                            <CardDescription>Choose a plan to subscribe.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-4 sm:grid-cols-2">
+                            {plans.map((plan) => (
+                                <PlanCard
+                                    key={plan.id}
+                                    plan={plan}
+                                    onSubscribe={handleSubscribe}
+                                    isSubscribing={subscribingPlanId === plan.id}
+                                    isAuthenticated={Boolean(accessToken)}
+                                />
+                            ))}
+                        </CardContent>
+                    </Card>
+                ) : null}
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Versions</CardTitle>
-                        <CardDescription>Published versions for this product.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        {versions.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">No versions available.</p>
-                        ) : (
-                            versions.map((version, index) => {
+                {versions.length === 0 ? (
+                    <EmptyBlock
+                        title="No versions available"
+                        description="Published versions will appear here."
+                    />
+                ) : (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Versions</CardTitle>
+                            <CardDescription>Published versions for this product.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            {versions.map((version, index) => {
                                 const versionRecord = isRecord(version) ? version : null
                                 const versionId = getString(versionRecord, "id")
                                 const versionLabel = getString(versionRecord, "version") ?? "Unnamed version"
@@ -424,10 +376,10 @@ export const ProductDetailsPage = () => {
                                         ) : null}
                                     </div>
                                 )
-                            })
-                        )}
-                    </CardContent>
-                </Card>
+                            })}
+                        </CardContent>
+                    </Card>
+                )}
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -448,9 +400,10 @@ export const ProductDetailsPage = () => {
                                         value={subscribeResult.paymentLink}
                                         readOnly
                                     />
-                                    <Button type="button" variant="outline" onClick={handleCopyLink}>
-                                        Copy link
-                                    </Button>
+                                    <CopyButton
+                                        value={subscribeResult.paymentLink}
+                                        label="Copy link"
+                                    />
                                 </div>
                             </div>
                             <div className="text-sm text-muted-foreground">
@@ -503,7 +456,7 @@ const PlanCard = ({ plan, onSubscribe, isSubscribing, isAuthenticated }: PlanCar
                     <div>
                         <CardTitle>{plan.name}</CardTitle>
                         <CardDescription>
-                            {formatPrice(plan.priceCents, plan.currency)} � {plan.period}
+                            {formatPrice(plan.priceCents, plan.currency)} · {plan.period}
                         </CardDescription>
                     </div>
                     <Badge variant={plan.isActive ? "default" : "secondary"}>
@@ -533,3 +486,4 @@ const PlanCard = ({ plan, onSubscribe, isSubscribing, isAuthenticated }: PlanCar
         </Card>
     )
 }
+

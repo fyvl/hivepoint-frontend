@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+ï»¿import { useEffect, useMemo, useState } from "react"
 
 import { createBillingApi, type Subscription } from "@/api/billing"
 import { ApiError } from "@/api/http"
@@ -13,18 +13,11 @@ import {
     CardHeader,
     CardTitle
 } from "@/components/ui/card"
+import { EmptyBlock } from "@/components/ui-states/empty-block"
+import { ErrorBlock } from "@/components/ui-states/error-block"
+import { LoadingBlock } from "@/components/ui-states/loading-block"
 import { useToast } from "@/hooks/use-toast"
-
-const formatDate = (value: string | null) => {
-    if (!value) {
-        return "—"
-    }
-    const date = new Date(value)
-    if (Number.isNaN(date.getTime())) {
-        return value
-    }
-    return date.toLocaleDateString()
-}
+import { formatDate } from "@/lib/format"
 
 const formatPrice = (priceCents: number, currency: string) => {
     try {
@@ -49,6 +42,7 @@ export const BillingPage = () => {
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<ApiError | null>(null)
     const [cancelingId, setCancelingId] = useState<string | null>(null)
+    const [retryKey, setRetryKey] = useState(0)
 
     const loadSubscriptions = async () => {
         setIsLoading(true)
@@ -72,7 +66,7 @@ export const BillingPage = () => {
 
     useEffect(() => {
         loadSubscriptions()
-    }, [billingApi])
+    }, [billingApi, retryKey])
 
     const handleCancel = async (subscriptionId: string) => {
         setCancelingId(subscriptionId)
@@ -104,42 +98,26 @@ export const BillingPage = () => {
                 </p>
             </div>
 
-            {error && !isLoading ? (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Subscriptions unavailable</CardTitle>
-                        <CardDescription>
-                            {error.message || "Unable to fetch subscriptions."}
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
+            {isLoading ? (
+                <LoadingBlock title="Loading subscriptions..." count={2} />
             ) : null}
 
-            {isLoading ? (
-                <div className="grid gap-4">
-                    {Array.from({ length: 3 }).map((_, index) => (
-                        <Card key={`billing-skeleton-${index}`} className="animate-pulse">
-                            <CardHeader>
-                                <div className="h-4 w-1/3 rounded bg-muted" />
-                                <div className="h-3 w-1/2 rounded bg-muted" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-3 w-full rounded bg-muted" />
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+            {error && !isLoading ? (
+                <ErrorBlock
+                    title="Subscriptions unavailable"
+                    description={error.message || "Unable to fetch subscriptions."}
+                    code={error.code}
+                    onRetry={() => setRetryKey((prev) => prev + 1)}
+                />
             ) : null}
 
             {!isLoading && subscriptions.length === 0 && !error ? (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>No subscriptions yet</CardTitle>
-                        <CardDescription>
-                            Subscribe to a plan from a product page to see it here.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
+                <EmptyBlock
+                    title="No subscriptions yet"
+                    description="Subscribe to a plan from a product page to see it here."
+                    actionLabel="Browse catalog"
+                    actionTo="/catalog"
+                />
             ) : null}
 
             {!isLoading && subscriptions.length > 0 ? (
@@ -192,7 +170,7 @@ const SubscriptionCard = ({ subscription, onCancel, isCanceling }: SubscriptionC
                 <div>
                     <div className="text-xs uppercase">Plan</div>
                     <div>
-                        {formatPrice(plan.priceCents, plan.currency)} · {plan.quotaRequests} requests
+                        {formatPrice(plan.priceCents, plan.currency)} Â· {plan.quotaRequests} requests
                     </div>
                 </div>
                 <div>
@@ -217,3 +195,4 @@ const SubscriptionCard = ({ subscription, onCancel, isCanceling }: SubscriptionC
         </Card>
     )
 }
+

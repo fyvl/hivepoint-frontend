@@ -1,8 +1,9 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react"
+ï»¿import { type FormEvent, useEffect, useMemo, useState } from "react"
 
 import { ApiError } from "@/api/http"
 import { createKeysApi, type CreateKeyResponse, type KeyItem } from "@/api/keys"
 import { useAuth } from "@/auth/auth-context"
+import { CopyButton } from "@/components/copy-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,18 +23,11 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { EmptyBlock } from "@/components/ui-states/empty-block"
+import { ErrorBlock } from "@/components/ui-states/error-block"
+import { LoadingBlock } from "@/components/ui-states/loading-block"
 import { useToast } from "@/hooks/use-toast"
-
-const formatDate = (value: string | null) => {
-    if (!value) {
-        return "—"
-    }
-    const date = new Date(value)
-    if (Number.isNaN(date.getTime())) {
-        return value
-    }
-    return date.toLocaleDateString()
-}
+import { formatDate } from "@/lib/format"
 
 export const KeysPage = () => {
     const { accessToken, refresh } = useAuth()
@@ -52,6 +46,7 @@ export const KeysPage = () => {
     const [newKeyMeta, setNewKeyMeta] = useState<CreateKeyResponse | null>(null)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [revokingId, setRevokingId] = useState<string | null>(null)
+    const [retryKey, setRetryKey] = useState(0)
 
     const loadKeys = async () => {
         setIsLoading(true)
@@ -75,7 +70,7 @@ export const KeysPage = () => {
 
     useEffect(() => {
         loadKeys()
-    }, [keysApi])
+    }, [keysApi, retryKey])
 
     const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -104,25 +99,6 @@ export const KeysPage = () => {
             })
         } finally {
             setIsCreating(false)
-        }
-    }
-
-    const handleCopy = async () => {
-        if (!rawKey) {
-            return
-        }
-        try {
-            await navigator.clipboard.writeText(rawKey)
-            toast({
-                title: "Copied",
-                description: "API key copied to clipboard."
-            })
-        } catch {
-            toast({
-                title: "Copy failed",
-                description: "Unable to copy API key.",
-                variant: "destructive"
-            })
         }
     }
 
@@ -192,38 +168,33 @@ export const KeysPage = () => {
                 </form>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Your keys</CardTitle>
-                    <CardDescription>Active and revoked keys for this account.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {error && !isLoading ? (
-                        <div className="text-sm text-muted-foreground">
-                            {error.message || "Unable to fetch keys."}
-                        </div>
-                    ) : null}
+            {isLoading ? (
+                <LoadingBlock title="Loading keys..." count={2} />
+            ) : null}
 
-                    {isLoading ? (
-                        <div className="space-y-3">
-                            {Array.from({ length: 3 }).map((_, index) => (
-                                <Card key={`keys-skeleton-${index}`} className="animate-pulse">
-                                    <CardHeader>
-                                        <div className="h-4 w-1/3 rounded bg-muted" />
-                                        <div className="h-3 w-1/2 rounded bg-muted" />
-                                    </CardHeader>
-                                </Card>
-                            ))}
-                        </div>
-                    ) : null}
+            {error && !isLoading ? (
+                <ErrorBlock
+                    title="Keys unavailable"
+                    description={error.message || "Unable to fetch keys."}
+                    code={error.code}
+                    onRetry={() => setRetryKey((prev) => prev + 1)}
+                />
+            ) : null}
 
-                    {!isLoading && keys.length === 0 && !error ? (
-                        <div className="text-sm text-muted-foreground">
-                            No keys yet. Create one above.
-                        </div>
-                    ) : null}
+            {!isLoading && keys.length === 0 && !error ? (
+                <EmptyBlock
+                    title="No keys yet"
+                    description="Create a key above to start using the API."
+                />
+            ) : null}
 
-                    {!isLoading && keys.length > 0 ? (
+            {!isLoading && keys.length > 0 ? (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Your keys</CardTitle>
+                        <CardDescription>Active and revoked keys for this account.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
                         <div className="space-y-3">
                             {keys.map((key) => (
                                 <KeyRow
@@ -234,9 +205,9 @@ export const KeysPage = () => {
                                 />
                             ))}
                         </div>
-                    ) : null}
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            ) : null}
 
             <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
                 <DialogContent>
@@ -251,12 +222,10 @@ export const KeysPage = () => {
                             <div className="rounded-md bg-muted p-3 font-mono text-sm break-all">
                                 {rawKey}
                             </div>
-                            <Button type="button" variant="outline" onClick={handleCopy}>
-                                Copy key
-                            </Button>
+                            <CopyButton value={rawKey} label="Copy key" />
                             {newKeyMeta ? (
                                 <div className="text-xs text-muted-foreground">
-                                    Label: {newKeyMeta.label} · Created {formatDate(newKeyMeta.createdAt)}
+                                    Label: {newKeyMeta.label} Â· Created {formatDate(newKeyMeta.createdAt)}
                                 </div>
                             ) : null}
                         </div>
@@ -288,7 +257,7 @@ const KeyRow = ({ item, onRevoke, isRevoking }: KeyRowProps) => {
                 </div>
                 <div className="text-xs text-muted-foreground">
                     Created: {formatDate(item.createdAt)}
-                    {item.revokedAt ? ` · Revoked: ${formatDate(item.revokedAt)}` : ""}
+                    {item.revokedAt ? ` Â· Revoked: ${formatDate(item.revokedAt)}` : ""}
                 </div>
             </div>
             <Button
@@ -302,3 +271,4 @@ const KeyRow = ({ item, onRevoke, isRevoking }: KeyRowProps) => {
         </div>
     )
 }
+

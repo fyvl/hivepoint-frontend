@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 import { login as loginApi, logout as logoutApi, refresh as refreshApi, register as registerApi } from "@/api/auth"
 import { ApiError, type HttpOptions, httpWithRetry } from "@/api/http"
@@ -17,6 +18,7 @@ export type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+    const navigate = useNavigate()
     const [accessToken, setAccessToken] = useState<string | null>(null)
     const [isHydrating, setIsHydrating] = useState(true)
     const [lastError, setLastError] = useState<ApiError | null>(null)
@@ -61,10 +63,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [])
 
     const logout = useCallback(async () => {
-        await logoutApi()
-        setAccessToken(null)
-        setLastError(null)
-    }, [])
+        try {
+            await logoutApi()
+        } finally {
+            setAccessToken(null)
+            setLastError(null)
+            navigate("/login")
+        }
+    }, [navigate])
 
     const authedRequest = useCallback(
         async <T,>(path: string, options: HttpOptions = {}) => {

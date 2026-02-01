@@ -47,7 +47,7 @@ export const RegisterPage = () => {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center p-6">
+        <div className="flex w-full justify-center">
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <CardTitle>Create account</CardTitle>

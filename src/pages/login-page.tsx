@@ -18,7 +18,7 @@ export const LoginPage = () => {
     const [password, setPassword] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const from = (location.state as { from?: string } | null)?.from ?? "/debug/connection"
+    const from = (location.state as { from?: string } | null)?.from ?? "/"
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -50,7 +50,7 @@ export const LoginPage = () => {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center p-6">
+        <div className="flex w-full justify-center">
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <CardTitle>Sign in</CardTitle>

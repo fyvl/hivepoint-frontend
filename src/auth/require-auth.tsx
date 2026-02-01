@@ -1,7 +1,7 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom"
+﻿import { Navigate, Outlet, useLocation } from "react-router-dom"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/auth/auth-context"
+import { LoadingBlock } from "@/components/ui-states/loading-block"
 
 export const RequireAuth = () => {
     const { accessToken, isHydrating } = useAuth()
@@ -9,18 +9,11 @@ export const RequireAuth = () => {
 
     if (isHydrating) {
         return (
-            <div className="flex min-h-screen items-center justify-center p-6">
-                <Card className="w-full max-w-md">
-                    <CardHeader>
-                        <CardTitle>Checking session</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                            Refreshing your session cookie and access token.
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+            <LoadingBlock
+                title="Checking session..."
+                variant="lines"
+                count={3}
+            />
         )
     }
 

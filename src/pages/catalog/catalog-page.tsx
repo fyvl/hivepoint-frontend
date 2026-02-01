@@ -20,6 +20,9 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { EmptyBlock } from "@/components/ui-states/empty-block"
+import { ErrorBlock } from "@/components/ui-states/error-block"
+import { LoadingBlock } from "@/components/ui-states/loading-block"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { useToast } from "@/hooks/use-toast"
 
@@ -97,6 +100,7 @@ export const CatalogPage = () => {
     const [state, setState] = useState<CatalogFetchState>({ items: [] })
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<ApiError | null>(null)
+    const [retryKey, setRetryKey] = useState(0)
 
     const debouncedSearch = useDebouncedValue(search, 400)
     const debouncedCategory = useDebouncedValue(category, 400)
@@ -161,7 +165,7 @@ export const CatalogPage = () => {
         return () => {
             isActive = false
         }
-    }, [catalogApi, debouncedSearch, debouncedCategory, limit, offset, toast])
+    }, [catalogApi, debouncedSearch, debouncedCategory, limit, offset, toast, retryKey])
 
     const hasPrev = offset > 0
     const hasNext = state.total !== undefined
@@ -173,6 +177,7 @@ export const CatalogPage = () => {
             ? "0 of 0"
             : `${offset + 1}-${Math.min(offset + limit, state.total)} of ${state.total}`
         : `Showing ${state.items.length} items`
+    const hasFilters = Boolean(search) || Boolean(category)
 
     return (
         <div className="flex flex-col gap-6">
@@ -221,45 +226,36 @@ export const CatalogPage = () => {
                 </div>
             </div>
 
-            {error && !isLoading ? (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Catalog unavailable</CardTitle>
-                        <CardDescription>
-                            {error.message || "Unable to fetch products."}
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
+            {isLoading ? (
+                <LoadingBlock
+                    title="Loading catalog..."
+                    count={Math.min(limit, 6)}
+                />
             ) : null}
 
-            {isLoading ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {Array.from({ length: Math.min(limit, 6) }).map((_, index) => (
-                        <Card key={`skeleton-${index}`} className="animate-pulse">
-                            <CardHeader>
-                                <div className="h-4 w-1/2 rounded bg-muted" />
-                                <div className="h-3 w-3/4 rounded bg-muted" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-3 w-full rounded bg-muted" />
-                                <div className="mt-2 h-3 w-2/3 rounded bg-muted" />
-                            </CardContent>
-                            <CardFooter className="justify-between">
-                                <div className="h-6 w-20 rounded bg-muted" />
-                                <div className="h-8 w-20 rounded bg-muted" />
-                            </CardFooter>
-                        </Card>
-                    ))}
-                </div>
+            {error && !isLoading ? (
+                <ErrorBlock
+                    title="Catalog unavailable"
+                    description={error.message || "Unable to fetch products."}
+                    code={error.code}
+                    onRetry={() => setRetryKey((prev) => prev + 1)}
+                />
             ) : null}
 
             {!isLoading && state.items.length === 0 && !error ? (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>No products found</CardTitle>
-                        <CardDescription>Try adjusting your filters.</CardDescription>
-                    </CardHeader>
-                </Card>
+                <EmptyBlock
+                    title="No products found"
+                    description="Try adjusting your filters."
+                    actionLabel={hasFilters ? "Clear filters" : undefined}
+                    onAction={
+                        hasFilters
+                            ? () => {
+                                  setSearch("")
+                                  setCategory("")
+                              }
+                            : undefined
+                    }
+                />
             ) : null}
 
             {!isLoading && state.items.length > 0 ? (

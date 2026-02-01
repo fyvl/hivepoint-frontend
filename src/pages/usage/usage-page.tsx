@@ -28,6 +28,9 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select"
+import { EmptyBlock } from "@/components/ui-states/empty-block"
+import { ErrorBlock } from "@/components/ui-states/error-block"
+import { LoadingBlock } from "@/components/ui-states/loading-block"
 import { useToast } from "@/hooks/use-toast"
 import { formatDate, formatNumber } from "@/lib/format"
 
@@ -65,6 +68,7 @@ export const UsagePage = () => {
     const [devRequestCount, setDevRequestCount] = useState("1")
     const [devSecret, setDevSecret] = useState("")
     const [isIngesting, setIsIngesting] = useState(false)
+    const [retryKey, setRetryKey] = useState(0)
 
     const loadSummary = async () => {
         setIsLoading(true)
@@ -88,7 +92,7 @@ export const UsagePage = () => {
 
     useEffect(() => {
         loadSummary()
-    }, [usageApi])
+    }, [usageApi, retryKey])
 
     useEffect(() => {
         if (items.length > 0 && !devSubscriptionId) {
@@ -205,43 +209,26 @@ export const UsagePage = () => {
                 ) : null}
             </div>
 
-            {error && !isLoading ? (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Usage unavailable</CardTitle>
-                        <CardDescription>
-                            {error.message || "Unable to fetch usage summary."}
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
+            {isLoading ? (
+                <LoadingBlock title="Loading usage..." count={2} />
             ) : null}
 
-            {isLoading ? (
-                <div className="grid gap-4">
-                    {Array.from({ length: 2 }).map((_, index) => (
-                        <Card key={`usage-skeleton-${index}`} className="animate-pulse">
-                            <CardHeader>
-                                <div className="h-4 w-1/3 rounded bg-muted" />
-                                <div className="h-3 w-1/2 rounded bg-muted" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-3 w-full rounded bg-muted" />
-                                <div className="mt-2 h-3 w-2/3 rounded bg-muted" />
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+            {error && !isLoading ? (
+                <ErrorBlock
+                    title="Usage unavailable"
+                    description={error.message || "Unable to fetch usage summary."}
+                    code={error.code}
+                    onRetry={() => setRetryKey((prev) => prev + 1)}
+                />
             ) : null}
 
             {!isLoading && filteredItems.length === 0 && !error ? (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>No usage data</CardTitle>
-                        <CardDescription>
-                            No active subscriptions were found for this account.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
+                <EmptyBlock
+                    title="No usage data"
+                    description="No active subscriptions were found for this account."
+                    actionLabel="Browse catalog"
+                    actionTo="/catalog"
+                />
             ) : null}
 
             {!isLoading && filteredItems.length > 0 ? (
@@ -387,5 +374,6 @@ const UsageCard = ({ item }: UsageCardProps) => {
         </Card>
     )
 }
+
 
 

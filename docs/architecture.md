@@ -21,6 +21,18 @@
 - `src/auth/require-auth.tsx` blocks protected routes until hydration completes.
 - Unauthenticated users are redirected to `/login`.
 
+## App shell and routing
+- `src/components/layout/app-shell.tsx` provides the shared header, sidebar nav, and main layout.
+- `src/pages/dashboard/dashboard-page.tsx` renders `/` with quick actions.
+- `src/pages/not-found/not-found-page.tsx` renders `*` for unknown routes.
+- `src/components/error-boundary.tsx` wraps the app to show a friendly fallback on runtime errors.
+
+## UI state blocks
+- `src/components/ui-states/loading-block.tsx` standardizes loading skeletons.
+- `src/components/ui-states/empty-block.tsx` standardizes empty states.
+- `src/components/ui-states/error-block.tsx` standardizes error states with retry actions.
+- `src/components/copy-button.tsx` centralizes copy-to-clipboard behavior with toasts.
+
 ## Debug connection page
 - `src/pages/debug-connection-page.tsx` calls `GET /users/me` using the typed `src/api/users.ts` wrapper and displays the response/error.
 - It surfaces the current API base URL and session actions for quick verification.
@@ -34,5 +46,5 @@
 - `src/pages/usage/usage-page.tsx` renders `/usage` with per-subscription usage cards and DEV ingest tools.
 
 ## UI system
-- UI uses shadcn/ui components (Button, Card, Input, Label, Toast, Tabs, Dialog, Dropdown Menu, Badge).
+- UI uses shadcn/ui components (Button, Card, Input, Label, Toast, Tabs, Dialog, Dropdown Menu, Badge, Separator, Skeleton).
 - Global styles and Tailwind tokens live in `src/index.css` and `tailwind.config.ts`.
