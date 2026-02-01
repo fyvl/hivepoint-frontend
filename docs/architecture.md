@@ -5,6 +5,9 @@
 - `httpWithRetry` retries once on `401` by calling the refresh flow.
 - `src/api/auth.ts` implements `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` exactly as documented.
 - `src/api/catalog.ts` implements `/catalog/products`, `/catalog/products/:id`, `/catalog/products/:id/versions` with optional auth.
+- `src/api/generated/schema.d.ts` is generated from OpenAPI (`/openapi.json`) via `openapi-typescript`.
+- `src/api/types.ts` provides helper types for schema-derived request/response typing.
+- `src/api/users.ts` wraps `/users/me` with typed request/response shapes.
 
 ## Auth state
 - `src/auth/auth-context.tsx` owns `accessToken` and `isHydrating`.

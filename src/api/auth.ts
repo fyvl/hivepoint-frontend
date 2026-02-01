@@ -1,41 +1,30 @@
 import { http } from "@/api/http"
+import type { PostRequestBody, PostResponseJsonAny } from "@/api/types"
 
-export type RegisterRequest = {
-    email: string
-    password: string
-}
+type RegisterBody = PostRequestBody<"/auth/register">
+type RegisterResponse = PostResponseJsonAny<"/auth/register">
 
-export type LoginRequest = {
-    email: string
-    password: string
-}
+type LoginBody = PostRequestBody<"/auth/login">
+type LoginResponse = PostResponseJsonAny<"/auth/login">
 
-export type AuthUserResponse = {
-    id: string
-    email: string
-    role: "BUYER" | "SELLER" | "ADMIN"
-}
+type RefreshResponse = PostResponseJsonAny<"/auth/refresh">
 
-export type AccessTokenResponse = {
-    accessToken: string
-}
-
-export const register = async (payload: RegisterRequest): Promise<AuthUserResponse> => {
-    return await http<AuthUserResponse>("/auth/register", {
+export const register = async (payload: RegisterBody): Promise<RegisterResponse> => {
+    return await http<RegisterResponse>("/auth/register", {
         method: "POST",
         body: payload
     })
 }
 
-export const login = async (payload: LoginRequest): Promise<AccessTokenResponse> => {
-    return await http<AccessTokenResponse>("/auth/login", {
+export const login = async (payload: LoginBody): Promise<LoginResponse> => {
+    return await http<LoginResponse>("/auth/login", {
         method: "POST",
         body: payload
     })
 }
 
-export const refresh = async (): Promise<AccessTokenResponse> => {
-    return await http<AccessTokenResponse>("/auth/refresh", {
+export const refresh = async (): Promise<RefreshResponse> => {
+    return await http<RefreshResponse>("/auth/refresh", {
         method: "POST"
     })
 }

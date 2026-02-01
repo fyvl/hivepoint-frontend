@@ -24,9 +24,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const refresh = useCallback(async () => {
         try {
             const response = await refreshApi()
-            setAccessToken(response.accessToken)
+            if (!response || typeof response !== "object") {
+                setAccessToken(null)
+                return null
+            }
+            const accessTokenValue = (response as { accessToken?: string }).accessToken
+            if (!accessTokenValue) {
+                setAccessToken(null)
+                return null
+            }
+            setAccessToken(accessTokenValue)
             setLastError(null)
-            return response.accessToken
+            return accessTokenValue
         } catch (error) {
             if (error instanceof ApiError) {
                 setLastError(error)
@@ -38,7 +47,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const login = useCallback(async (payload: { email: string; password: string }) => {
         const response = await loginApi(payload)
-        setAccessToken(response.accessToken)
+        const accessTokenValue = (response as { accessToken?: string }).accessToken
+        if (!accessTokenValue) {
+            throw new ApiError(500, "Missing access token in login response", "INVALID_RESPONSE")
+        }
+        setAccessToken(accessTokenValue)
         setLastError(null)
     }, [])
 

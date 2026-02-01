@@ -1,6 +1,7 @@
 import { useState } from "react"
 
 import { ApiError } from "@/api/http"
+import { getMe, type UserMeResponse } from "@/api/users"
 import { useAuth } from "@/auth/auth-context"
 import { apiBaseUrl } from "@/config/env"
 import { Button } from "@/components/ui/button"
@@ -31,14 +32,8 @@ const formatJson = (value: unknown) => {
     return JSON.stringify(value, null, 2)
 }
 
-type UserMeResponse = {
-    id: string
-    email: string
-    role: "BUYER" | "SELLER" | "ADMIN"
-}
-
 export const DebugConnectionPage = () => {
-    const { authedRequest, accessToken, refresh, logout } = useAuth()
+    const { accessToken, refresh, logout } = useAuth()
     const { toast } = useToast()
     const [isLoading, setIsLoading] = useState(false)
     const [response, setResponse] = useState<UserMeResponse | null>(null)
@@ -48,7 +43,7 @@ export const DebugConnectionPage = () => {
         setIsLoading(true)
         setError(null)
         try {
-            const data = await authedRequest<UserMeResponse>("/users/me")
+            const data = await getMe(accessToken, refresh)
             setResponse(data)
             toast({
                 title: "Connected",

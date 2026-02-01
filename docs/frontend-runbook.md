@@ -24,6 +24,11 @@ Then visit `/catalog` to browse products. Use `/login` or `/register` and verify
 - Protected requests attach `Authorization: Bearer <accessToken>` when available.
 - On app start, the auth context calls `POST /auth/refresh` once to hydrate the access token.
 
+## Generating API types
+- Ensure the backend is running locally and serves `/openapi.json`.
+- Run: `npm run api:generate`
+- Generated types are committed at `src/api/generated/schema.d.ts`.
+
 ## Troubleshooting
 - CORS errors: ensure backend `CORS_ORIGINS` includes your frontend origin (example: `http://localhost:5173`).
 - Cookies not sent: backend should use `COOKIE_SECURE=false` for local HTTP and `COOKIE_DOMAIN` empty.
