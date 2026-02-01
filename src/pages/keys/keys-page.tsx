@@ -4,7 +4,7 @@ import { ApiError } from "@/api/http"
 import { createKeysApi, type CreateKeyResponse, type KeyItem } from "@/api/keys"
 import { useAuth } from "@/auth/auth-context"
 import { CopyButton } from "@/components/copy-button"
-import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -251,9 +251,7 @@ const KeyRow = ({ item, onRevoke, isRevoking }: KeyRowProps) => {
             <div>
                 <div className="flex items-center gap-2">
                     <div className="font-medium">{item.label}</div>
-                    <Badge variant={isRevoked ? "secondary" : "default"}>
-                        {isRevoked ? "Revoked" : "Active"}
-                    </Badge>
+                    <StatusBadge kind="key" value={isRevoked ? "Revoked" : "Active"} />
                 </div>
                 <div className="text-xs text-muted-foreground">
                     Created: {formatDate(item.createdAt)}

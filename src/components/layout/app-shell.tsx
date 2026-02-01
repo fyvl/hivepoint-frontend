@@ -1,3 +1,4 @@
+import { Laptop, Moon, Sun } from "lucide-react"
 import { Link, NavLink } from "react-router-dom"
 
 import { useAuth } from "@/auth/auth-context"
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
+import { useTheme } from "@/theme/theme-context"
 
 type NavItem = {
     to: string
@@ -35,6 +37,7 @@ type AppShellProps = {
 
 export const AppShell = ({ children }: AppShellProps) => {
     const { accessToken, logout } = useAuth()
+    const { theme, setTheme } = useTheme()
 
     return (
         <div className="min-h-screen bg-muted/40">
@@ -46,6 +49,35 @@ export const AppShell = ({ children }: AppShellProps) => {
                         </Link>
                     </div>
                     <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" aria-label="Toggle theme">
+                                    {theme === "dark" ? (
+                                        <Moon className="h-4 w-4" />
+                                    ) : theme === "light" ? (
+                                        <Sun className="h-4 w-4" />
+                                    ) : (
+                                        <Laptop className="h-4 w-4" />
+                                    )}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Theme</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => setTheme("system")}>
+                                    <Laptop className="mr-2 h-4 w-4" />
+                                    System
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setTheme("light")}>
+                                    <Sun className="mr-2 h-4 w-4" />
+                                    Light
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                                    <Moon className="mr-2 h-4 w-4" />
+                                    Dark
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         {accessToken ? (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

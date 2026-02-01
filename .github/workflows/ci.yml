@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Detect scripts
+        id: scripts
+        run: |
+          node -e "const pkg=require('./package.json');const s=pkg.scripts||{};const has=(n)=>Object.prototype.hasOwnProperty.call(s,n);const fs=require('fs');fs.appendFileSync(process.env.GITHUB_OUTPUT,`hasLint=${has('lint')}\n`);fs.appendFileSync(process.env.GITHUB_OUTPUT,`hasTest=${has('test')}\n`);fs.appendFileSync(process.env.GITHUB_OUTPUT,`hasTestUnit=${has('test:unit')}\n`);"
+
+      - name: Lint
+        if: steps.scripts.outputs.hasLint == 'true'
+        run: npm run lint
+
+      - name: Skip lint (no script)
+        if: steps.scripts.outputs.hasLint != 'true'
+        run: echo "No lint script found; skipping."
+
+      - name: Test
+        if: steps.scripts.outputs.hasTest == 'true'
+        run: npm run test
+
+      - name: Test unit
+        if: steps.scripts.outputs.hasTest != 'true' && steps.scripts.outputs.hasTestUnit == 'true'
+        run: npm run test:unit
+
+      - name: Skip tests (no script)
+        if: steps.scripts.outputs.hasTest != 'true' && steps.scripts.outputs.hasTestUnit != 'true'
+        run: echo "No test scripts found; skipping."
+
+      - name: Build
+        run: npm run build

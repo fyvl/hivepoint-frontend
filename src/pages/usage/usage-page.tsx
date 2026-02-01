@@ -9,6 +9,7 @@ import {
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
 import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -327,6 +328,7 @@ type UsageCardProps = {
 const UsageCard = ({ item }: UsageCardProps) => {
     const percent = resolvePercent(item)
     const quotaExceeded = percent >= 100
+    const usageStatus = quotaExceeded ? "Exceeded" : percent >= 80 ? "Near limit" : "OK"
 
     return (
         <Card>
@@ -336,9 +338,10 @@ const UsageCard = ({ item }: UsageCardProps) => {
                         <CardTitle>{item.product.title}</CardTitle>
                         <CardDescription>{item.plan.name}</CardDescription>
                     </div>
-                    <Badge variant={quotaExceeded ? "destructive" : "secondary"}>
-                        {quotaExceeded ? "Quota exceeded" : `${Math.round(percent)}%`}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                        <StatusBadge kind="usage" value={usageStatus} />
+                        <Badge variant="outline">{`${Math.round(percent)}%`}</Badge>
+                    </div>
                 </div>
             </CardHeader>
             <CardContent className="space-y-3">

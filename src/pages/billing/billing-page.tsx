@@ -3,6 +3,7 @@
 import { createBillingApi, type Subscription } from "@/api/billing"
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
+import { StatusBadge } from "@/components/status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -155,9 +156,12 @@ const SubscriptionCard = ({ subscription, onCancel, isCanceling }: SubscriptionC
                         <CardTitle>{product.title}</CardTitle>
                         <CardDescription>{plan.name}</CardDescription>
                     </div>
-                    <Badge variant={isActive ? "default" : "secondary"}>
-                        {subscription.status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                        <StatusBadge kind="subscription" value={subscription.status} />
+                        {subscription.cancelAtPeriodEnd ? (
+                            <Badge variant="outline">Cancels at period end</Badge>
+                        ) : null}
+                    </div>
                 </div>
             </CardHeader>
             <CardContent className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">

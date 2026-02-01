@@ -27,11 +27,16 @@
 - `src/pages/not-found/not-found-page.tsx` renders `*` for unknown routes.
 - `src/components/error-boundary.tsx` wraps the app to show a friendly fallback on runtime errors.
 
+## Theme
+- `src/theme/theme.ts` applies the `dark` class on `<html>` and persists the theme in localStorage.
+- `src/theme/theme-context.tsx` provides theme state and listens for system theme changes.
+
 ## UI state blocks
 - `src/components/ui-states/loading-block.tsx` standardizes loading skeletons.
 - `src/components/ui-states/empty-block.tsx` standardizes empty states.
 - `src/components/ui-states/error-block.tsx` standardizes error states with retry actions.
 - `src/components/copy-button.tsx` centralizes copy-to-clipboard behavior with toasts.
+- `src/components/status-badge.tsx` renders consistent status badges across the app.
 
 ## Debug connection page
 - `src/pages/debug-connection-page.tsx` calls `GET /users/me` using the typed `src/api/users.ts` wrapper and displays the response/error.

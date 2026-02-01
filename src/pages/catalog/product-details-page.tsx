@@ -17,6 +17,7 @@ import {
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
 import { CopyButton } from "@/components/copy-button"
+import { StatusBadge } from "@/components/status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -273,6 +274,7 @@ export const ProductDetailsPage = () => {
 
     const productRecord = isRecord(product) ? product : null
     const tags = getStringArray(productRecord, "tags")
+    const productStatus = getString(productRecord, "status")
 
     return (
         <>
@@ -292,8 +294,8 @@ export const ProductDetailsPage = () => {
                                     {tag}
                                 </Badge>
                             ))}
-                            {getString(productRecord, "status") ? (
-                                <Badge variant="outline">{getString(productRecord, "status")}</Badge>
+                            {productStatus ? (
+                                <StatusBadge kind="product" value={productStatus} />
                             ) : null}
                         </div>
                     </CardContent>
@@ -363,9 +365,11 @@ export const ProductDetailsPage = () => {
                                         key={versionId ?? `${versionLabel}-${index}`}
                                         className="flex flex-col gap-2 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
                                     >
-                                        <div>
+                                        <div className="flex items-center gap-2">
                                             <p className="font-medium">{versionLabel}</p>
-                                            <p className="text-sm text-muted-foreground">{status}</p>
+                                            {status ? (
+                                                <StatusBadge kind="version" value={status} />
+                                            ) : null}
                                         </div>
                                         {openApiUrl ? (
                                             <Button asChild variant="link">

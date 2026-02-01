@@ -8,6 +8,7 @@ import {
 } from "@/api/catalog"
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
+import { StatusBadge } from "@/components/status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -322,7 +323,11 @@ const CatalogCard = ({ product }: { product: CatalogProduct }) => {
                 ) : null}
             </CardContent>
             <CardFooter className="justify-between">
-                <span className="text-xs text-muted-foreground">{status}</span>
+                {status ? (
+                    <StatusBadge kind="product" value={status} />
+                ) : (
+                    <span className="text-xs text-muted-foreground" />
+                )}
                 {productId ? (
                     <Button asChild size="sm">
                         <Link to={`/products/${productId}`}>Open</Link>
