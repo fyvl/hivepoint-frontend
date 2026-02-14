@@ -1,9 +1,8 @@
-import { BarChart3, CreditCard, Home, Key, Laptop, LayoutGrid, Menu, Moon, Sun, User } from "lucide-react"
+import { BarChart3, BriefcaseBusiness, CreditCard, Home, Key, Laptop, LayoutGrid, Menu, Moon, Sun, User } from "lucide-react"
 import { Link, NavLink } from "react-router-dom"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 
 import { useAuth } from "@/auth/auth-context"
-import { getMe, type UserMeResponse } from "@/api/users"
 import { Logo } from "@/components/brand/logo"
 import { ScrollToTop } from "@/components/scroll-to-top"
 import { Button } from "@/components/ui/button"
@@ -31,63 +30,56 @@ const publicNav: NavItem[] = [
     { to: "/catalog", label: "Catalog", icon: LayoutGrid }
 ]
 
-const protectedNav: NavItem[] = [
+const buyerNav: NavItem[] = [
     { to: "/billing", label: "Billing", icon: CreditCard },
     { to: "/keys", label: "API Keys", icon: Key },
     { to: "/usage", label: "Usage", icon: BarChart3 }
+]
+
+const sellerNav: NavItem[] = [
+    { to: "/seller/studio", label: "Seller Studio", icon: BriefcaseBusiness }
 ]
 
 type AppShellProps = {
     children: React.ReactNode
 }
 
+const getRoleLabel = (role: string | null) => {
+    if (role === "BUYER") {
+        return "Buyer"
+    }
+    if (role === "SELLER") {
+        return "Seller"
+    }
+    if (role === "ADMIN") {
+        return "Admin"
+    }
+    return null
+}
+
 export const AppShell = ({ children }: AppShellProps) => {
-    const { accessToken, refresh, logout } = useAuth()
+    const { accessToken, email, role, logout } = useAuth()
     const { theme, setTheme } = useTheme()
-    const [user, setUser] = useState<UserMeResponse | null>(null)
     const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
 
-    useEffect(() => {
-        let isActive = true
+    const accountLabel = email || "Account"
+    const accountRole = getRoleLabel(role)
 
-        const loadUser = async () => {
-            if (!accessToken) {
-                setUser(null)
-                return
-            }
-            try {
-                const data = await getMe(accessToken, refresh)
-                if (isActive) {
-                    setUser(data)
-                }
-            } catch {
-                if (isActive) {
-                    setUser(null)
-                }
-            }
+    const protectedNav = useMemo(() => {
+        if (!accessToken || !role) {
+            return [] as NavItem[]
         }
 
-        loadUser()
-
-        return () => {
-            isActive = false
+        if (role === "SELLER") {
+            return sellerNav
         }
-    }, [accessToken, refresh])
 
-    const accountLabel = useMemo(() => {
-        if (!user || typeof user !== "object") {
-            return "Account"
+        if (role === "BUYER") {
+            return buyerNav
         }
-        const email = (user as { email?: string }).email
-        return email || "Account"
-    }, [user])
 
-    const accountRole = useMemo(() => {
-        if (!user || typeof user !== "object") {
-            return null
-        }
-        return (user as { role?: string }).role ?? null
-    }, [user])
+        return [...sellerNav, ...buyerNav]
+    }, [accessToken, role])
 
     return (
         <div className="flex min-h-screen flex-col bg-background">
@@ -251,7 +243,7 @@ export const AppShell = ({ children }: AppShellProps) => {
                 <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row sm:px-6 lg:px-8">
                     <Logo size="sm" />
                     <p className="text-sm text-muted-foreground">
-                        © {new Date().getFullYear()} HivePoint. API Platform.
+                        (c) {new Date().getFullYear()} HivePoint. API Platform.
                     </p>
                 </div>
             </footer>

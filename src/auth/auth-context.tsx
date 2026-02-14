@@ -4,8 +4,25 @@ import { useNavigate } from "react-router-dom"
 import { login as loginApi, logout as logoutApi, refresh as refreshApi, register as registerApi } from "@/api/auth"
 import { ApiError, type HttpOptions, httpWithRetry } from "@/api/http"
 
+export type UserRole = "BUYER" | "SELLER" | "ADMIN"
+
+type AccessTokenClaims = {
+    sub?: string
+    email?: string
+    role?: string
+}
+
+type SessionIdentity = {
+    userId: string | null
+    email: string | null
+    role: UserRole | null
+}
+
 export type AuthContextValue = {
     accessToken: string | null
+    userId: string | null
+    email: string | null
+    role: UserRole | null
     isHydrating: boolean
     login: (payload: { email: string; password: string }) => Promise<void>
     register: (payload: { email: string; password: string }) => Promise<void>
@@ -17,11 +34,47 @@ export type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
+const decodeBase64Url = (payload: string) => {
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/")
+    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=")
+    return atob(padded)
+}
+
+const parseRole = (value: unknown): UserRole | null => {
+    if (value === "BUYER" || value === "SELLER" || value === "ADMIN") {
+        return value
+    }
+    return null
+}
+
+const parseAccessToken = (token: string | null): SessionIdentity => {
+    if (!token) {
+        return { userId: null, email: null, role: null }
+    }
+
+    const segments = token.split(".")
+    if (segments.length < 2) {
+        return { userId: null, email: null, role: null }
+    }
+
+    try {
+        const claims = JSON.parse(decodeBase64Url(segments[1])) as AccessTokenClaims
+        return {
+            userId: typeof claims.sub === "string" ? claims.sub : null,
+            email: typeof claims.email === "string" ? claims.email : null,
+            role: parseRole(claims.role)
+        }
+    } catch {
+        return { userId: null, email: null, role: null }
+    }
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const navigate = useNavigate()
     const [accessToken, setAccessToken] = useState<string | null>(null)
     const [isHydrating, setIsHydrating] = useState(true)
     const [lastError, setLastError] = useState<ApiError | null>(null)
+    const identity = useMemo(() => parseAccessToken(accessToken), [accessToken])
 
     const refresh = useCallback(async () => {
         try {
@@ -118,6 +171,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const value = useMemo<AuthContextValue>(
         () => ({
             accessToken,
+            userId: identity.userId,
+            email: identity.email,
+            role: identity.role,
             isHydrating,
             login,
             register,
@@ -126,7 +182,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             authedRequest,
             lastError
         }),
-        [accessToken, isHydrating, login, register, refresh, logout, authedRequest, lastError]
+        [accessToken, identity.userId, identity.email, identity.role, isHydrating, login, register, refresh, logout, authedRequest, lastError]
     )
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

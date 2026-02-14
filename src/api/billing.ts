@@ -6,6 +6,10 @@ export type ListPlansQuery = GetQueryParams<"/billing/plans">
 export type ListPlansResponse =
     paths["/billing/plans"]["get"]["responses"][200]["content"]["application/json"]
 export type Plan = ListPlansResponse["items"][number]
+export type CreatePlanBody =
+    paths["/billing/plans"]["post"]["requestBody"]["content"]["application/json"]
+export type CreatePlanResponse =
+    paths["/billing/plans"]["post"]["responses"][200]["content"]["application/json"]
 
 export type SubscribeBody =
     paths["/billing/subscribe"]["post"]["requestBody"]["content"]["application/json"]
@@ -91,6 +95,12 @@ export const createBillingApi = (client?: BillingClient) => {
             const queryString = buildQuery(query as Record<string, unknown>)
             return await request<ListPlansResponse>(`/billing/plans${queryString}`, {
                 method: "GET"
+            })
+        },
+        createPlan: async (payload: CreatePlanBody): Promise<CreatePlanResponse> => {
+            return await request<CreatePlanResponse>("/billing/plans", {
+                method: "POST",
+                body: payload
             })
         },
         subscribe: async (payload: SubscribeBody): Promise<SubscribeResponse> => {

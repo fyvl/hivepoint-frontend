@@ -1,10 +1,27 @@
 import { type HttpOptions, http, httpWithRetry } from "@/api/http"
+import type { paths } from "@/api/generated/schema"
 import type { GetQueryParams, GetResponseJsonAny } from "@/api/types"
 
 export type ListProductsQuery = GetQueryParams<"/catalog/products">
 export type ListProductsResponse = GetResponseJsonAny<"/catalog/products">
 export type GetProductResponse = GetResponseJsonAny<"/catalog/products/{id}">
 export type GetVersionsResponse = GetResponseJsonAny<"/catalog/products/{id}/versions">
+export type CreateProductBody =
+    paths["/catalog/products"]["post"]["requestBody"]["content"]["application/json"]
+export type CreateProductResponse =
+    paths["/catalog/products"]["post"]["responses"][200]["content"]["application/json"]
+export type UpdateProductBody =
+    paths["/catalog/products/{id}"]["patch"]["requestBody"]["content"]["application/json"]
+export type UpdateProductResponse =
+    paths["/catalog/products/{id}"]["patch"]["responses"][200]["content"]["application/json"]
+export type CreateVersionBody =
+    paths["/catalog/products/{id}/versions"]["post"]["requestBody"]["content"]["application/json"]
+export type CreateVersionResponse =
+    paths["/catalog/products/{id}/versions"]["post"]["responses"][200]["content"]["application/json"]
+export type UpdateVersionBody =
+    paths["/catalog/versions/{versionId}"]["patch"]["requestBody"]["content"]["application/json"]
+export type UpdateVersionResponse =
+    paths["/catalog/versions/{versionId}"]["patch"]["responses"][200]["content"]["application/json"]
 
 export type CatalogProduct = ListProductsResponse extends { items: (infer Item)[] }
     ? Item
@@ -109,6 +126,52 @@ export const createCatalogApi = (client?: CatalogClient) => {
             return await request<GetVersionsResponse>(`/catalog/products/${encodedId}/versions`, {
                 ...options,
                 method: "GET"
+            })
+        },
+        createProduct: async (
+            payload: CreateProductBody,
+            options: HttpOptions = {}
+        ): Promise<CreateProductResponse> => {
+            return await request<CreateProductResponse>("/catalog/products", {
+                ...options,
+                method: "POST",
+                body: payload
+            })
+        },
+        updateProduct: async (
+            productId: string,
+            payload: UpdateProductBody,
+            options: HttpOptions = {}
+        ): Promise<UpdateProductResponse> => {
+            const encodedId = encodeURIComponent(productId)
+            return await request<UpdateProductResponse>(`/catalog/products/${encodedId}`, {
+                ...options,
+                method: "PATCH",
+                body: payload
+            })
+        },
+        createVersion: async (
+            productId: string,
+            payload: CreateVersionBody,
+            options: HttpOptions = {}
+        ): Promise<CreateVersionResponse> => {
+            const encodedId = encodeURIComponent(productId)
+            return await request<CreateVersionResponse>(`/catalog/products/${encodedId}/versions`, {
+                ...options,
+                method: "POST",
+                body: payload
+            })
+        },
+        updateVersion: async (
+            versionId: string,
+            payload: UpdateVersionBody,
+            options: HttpOptions = {}
+        ): Promise<UpdateVersionResponse> => {
+            const encodedId = encodeURIComponent(versionId)
+            return await request<UpdateVersionResponse>(`/catalog/versions/${encodedId}`, {
+                ...options,
+                method: "PATCH",
+                body: payload
             })
         }
     }
