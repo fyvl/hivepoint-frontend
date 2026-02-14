@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { createBillingApi, type Subscription } from "@/api/billing"
 import { ApiError } from "@/api/http"
@@ -89,11 +89,11 @@ export const BillingPage = () => {
     }
 
     return (
-        <div className="flex flex-col gap-6">
-            <div>
-                <h1 className="text-2xl font-semibold">Billing</h1>
-                <p className="text-sm text-muted-foreground">
-                    Manage your subscriptions and billing status.
+        <div className="flex flex-col gap-8">
+            <div className="space-y-1">
+                <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
+                <p className="text-muted-foreground">
+                    Manage your subscriptions and billing status
                 </p>
             </div>
 

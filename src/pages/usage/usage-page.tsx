@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import {
     createUsageApi,
@@ -154,12 +154,12 @@ export const UsagePage = () => {
     }
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold">Usage</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Current billing period usage.
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight">Usage Analytics</h1>
+                    <p className="text-muted-foreground">
+                        Track API usage for the current billing period
                     </p>
                 </div>
                 {items.length > 1 ? (

@@ -4,14 +4,24 @@ import { toast } from "@/hooks/use-toast"
 export const notifySuccess = (title: string, description?: string) => {
     toast({
         title,
-        description
+        description,
+        variant: "success"
     })
 }
 
 export const notifyInfo = (title: string, description?: string) => {
     toast({
         title,
-        description
+        description,
+        variant: "info"
+    })
+}
+
+export const notifyWarning = (title: string, description?: string) => {
+    toast({
+        title,
+        description,
+        variant: "warning"
     })
 }
 

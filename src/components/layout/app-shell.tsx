@@ -1,10 +1,12 @@
-import { Laptop, Menu, Moon, Sun } from "lucide-react"
+import { BarChart3, CreditCard, Home, Key, Laptop, LayoutGrid, Menu, Moon, Sun, User } from "lucide-react"
 import { Link, NavLink } from "react-router-dom"
 import { useEffect, useMemo, useState } from "react"
 
 import { useAuth } from "@/auth/auth-context"
 import { getMe, type UserMeResponse } from "@/api/users"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Logo } from "@/components/brand/logo"
+import { ScrollToTop } from "@/components/scroll-to-top"
+import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,17 +23,18 @@ import { useTheme } from "@/theme/theme-context"
 type NavItem = {
     to: string
     label: string
+    icon: React.ComponentType<{ className?: string }>
 }
 
 const publicNav: NavItem[] = [
-    { to: "/", label: "Dashboard" },
-    { to: "/catalog", label: "Catalog" }
+    { to: "/", label: "Dashboard", icon: Home },
+    { to: "/catalog", label: "Catalog", icon: LayoutGrid }
 ]
 
 const protectedNav: NavItem[] = [
-    { to: "/billing", label: "Billing" },
-    { to: "/keys", label: "Keys" },
-    { to: "/usage", label: "Usage" }
+    { to: "/billing", label: "Billing", icon: CreditCard },
+    { to: "/keys", label: "API Keys", icon: Key },
+    { to: "/usage", label: "Usage", icon: BarChart3 }
 ]
 
 type AppShellProps = {
@@ -43,8 +46,6 @@ export const AppShell = ({ children }: AppShellProps) => {
     const { theme, setTheme } = useTheme()
     const [user, setUser] = useState<UserMeResponse | null>(null)
     const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
-
-    const themeLabel = theme === "system" ? "System" : theme === "light" ? "Light" : "Dark"
 
     useEffect(() => {
         let isActive = true
@@ -89,37 +90,48 @@ export const AppShell = ({ children }: AppShellProps) => {
     }, [user])
 
     return (
-        <div className="min-h-screen bg-muted/40">
-            <header className="border-b bg-background">
-                <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
-                    <div className="flex items-center gap-3">
+        <div className="flex min-h-screen flex-col bg-background">
+            {/* Header */}
+            <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
+                <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center gap-4">
                         <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
                             <SheetTrigger asChild>
                                 <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
-                                    <Menu className="h-4 w-4" />
+                                    <Menu className="h-5 w-5" />
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent>
-                                <SheetHeader>
-                                    <SheetTitle>Navigation</SheetTitle>
+                            <SheetContent className="w-72">
+                                <SheetHeader className="text-left">
+                                    <SheetTitle>
+                                        <Logo size="sm" />
+                                    </SheetTitle>
                                 </SheetHeader>
-                                <div className="mt-6 flex flex-col gap-2">
+                                <div className="mt-8 flex flex-col gap-2">
+                                    <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                        Navigation
+                                    </p>
                                     {publicNav.map((item) => (
                                         <MobileNavLink
                                             key={item.to}
                                             to={item.to}
                                             label={item.label}
+                                            icon={item.icon}
                                             onNavigate={() => setIsMobileNavOpen(false)}
                                         />
                                     ))}
                                     {accessToken ? (
                                         <>
-                                            <Separator className="my-2" />
+                                            <Separator className="my-4" />
+                                            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                                Account
+                                            </p>
                                             {protectedNav.map((item) => (
                                                 <MobileNavLink
                                                     key={item.to}
                                                     to={item.to}
                                                     label={item.label}
+                                                    icon={item.icon}
                                                     onNavigate={() => setIsMobileNavOpen(false)}
                                                 />
                                             ))}
@@ -128,14 +140,26 @@ export const AppShell = ({ children }: AppShellProps) => {
                                 </div>
                             </SheetContent>
                         </Sheet>
-                        <Link className="text-lg font-semibold" to="/">
-                            HivePoint
+                        <Link to="/" className="transition-transform hover:scale-105">
+                            <Logo size="md" />
                         </Link>
                     </div>
+
+                    {/* Desktop Navigation in Header */}
+                    <nav className="hidden items-center gap-1 md:flex">
+                        {publicNav.map((item) => (
+                            <HeaderNavLink key={item.to} to={item.to} label={item.label} />
+                        ))}
+                        {accessToken && protectedNav.map((item) => (
+                            <HeaderNavLink key={item.to} to={item.to} label={item.label} />
+                        ))}
+                    </nav>
+
                     <div className="flex items-center gap-2">
+                        {/* Theme Toggle */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="gap-2" aria-label="Toggle theme">
+                                <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Toggle theme">
                                     {theme === "dark" ? (
                                         <Moon className="h-4 w-4" />
                                     ) : theme === "light" ? (
@@ -143,71 +167,60 @@ export const AppShell = ({ children }: AppShellProps) => {
                                     ) : (
                                         <Laptop className="h-4 w-4" />
                                     )}
-                                    <span className="hidden sm:inline">{themeLabel}</span>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel className="space-y-1">
-                                    <div className="text-xs uppercase text-muted-foreground">Theme</div>
-                                    <div className="text-sm font-medium">{themeLabel}</div>
-                                    {theme === "system" ? (
-                                        <div className="text-xs text-muted-foreground">
-                                            Follows OS appearance
-                                        </div>
-                                    ) : null}
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
+                            <DropdownMenuContent align="end" className="w-40">
                                 <DropdownMenuItem
-                                    className={theme === "system" ? "font-medium" : undefined}
+                                    className={cn("gap-2", theme === "system" && "bg-accent")}
                                     onClick={() => setTheme("system")}
                                 >
-                                    <Laptop className="mr-2 h-4 w-4" />
+                                    <Laptop className="h-4 w-4" />
                                     System
-                                    {theme === "system" ? (
-                                        <span className="ml-auto text-xs text-muted-foreground">Active</span>
-                                    ) : null}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                    className={theme === "light" ? "font-medium" : undefined}
+                                    className={cn("gap-2", theme === "light" && "bg-accent")}
                                     onClick={() => setTheme("light")}
                                 >
-                                    <Sun className="mr-2 h-4 w-4" />
+                                    <Sun className="h-4 w-4" />
                                     Light
-                                    {theme === "light" ? (
-                                        <span className="ml-auto text-xs text-muted-foreground">Active</span>
-                                    ) : null}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                    className={theme === "dark" ? "font-medium" : undefined}
+                                    className={cn("gap-2", theme === "dark" && "bg-accent")}
                                     onClick={() => setTheme("dark")}
                                 >
-                                    <Moon className="mr-2 h-4 w-4" />
+                                    <Moon className="h-4 w-4" />
                                     Dark
-                                    {theme === "dark" ? (
-                                        <span className="ml-auto text-xs text-muted-foreground">Active</span>
-                                    ) : null}
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
+
+                        {/* Account Menu */}
                         {accessToken ? (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm">
-                                        {accountLabel}
+                                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-primary/10">
+                                        <User className="h-4 w-4 text-primary" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel className="space-y-1">
-                                        <div className="text-sm font-medium">{accountLabel}</div>
-                                        {accountRole ? (
-                                            <div className="text-xs text-muted-foreground">{accountRole}</div>
-                                        ) : null}
+                                <DropdownMenuContent align="end" className="w-56">
+                                    <DropdownMenuLabel className="font-normal">
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium leading-none">{accountLabel}</p>
+                                            {accountRole ? (
+                                                <p className="text-xs leading-none text-muted-foreground">
+                                                    {accountRole}
+                                                </p>
+                                            ) : null}
+                                        </div>
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem asChild>
-                                        <Link to="/debug/connection">Debug connection</Link>
+                                        <Link to="/debug/connection" className="gap-2">
+                                            Debug connection
+                                        </Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={logout}>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
                                         Logout
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -215,54 +228,56 @@ export const AppShell = ({ children }: AppShellProps) => {
                         ) : (
                             <div className="flex items-center gap-2">
                                 <Button asChild variant="ghost" size="sm">
-                                    <Link to="/login">Login</Link>
+                                    <Link to="/login">Sign in</Link>
                                 </Button>
-                                <Button asChild size="sm">
-                                    <Link to="/register">Register</Link>
+                                <Button asChild size="sm" className="bg-primary text-primary-foreground shadow-glow hover:shadow-glow-lg">
+                                    <Link to="/register">Get Started</Link>
                                 </Button>
                             </div>
                         )}
                     </div>
                 </div>
             </header>
-            <div className="mx-auto flex w-full max-w-6xl gap-6 px-6 py-8">
-                <aside className="hidden w-56 shrink-0 flex-col gap-3 md:flex">
-                    <nav className="flex flex-col gap-1">
-                        {publicNav.map((item) => (
-                            <NavItemLink key={item.to} to={item.to} label={item.label} />
-                        ))}
-                    </nav>
-                    {accessToken ? (
-                        <>
-                            <Separator />
-                            <nav className="flex flex-col gap-1">
-                                {protectedNav.map((item) => (
-                                    <NavItemLink key={item.to} to={item.to} label={item.label} />
-                                ))}
-                            </nav>
-                        </>
-                    ) : null}
-                </aside>
-                <main className="flex-1">{children}</main>
-            </div>
+
+            {/* Main Content */}
+            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+                <div className="animate-fade-in">
+                    {children}
+                </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="mt-auto border-t bg-muted/30">
+                <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row sm:px-6 lg:px-8">
+                    <Logo size="sm" />
+                    <p className="text-sm text-muted-foreground">
+                        © {new Date().getFullYear()} HivePoint. API Platform.
+                    </p>
+                </div>
+            </footer>
+
+            {/* Scroll to Top Button */}
+            <ScrollToTop />
         </div>
     )
 }
 
-type NavItemLinkProps = {
+type HeaderNavLinkProps = {
     to: string
     label: string
 }
 
-const NavItemLink = ({ to, label }: NavItemLinkProps) => {
+const HeaderNavLink = ({ to, label }: HeaderNavLinkProps) => {
     return (
         <NavLink
             to={to}
             className={({ isActive }) =>
                 cn(
-                    buttonVariants({ variant: "ghost", size: "sm" }),
-                    "w-full justify-start",
-                    isActive && "bg-accent text-accent-foreground"
+                    "relative px-3 py-2 text-sm font-medium transition-colors",
+                    "hover:text-primary",
+                    isActive 
+                        ? "text-primary after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-4 after:-translate-x-1/2 after:rounded-full after:bg-primary" 
+                        : "text-muted-foreground"
                 )
             }
         >
@@ -274,22 +289,25 @@ const NavItemLink = ({ to, label }: NavItemLinkProps) => {
 type MobileNavLinkProps = {
     to: string
     label: string
+    icon: React.ComponentType<{ className?: string }>
     onNavigate?: () => void
 }
 
-const MobileNavLink = ({ to, label, onNavigate }: MobileNavLinkProps) => {
+const MobileNavLink = ({ to, label, icon: Icon, onNavigate }: MobileNavLinkProps) => {
     return (
         <NavLink
             to={to}
             className={({ isActive }) =>
                 cn(
-                    buttonVariants({ variant: "ghost", size: "sm" }),
-                    "w-full justify-start",
-                    isActive && "bg-accent text-accent-foreground"
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                    isActive 
+                        ? "bg-primary/10 text-primary" 
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )
             }
             onClick={onNavigate}
         >
+            <Icon className="h-5 w-5" />
             {label}
         </NavLink>
     )

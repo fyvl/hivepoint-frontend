@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
+import { ArrowRight, ChevronLeft, ChevronRight, Search, Tag } from "lucide-react"
 
 import {
     createCatalogApi,
@@ -15,7 +16,6 @@ import { Button } from "@/components/ui/button"
 import {
     Card,
     CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
     CardTitle
@@ -27,6 +27,7 @@ import { ErrorBlock } from "@/components/ui-states/error-block"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { notifyError } from "@/lib/notify"
 import { fetchWithCache } from "@/lib/request-cache"
+import { cn } from "@/lib/utils"
 
 const limitOptions = [6, 12, 24]
 
@@ -198,44 +199,64 @@ export const CatalogPage = () => {
     const hasFilters = Boolean(search) || Boolean(category)
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold">Catalog</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Browse published API products.
+        <div className="flex flex-col gap-8">
+            {/* Header */}
+            <div className="flex flex-col gap-6">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight">API Catalog</h1>
+                    <p className="text-muted-foreground">
+                        Discover and integrate powerful APIs for your applications
                     </p>
                 </div>
-                <div className="grid w-full gap-3 md:w-auto md:grid-cols-2">
-                    <div className="space-y-1">
-                        <Label htmlFor="catalog-search">Search</Label>
-                        <Input
-                            id="catalog-search"
-                            placeholder="Search products"
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                        />
+
+                {/* Search and Filter Bar */}
+                <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-soft sm:flex-row sm:items-end">
+                    <div className="flex-1 space-y-1.5">
+                        <Label htmlFor="catalog-search" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            Search
+                        </Label>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                id="catalog-search"
+                                placeholder="Search products..."
+                                value={search}
+                                onChange={(event) => setSearch(event.target.value)}
+                                className="pl-9"
+                            />
+                        </div>
                     </div>
-                    <div className="space-y-1">
-                        <Label htmlFor="catalog-category">Category</Label>
-                        <Input
-                            id="catalog-category"
-                            placeholder="payments"
-                            value={category}
-                            onChange={(event) => setCategory(event.target.value)}
-                        />
+                    <div className="flex-1 space-y-1.5 sm:max-w-[200px]">
+                        <Label htmlFor="catalog-category" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            Category
+                        </Label>
+                        <div className="relative">
+                            <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                id="catalog-category"
+                                placeholder="All categories"
+                                value={category}
+                                onChange={(event) => setCategory(event.target.value)}
+                                className="pl-9"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
+            {/* Results Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm text-muted-foreground">{showingText}</p>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 rounded-lg border bg-muted/30 p-1">
                     {limitOptions.map((value) => (
                         <Button
                             key={value}
-                            variant={limit === value ? "default" : "outline"}
+                            variant={limit === value ? "default" : "ghost"}
                             size="sm"
+                            className={cn(
+                                "h-8 px-3",
+                                limit === value && "shadow-sm"
+                            )}
                             onClick={() => setLimit(value)}
                         >
                             {value}
@@ -281,20 +302,27 @@ export const CatalogPage = () => {
                 </div>
             ) : null}
 
-            <div className="flex items-center justify-between gap-4">
+            {/* Pagination */}
+            <div className="flex items-center justify-center gap-2">
                 <Button
                     variant="outline"
+                    size="sm"
                     onClick={() => setOffset((prev) => Math.max(prev - limit, 0))}
                     disabled={!hasPrev}
+                    className="gap-1"
                 >
+                    <ChevronLeft className="h-4 w-4" />
                     Previous
                 </Button>
                 <Button
                     variant="outline"
+                    size="sm"
                     onClick={() => setOffset((prev) => prev + limit)}
                     disabled={!hasNext}
+                    className="gap-1"
                 >
                     Next
+                    <ChevronRight className="h-4 w-4" />
                 </Button>
             </div>
         </div>
@@ -317,38 +345,46 @@ const CatalogCard = ({ product }: { product: CatalogProduct }) => {
     const productId = getString(record, "id")
 
     return (
-        <Card className="flex h-full flex-col">
-            <CardHeader>
-                <CardTitle>{title}</CardTitle>
-                <CardDescription>{category}</CardDescription>
+        <Card className="group flex h-full flex-col overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5">
+            <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                    <Badge variant="secondary" className="mb-2 text-xs font-normal">
+                        {category}
+                    </Badge>
+                    {status ? <StatusBadge kind="product" value={status} /> : null}
+                </div>
+                <CardTitle className="line-clamp-1 text-xl">{title}</CardTitle>
             </CardHeader>
-            <CardContent className="flex-1">
+            <CardContent className="flex-1 pb-4">
                 <p className="text-sm text-muted-foreground" style={clampStyle}>
                     {description}
                 </p>
                 {tags.length > 0 ? (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                        {tags.slice(0, 4).map((tag) => (
-                            <Badge key={tag} variant="secondary">
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                        {tags.slice(0, 3).map((tag) => (
+                            <Badge key={tag} variant="outline" className="text-xs font-normal">
                                 {tag}
                             </Badge>
                         ))}
+                        {tags.length > 3 && (
+                            <Badge variant="outline" className="text-xs font-normal">
+                                +{tags.length - 3}
+                            </Badge>
+                        )}
                     </div>
                 ) : null}
             </CardContent>
-            <CardFooter className="justify-between">
-                {status ? (
-                    <StatusBadge kind="product" value={status} />
-                ) : (
-                    <span className="text-xs text-muted-foreground" />
-                )}
+            <CardFooter className="border-t bg-muted/30 pt-4">
                 {productId ? (
-                    <Button asChild size="sm">
-                        <Link to={`/products/${productId}`}>Open</Link>
+                    <Button asChild className="w-full gap-2 shadow-glow hover:shadow-glow-lg">
+                        <Link to={`/products/${productId}`}>
+                            View Details
+                            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        </Link>
                     </Button>
                 ) : (
-                    <Button size="sm" disabled>
-                        Open
+                    <Button className="w-full" disabled>
+                        View Details
                     </Button>
                 )}
             </CardFooter>

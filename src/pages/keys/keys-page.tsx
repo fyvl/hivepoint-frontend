@@ -1,4 +1,4 @@
-﻿import { type FormEvent, useEffect, useMemo, useState } from "react"
+import { type FormEvent, useEffect, useMemo, useState } from "react"
 
 import { ApiError } from "@/api/http"
 import { createKeysApi, type CreateKeyResponse, type KeyItem } from "@/api/keys"
@@ -127,11 +127,11 @@ export const KeysPage = () => {
     }
 
     return (
-        <div className="flex flex-col gap-6">
-            <div>
-                <h1 className="text-2xl font-semibold">API Keys</h1>
-                <p className="text-sm text-muted-foreground">
-                    Create and manage keys for accessing your subscriptions.
+        <div className="flex flex-col gap-8">
+            <div className="space-y-1">
+                <h1 className="text-3xl font-bold tracking-tight">API Keys</h1>
+                <p className="text-muted-foreground">
+                    Create and manage keys for accessing your subscriptions
                 </p>
             </div>
 
