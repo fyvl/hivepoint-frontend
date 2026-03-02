@@ -11,6 +11,7 @@ import { DebugConnectionPage } from "@/pages/debug-connection-page"
 import { KeysPage } from "@/pages/keys/keys-page"
 import { LoginPage } from "@/pages/login-page"
 import { NotFoundPage } from "@/pages/not-found/not-found-page"
+import { ProfilePage } from "@/pages/profile/profile-page"
 import { RegisterPage } from "@/pages/register-page"
 import { SellerStudioPage } from "@/pages/seller/seller-studio-page"
 import { UsagePage } from "@/pages/usage/usage-page"
@@ -26,6 +27,7 @@ export default function App() {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route element={<RequireAuth />}>
                     <Route path="/debug/connection" element={<DebugConnectionPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
 
                     <Route element={<RequireRole allow={["BUYER", "ADMIN"]} />}>
                         <Route path="/billing" element={<BillingPage />} />

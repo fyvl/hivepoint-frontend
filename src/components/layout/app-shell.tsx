@@ -40,6 +40,10 @@ const sellerNav: NavItem[] = [
     { to: "/seller/studio", label: "Seller Studio", icon: BriefcaseBusiness }
 ]
 
+const accountNav: NavItem[] = [
+    { to: "/profile", label: "Profile", icon: User }
+]
+
 type AppShellProps = {
     children: React.ReactNode
 }
@@ -71,14 +75,14 @@ export const AppShell = ({ children }: AppShellProps) => {
         }
 
         if (role === "SELLER") {
-            return sellerNav
+            return [...sellerNav, ...accountNav]
         }
 
         if (role === "BUYER") {
-            return buyerNav
+            return [...buyerNav, ...accountNav]
         }
 
-        return [...sellerNav, ...buyerNav]
+        return [...sellerNav, ...buyerNav, ...accountNav]
     }, [accessToken, role])
 
     return (
@@ -206,6 +210,11 @@ export const AppShell = ({ children }: AppShellProps) => {
                                         </div>
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/profile" className="gap-2">
+                                            Profile
+                                        </Link>
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
                                         <Link to="/debug/connection" className="gap-2">
                                             Debug connection
