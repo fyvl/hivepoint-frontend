@@ -5,6 +5,7 @@ import { login as loginApi, logout as logoutApi, refresh as refreshApi, register
 import { ApiError, type HttpOptions, httpWithRetry } from "@/api/http"
 
 export type UserRole = "BUYER" | "SELLER" | "ADMIN"
+export type RegisterRole = Exclude<UserRole, "ADMIN">
 
 type AccessTokenClaims = {
     sub?: string
@@ -25,7 +26,7 @@ export type AuthContextValue = {
     role: UserRole | null
     isHydrating: boolean
     login: (payload: { email: string; password: string }) => Promise<void>
-    register: (payload: { email: string; password: string }) => Promise<void>
+    register: (payload: { email: string; password: string; role: RegisterRole }) => Promise<void>
     refresh: () => Promise<string | null>
     logout: () => Promise<void>
     authedRequest: <T>(path: string, options?: HttpOptions) => Promise<T>
@@ -110,7 +111,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLastError(null)
     }, [])
 
-    const register = useCallback(async (payload: { email: string; password: string }) => {
+    const register = useCallback(async (payload: { email: string; password: string; role: RegisterRole }) => {
         await registerApi(payload)
         setLastError(null)
     }, [])

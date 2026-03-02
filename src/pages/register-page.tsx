@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { ArrowRight, Check, Loader2 } from "lucide-react"
 
 import { ApiError } from "@/api/http"
-import { useAuth } from "@/auth/auth-context"
+import { type RegisterRole, useAuth } from "@/auth/auth-context"
 import { Logo } from "@/components/brand/logo"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,6 +22,7 @@ export const RegisterPage = () => {
     const navigate = useNavigate()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [role, setRole] = useState<RegisterRole>("BUYER")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
 
@@ -49,7 +50,7 @@ export const RegisterPage = () => {
 
         setIsSubmitting(true)
         try {
-            await register({ email, password })
+            await register({ email, password, role })
             notifySuccess("Registration complete", "You can now sign in with your credentials.")
             navigate("/login")
         } catch (error) {
@@ -142,6 +143,30 @@ export const RegisterPage = () => {
                                 ) : null}
                                 <p className="text-xs text-muted-foreground">
                                     Must be at least 8 characters
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Account type</Label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button
+                                        type="button"
+                                        variant={role === "BUYER" ? "default" : "outline"}
+                                        className="h-10"
+                                        onClick={() => setRole("BUYER")}
+                                    >
+                                        Buyer
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant={role === "SELLER" ? "default" : "outline"}
+                                        className="h-10"
+                                        onClick={() => setRole("SELLER")}
+                                    >
+                                        Dev
+                                    </Button>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    Buyer subscribes to APIs. Dev publishes APIs in Seller Studio.
                                 </p>
                             </div>
                         </CardContent>

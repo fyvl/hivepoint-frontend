@@ -1,7 +1,12 @@
 import { http } from "@/api/http"
 import type { PostRequestBody, PostResponseJsonAny } from "@/api/types"
 
-type RegisterBody = PostRequestBody<"/auth/register">
+type RegisterRole = "BUYER" | "SELLER"
+type RegisterBody = {
+    email: string
+    password: string
+    role: RegisterRole
+}
 type RegisterResponse = PostResponseJsonAny<"/auth/register">
 
 type LoginBody = PostRequestBody<"/auth/login">

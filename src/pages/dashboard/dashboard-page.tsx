@@ -1,11 +1,13 @@
-import { ArrowRight, BarChart3, BriefcaseBusiness, CreditCard, Key, LayoutGrid, Lock, Rocket, ShieldCheck } from "lucide-react"
-import { Link } from "react-router-dom"
-import { useMemo } from "react"
+import { ArrowRight, BarChart3, BriefcaseBusiness, CreditCard, Key, LayoutGrid, Loader2, Lock, Rocket, ShieldCheck } from "lucide-react"
+import { Link, useNavigate } from "react-router-dom"
+import { useCallback, useMemo, useState } from "react"
 
+import { updateMyRole as updateMyRoleApi } from "@/api/users"
 import { useAuth } from "@/auth/auth-context"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { notifyError, notifySuccess } from "@/lib/notify"
 import { cn } from "@/lib/utils"
 
 type DashboardCard = {
@@ -101,7 +103,32 @@ const sellerCards: DashboardCard[] = [
 ]
 
 export const DashboardPage = () => {
-    const { accessToken, role } = useAuth()
+    const { accessToken, role, refresh } = useAuth()
+    const navigate = useNavigate()
+    const [isUpgradingRole, setIsUpgradingRole] = useState(false)
+
+    const handleBecomeSeller = useCallback(async () => {
+        if (!accessToken) {
+            return
+        }
+
+        setIsUpgradingRole(true)
+        try {
+            await updateMyRoleApi(accessToken, refresh, { role: "SELLER" })
+
+            const updatedToken = await refresh()
+            if (!updatedToken) {
+                throw new Error("Could not refresh session after role update.")
+            }
+
+            notifySuccess("Role updated", "You are now in Dev mode.")
+            navigate("/seller/studio")
+        } catch (error) {
+            notifyError(error, "Could not switch to Dev role")
+        } finally {
+            setIsUpgradingRole(false)
+        }
+    }, [accessToken, navigate, refresh])
 
     const hero = useMemo<HeroConfig>(() => {
         if (!accessToken) {
@@ -190,6 +217,24 @@ export const DashboardPage = () => {
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Link>
                             </Button>
+                            {accessToken && role === "BUYER" ? (
+                                <Button
+                                    size="lg"
+                                    variant="outline"
+                                    className="border-white/30 bg-transparent text-white hover:bg-white/10"
+                                    onClick={handleBecomeSeller}
+                                    disabled={isUpgradingRole}
+                                >
+                                    {isUpgradingRole ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Switching...
+                                        </>
+                                    ) : (
+                                        "Become Dev"
+                                    )}
+                                </Button>
+                            ) : null}
                             {!accessToken ? (
                                 <Button asChild size="lg" variant="outline" className="border-white/30 bg-transparent text-white hover:bg-white/10">
                                     <Link to="/catalog">Explore APIs</Link>
@@ -277,4 +322,3 @@ const FeaturePill = ({
         </div>
     )
 }
-
