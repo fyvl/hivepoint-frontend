@@ -108,6 +108,16 @@ export const createCatalogApi = (client?: CatalogClient) => {
                 method: "GET"
             })
         },
+        listMyProducts: async (
+            params: ListProductsQueryInput = {},
+            options: HttpOptions = {}
+        ): Promise<ListProductsResponse> => {
+            const query = buildQuery(params as Record<string, unknown>)
+            return await request<ListProductsResponse>(`/catalog/my-products${query}`, {
+                ...options,
+                method: "GET"
+            })
+        },
         getProduct: async (
             id: string,
             options: HttpOptions = {}

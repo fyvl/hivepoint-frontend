@@ -142,7 +142,7 @@ export const SellerStudioPage = () => {
         setIsProductsLoading(true)
         setProductsError(null)
         try {
-            const response = await catalogApi.listProducts({ limit: 48, offset: 0 })
+            const response = await catalogApi.listMyProducts({ limit: 48, offset: 0 })
             const items = extractProducts(response)
             setProducts(items)
 
