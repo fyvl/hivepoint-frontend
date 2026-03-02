@@ -120,6 +120,7 @@ export const SellerStudioPage = () => {
     const [versionLabel, setVersionLabel] = useState("")
     const [openApiUrl, setOpenApiUrl] = useState("")
     const [isCreatingVersion, setIsCreatingVersion] = useState(false)
+    const [updatingVersionId, setUpdatingVersionId] = useState<string | null>(null)
 
     const [planName, setPlanName] = useState("")
     const [planPrice, setPlanPrice] = useState("")
@@ -291,6 +292,33 @@ export const SellerStudioPage = () => {
         }
     }
 
+    const handleChangeVersionStatus = async (
+        versionId: string | null,
+        status: "DRAFT" | "PUBLISHED"
+    ) => {
+        if (!versionId) {
+            notifyInfo("Missing version ID", "Reload the product details and try again.")
+            return
+        }
+
+        setUpdatingVersionId(versionId)
+        try {
+            const updated = await catalogApi.updateVersion(versionId, { status })
+            setVersions((prev) =>
+                prev.map((version) => {
+                    return getVersionId(version) === versionId
+                        ? (updated as CatalogVersion)
+                        : version
+                })
+            )
+            notifySuccess("Version status updated", `Version set to ${status}.`)
+        } catch (err) {
+            notifyError(err, "Update version status failed")
+        } finally {
+            setUpdatingVersionId(null)
+        }
+    }
+
     const handleCreatePlan = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         if (!selectedProductId) {
@@ -333,6 +361,31 @@ export const SellerStudioPage = () => {
     const selectedProductRecord = isRecord(selectedProduct) ? selectedProduct : null
     const selectedStatus = getString(selectedProductRecord, "status")
     const selectedTags = getStringArray(selectedProductRecord, "tags")
+    const hasSchemaConnected = versions.length > 0
+    const hasPublishedVersion = useMemo(() => {
+        return versions.some((version) => {
+            const record = isRecord(version) ? version : null
+            return getString(record, "status") === "PUBLISHED"
+        })
+    }, [versions])
+    const setupSteps = [
+        {
+            label: "Create product",
+            done: products.length > 0
+        },
+        {
+            label: "Connect schema (OpenAPI URL)",
+            done: hasSchemaConnected
+        },
+        {
+            label: "Publish at least one version",
+            done: hasPublishedVersion
+        },
+        {
+            label: "Create pricing plan",
+            done: plans.length > 0
+        }
+    ]
 
     return (
         <div className="flex flex-col gap-8">
@@ -357,6 +410,60 @@ export const SellerStudioPage = () => {
                     </div>
                 </div>
             </section>
+
+            <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>How to connect your API</CardTitle>
+                        <CardDescription>
+                            Use this flow to onboard one API product in Seller Studio.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {setupSteps.map((step, index) => (
+                            <div
+                                key={step.label}
+                                className={cn(
+                                    "flex items-center justify-between rounded-lg border px-3 py-2",
+                                    step.done ? "border-emerald-500/40 bg-emerald-500/5" : "border-border"
+                                )}
+                            >
+                                <span className="text-sm">
+                                    {index + 1}. {step.label}
+                                </span>
+                                {step.done ? (
+                                    <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                        Done
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                        <CircleDashed className="h-3.5 w-3.5" />
+                                        Pending
+                                    </span>
+                                )}
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
+                <Card className="border-amber-500/30 bg-amber-500/[0.06]">
+                    <CardHeader>
+                        <CardTitle>Runtime integration note</CardTitle>
+                        <CardDescription>
+                            Where to provide schema and how clients call your service.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm text-muted-foreground">
+                        <p>
+                            HivePoint stores your product metadata and OpenAPI link, but it is not a runtime proxy yet.
+                        </p>
+                        <p>
+                            Buyers call your API directly on your infrastructure. Provide a publicly reachable OpenAPI URL in Step 2.
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
 
             <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
                 <Card className="border-emerald-500/20">
@@ -491,9 +598,9 @@ export const SellerStudioPage = () => {
                 <div className="flex flex-col gap-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Release Versions</CardTitle>
+                            <CardTitle>Step 2: Connect API Schema</CardTitle>
                             <CardDescription>
-                                Publish a new OpenAPI definition for the selected product.
+                                Add a version and OpenAPI URL. New versions start as DRAFT, then publish below.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -543,14 +650,36 @@ export const SellerStudioPage = () => {
                                         return (
                                             <div
                                                 key={versionId ?? `${versionName}-${index}`}
-                                                className="flex items-center justify-between rounded-lg border px-3 py-2"
+                                                className="space-y-2 rounded-lg border px-3 py-2"
                                             >
-                                                <span className="text-sm font-medium">{versionName}</span>
-                                                {versionStatus ? (
-                                                    <StatusBadge kind="version" value={versionStatus} />
-                                                ) : (
-                                                    <CircleDashed className="h-4 w-4 text-muted-foreground" />
-                                                )}
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <span className="text-sm font-medium">{versionName}</span>
+                                                    {versionStatus ? (
+                                                        <StatusBadge kind="version" value={versionStatus} />
+                                                    ) : (
+                                                        <CircleDashed className="h-4 w-4 text-muted-foreground" />
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant={versionStatus === "PUBLISHED" ? "default" : "outline"}
+                                                        disabled={!versionId || updatingVersionId === versionId}
+                                                        onClick={() => handleChangeVersionStatus(versionId, "PUBLISHED")}
+                                                    >
+                                                        {updatingVersionId === versionId ? "Updating..." : "Publish"}
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant={versionStatus === "DRAFT" ? "default" : "outline"}
+                                                        disabled={!versionId || updatingVersionId === versionId}
+                                                        onClick={() => handleChangeVersionStatus(versionId, "DRAFT")}
+                                                    >
+                                                        Set draft
+                                                    </Button>
+                                                </div>
                                             </div>
                                         )
                                     })}
