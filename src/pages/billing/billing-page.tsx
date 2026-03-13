@@ -1,6 +1,10 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { createBillingApi, type Subscription } from "@/api/billing"
+import {
+    createBillingApi,
+    type BillingConfigResponse,
+    type Subscription
+} from "@/api/billing"
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
 import { SubscriptionsSkeleton } from "@/components/skeletons/subscriptions-skeleton"
@@ -27,6 +31,63 @@ import { ErrorBlock } from "@/components/ui-states/error-block"
 import { notifyError, notifySuccess } from "@/lib/notify"
 import { formatCurrency, formatDate, formatNumber } from "@/lib/format"
 
+type SubscriptionNotice = {
+    title: string
+    description: string
+    tone: "default" | "warning" | "danger"
+}
+
+const hasRecoverablePortalAction = (subscription: Subscription) => {
+    return subscription.paymentProvider === "STRIPE" && Boolean(subscription.hasExternalSubscription)
+}
+
+const getSubscriptionNotice = (subscription: Subscription): SubscriptionNotice | null => {
+    if (subscription.status === "PAST_DUE") {
+        if (hasRecoverablePortalAction(subscription)) {
+            return {
+                title: "Payment action required",
+                description:
+                    "A renewal payment failed. Update the payment method in the customer portal to restore normal billing.",
+                tone: "danger"
+            }
+        }
+
+        return {
+            title: "Checkout needs to be restarted",
+            description:
+                "This failed billing record did not create a recoverable Stripe subscription. Start a new checkout from the product page.",
+            tone: "warning"
+        }
+    }
+
+    if (subscription.cancelAtPeriodEnd) {
+        return {
+            title: "Cancellation scheduled",
+            description: subscription.currentPeriodEnd
+                ? `Access remains active through ${formatDate(subscription.currentPeriodEnd)}.`
+                : "Access remains active until the current billing period ends.",
+            tone: "warning"
+        }
+    }
+
+    if (subscription.status === "PENDING") {
+        return {
+            title: "Payment pending",
+            description:
+                "Complete checkout or wait for the payment confirmation webhook before using the subscription.",
+            tone: "default"
+        }
+    }
+
+    return null
+}
+
+const noticeStyles: Record<SubscriptionNotice["tone"], string> = {
+    default: "border-border/60 bg-muted/10",
+    warning: "border-amber-500/30 bg-amber-500/10",
+    danger: "border-destructive/30 bg-destructive/10"
+}
+
 export const BillingPage = () => {
     const { accessToken, refresh } = useAuth()
     const billingApi = useMemo(
@@ -35,32 +96,47 @@ export const BillingPage = () => {
     )
 
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+    const [billingConfig, setBillingConfig] = useState<BillingConfigResponse | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<ApiError | null>(null)
     const [cancelingId, setCancelingId] = useState<string | null>(null)
+    const [isOpeningPortal, setIsOpeningPortal] = useState(false)
     const [retryKey, setRetryKey] = useState(0)
     const [pendingCancel, setPendingCancel] = useState<Subscription | null>(null)
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
+    const subscriptionStats = useMemo(() => {
+        return {
+            active: subscriptions.filter((item) => item.status === "ACTIVE").length,
+            pastDue: subscriptions.filter((item) => item.status === "PAST_DUE").length,
+            canceling: subscriptions.filter((item) => item.cancelAtPeriodEnd).length
+        }
+    }, [subscriptions])
 
-    const loadSubscriptions = async () => {
+    const loadSubscriptions = useCallback(async () => {
         setIsLoading(true)
         setError(null)
+
         try {
-            const response = await billingApi.listSubscriptions()
-            setSubscriptions(response.items)
+            const [subscriptionsResponse, configResponse] = await Promise.all([
+                billingApi.listSubscriptions(),
+                billingApi.getConfig()
+            ])
+            setSubscriptions(subscriptionsResponse.items)
+            setBillingConfig(configResponse)
         } catch (err) {
             const apiError = err instanceof ApiError ? err : null
             setError(apiError)
             setSubscriptions([])
+            setBillingConfig(null)
             notifyError(apiError ?? err, "Billing error")
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [billingApi])
 
     useEffect(() => {
-        loadSubscriptions()
-    }, [billingApi, retryKey])
+        void loadSubscriptions()
+    }, [loadSubscriptions, retryKey])
 
     const handleCancel = async (subscriptionId: string) => {
         setCancelingId(subscriptionId)
@@ -81,6 +157,19 @@ export const BillingPage = () => {
         setIsCancelDialogOpen(true)
     }
 
+    const handleOpenPortal = async () => {
+        setIsOpeningPortal(true)
+        try {
+            const response = await billingApi.createPortalSession()
+            window.location.assign(response.url)
+        } catch (err) {
+            const apiError = err instanceof ApiError ? err : null
+            notifyError(apiError ?? err, "Portal unavailable")
+        } finally {
+            setIsOpeningPortal(false)
+        }
+    }
+
     const handleCancelDialogChange = (open: boolean) => {
         setIsCancelDialogOpen(open)
         if (!open) {
@@ -90,11 +179,23 @@ export const BillingPage = () => {
 
     return (
         <div className="flex flex-col gap-8">
-            <div className="space-y-1">
-                <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
-                <p className="text-muted-foreground">
-                    Manage your subscriptions and billing status
-                </p>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
+                    <p className="text-muted-foreground">
+                        Manage your subscriptions and billing status
+                    </p>
+                </div>
+                {billingConfig?.customerPortalAvailable ? (
+                    <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isOpeningPortal}
+                        onClick={handleOpenPortal}
+                    >
+                        {isOpeningPortal ? "Opening..." : "Open customer portal"}
+                    </Button>
+                ) : null}
             </div>
 
             {isLoading ? <SubscriptionsSkeleton /> : null}
@@ -118,16 +219,42 @@ export const BillingPage = () => {
             ) : null}
 
             {!isLoading && subscriptions.length > 0 ? (
-                <div className="grid gap-4">
-                    {subscriptions.map((subscription) => (
-                        <SubscriptionCard
-                            key={subscription.id}
-                            subscription={subscription}
-                            onCancel={handleOpenCancel}
-                            isCanceling={cancelingId === subscription.id}
-                        />
-                    ))}
-                </div>
+                <>
+                    <div className="grid gap-4 md:grid-cols-3">
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardDescription>Active</CardDescription>
+                                <CardTitle>{subscriptionStats.active}</CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardDescription>Past due</CardDescription>
+                                <CardTitle>{subscriptionStats.pastDue}</CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardDescription>Canceling at period end</CardDescription>
+                                <CardTitle>{subscriptionStats.canceling}</CardTitle>
+                            </CardHeader>
+                        </Card>
+                    </div>
+
+                    <div className="grid gap-4">
+                        {subscriptions.map((subscription) => (
+                            <SubscriptionCard
+                                key={subscription.id}
+                                subscription={subscription}
+                                onCancel={handleOpenCancel}
+                                onOpenPortal={handleOpenPortal}
+                                canOpenPortal={Boolean(billingConfig?.customerPortalAvailable)}
+                                isCanceling={cancelingId === subscription.id}
+                                isOpeningPortal={isOpeningPortal}
+                            />
+                        ))}
+                    </div>
+                </>
             ) : null}
 
             <Dialog open={isCancelDialogOpen} onOpenChange={handleCancelDialogChange}>
@@ -141,7 +268,7 @@ export const BillingPage = () => {
                     <div className="space-y-4">
                         <div className="text-sm text-muted-foreground">
                             {pendingCancel
-                                ? `${pendingCancel.product.title} · ${pendingCancel.plan.name}`
+                                ? `${pendingCancel.product.title} / ${pendingCancel.plan.name}`
                                 : "Select a subscription to cancel."}
                         </div>
                         <div className="flex justify-end gap-2">
@@ -160,7 +287,7 @@ export const BillingPage = () => {
                                     if (!pendingCancel) {
                                         return
                                     }
-                                    handleCancel(pendingCancel.id)
+                                    void handleCancel(pendingCancel.id)
                                     setIsCancelDialogOpen(false)
                                 }}
                             >
@@ -177,13 +304,27 @@ export const BillingPage = () => {
 type SubscriptionCardProps = {
     subscription: Subscription
     onCancel: (subscription: Subscription) => void
+    onOpenPortal: () => void
+    canOpenPortal: boolean
     isCanceling: boolean
+    isOpeningPortal: boolean
 }
 
-const SubscriptionCard = ({ subscription, onCancel, isCanceling }: SubscriptionCardProps) => {
+const SubscriptionCard = ({
+    subscription,
+    onCancel,
+    onOpenPortal,
+    canOpenPortal,
+    isCanceling,
+    isOpeningPortal
+}: SubscriptionCardProps) => {
     const { plan, product } = subscription
     const isActive = subscription.status === "ACTIVE"
     const canCancel = isActive && !subscription.cancelAtPeriodEnd
+    const latestInvoice = subscription.latestInvoice ?? null
+    const invoices = subscription.invoices ?? (latestInvoice ? [latestInvoice] : [])
+    const notice = getSubscriptionNotice(subscription)
+    const showPortalAction = canOpenPortal && hasRecoverablePortalAction(subscription)
 
     return (
         <Card>
@@ -202,24 +343,83 @@ const SubscriptionCard = ({ subscription, onCancel, isCanceling }: SubscriptionC
                 </div>
             </CardHeader>
             <CardContent className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                {notice ? (
+                    <div className={`rounded-lg border p-4 sm:col-span-2 ${noticeStyles[notice.tone]}`}>
+                        <div className="font-medium text-foreground">{notice.title}</div>
+                        <div className="mt-1 text-sm text-muted-foreground">{notice.description}</div>
+                    </div>
+                ) : null}
                 <div>
                     <div className="text-xs uppercase">Billing period</div>
                     <div>
                         {formatDate(subscription.currentPeriodStart)} - {formatDate(subscription.currentPeriodEnd)}
                     </div>
                 </div>
+                <div>
+                    <div className="text-xs uppercase">Plan</div>
                     <div>
-                        <div className="text-xs uppercase">Plan</div>
-                        <div>
-                            {formatCurrency(plan.priceCents, plan.currency)} · {formatNumber(plan.quotaRequests)} requests
-                        </div>
+                        {formatCurrency(plan.priceCents, plan.currency)} / {formatNumber(plan.quotaRequests)} requests
                     </div>
+                </div>
                 <div>
                     <div className="text-xs uppercase">Cancel at period end</div>
                     <div>{subscription.cancelAtPeriodEnd ? "Yes" : "No"}</div>
                 </div>
+                <div>
+                    <div className="text-xs uppercase">Provider</div>
+                    <div>{subscription.paymentProvider ?? "Unknown"}</div>
+                </div>
+                <div>
+                    <div className="text-xs uppercase">Latest invoice</div>
+                    <div>
+                        {latestInvoice
+                            ? `${latestInvoice.status} / ${formatCurrency(
+                                  latestInvoice.amountCents,
+                                  latestInvoice.currency
+                              )}`
+                            : "No invoice"}
+                    </div>
+                </div>
+                <div className="sm:col-span-2">
+                    <div className="text-xs uppercase">Invoice history</div>
+                    {invoices.length > 0 ? (
+                        <div className="mt-2 grid gap-2">
+                            {invoices.map((invoice) => (
+                                <div
+                                    key={invoice.id}
+                                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-background/60 px-3 py-2"
+                                >
+                                    <span className="font-medium text-foreground">
+                                        {formatDate(invoice.createdAt)}
+                                    </span>
+                                    <span>
+                                        {invoice.status} / {formatCurrency(invoice.amountCents, invoice.currency)}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div>No invoices yet</div>
+                    )}
+                </div>
             </CardContent>
-            <CardFooter className="justify-end">
+            <CardFooter className="flex flex-wrap justify-between gap-2">
+                <div>
+                    {showPortalAction ? (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isOpeningPortal}
+                            onClick={onOpenPortal}
+                        >
+                            {isOpeningPortal
+                                ? "Opening..."
+                                : subscription.status === "PAST_DUE"
+                                    ? "Fix payment in portal"
+                                    : "Open customer portal"}
+                        </Button>
+                    ) : null}
+                </div>
                 <Button
                     variant="outline"
                     size="sm"
@@ -236,4 +436,3 @@ const SubscriptionCard = ({ subscription, onCancel, isCanceling }: SubscriptionC
         </Card>
     )
 }
-

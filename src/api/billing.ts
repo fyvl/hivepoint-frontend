@@ -18,10 +18,44 @@ export type SubscribeResponse =
 
 export type ListSubscriptionsResponse =
     paths["/billing/subscriptions"]["get"]["responses"][200]["content"]["application/json"]
-export type Subscription = ListSubscriptionsResponse["items"][number]
+export type Subscription = ListSubscriptionsResponse["items"][number] & {
+    paymentProvider?: "MOCK" | "STRIPE"
+    hasExternalSubscription?: boolean
+    latestInvoice?: BillingLatestInvoice | null
+    invoices?: BillingLatestInvoice[]
+}
 
 export type CancelSubscriptionResponse =
     paths["/billing/subscriptions/{id}/cancel"]["post"]["responses"][200]["content"]["application/json"]
+
+export type BillingPortalSessionResponse = {
+    url: string
+}
+
+export type BillingConfigResponse = {
+    paymentProvider: "MOCK" | "STRIPE"
+    customerPortalAvailable: boolean
+}
+
+export type BillingLatestInvoice = {
+    id: string
+    status: "DRAFT" | "PAID" | "VOID"
+    amountCents: number
+    currency: string
+    createdAt: string
+}
+
+export type BillingCheckoutStatusResponse = {
+    sessionId: string
+    invoiceId: string
+    invoiceStatus: "DRAFT" | "PAID" | "VOID"
+    subscriptionId: string
+    subscriptionStatus: "PENDING" | "ACTIVE" | "CANCELED" | "PAST_DUE"
+    cancelAtPeriodEnd: boolean
+    paymentProvider: "MOCK" | "STRIPE"
+    productTitle: string
+    planName: string
+}
 
 export type MockPaymentResponse =
     paths["/billing/mock/succeed"]["post"]["responses"][200]["content"]["application/json"]
@@ -114,6 +148,20 @@ export const createBillingApi = (client?: BillingClient) => {
                 method: "GET"
             })
         },
+        getConfig: async (): Promise<BillingConfigResponse> => {
+            return await request<BillingConfigResponse>("/billing/config", {
+                method: "GET"
+            })
+        },
+        getCheckoutStatus: async (sessionId: string): Promise<BillingCheckoutStatusResponse> => {
+            const encodedSessionId = encodeURIComponent(sessionId)
+            return await request<BillingCheckoutStatusResponse>(
+                `/billing/checkout-status/${encodedSessionId}`,
+                {
+                    method: "GET"
+                }
+            )
+        },
         cancelSubscription: async (subscriptionId: string): Promise<CancelSubscriptionResponse> => {
             const encodedId = encodeURIComponent(subscriptionId)
             return await request<CancelSubscriptionResponse>(
@@ -122,6 +170,11 @@ export const createBillingApi = (client?: BillingClient) => {
                     method: "POST"
                 }
             )
+        },
+        createPortalSession: async (): Promise<BillingPortalSessionResponse> => {
+            return await request<BillingPortalSessionResponse>("/billing/portal-session", {
+                method: "POST"
+            })
         }
     }
 }
@@ -148,3 +201,4 @@ export const mockPayment = {
         })
     }
 }
+

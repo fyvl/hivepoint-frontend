@@ -75,7 +75,7 @@ export const AppShell = ({ children }: AppShellProps) => {
         }
 
         if (role === "SELLER") {
-            return [...sellerNav, ...accountNav]
+            return [...buyerNav, ...sellerNav, ...accountNav]
         }
 
         if (role === "BUYER") {

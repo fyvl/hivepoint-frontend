@@ -22,6 +22,14 @@ export type UpdateVersionBody =
     paths["/catalog/versions/{versionId}"]["patch"]["requestBody"]["content"]["application/json"]
 export type UpdateVersionResponse =
     paths["/catalog/versions/{versionId}"]["patch"]["responses"][200]["content"]["application/json"]
+export type VersionSchemaResponse = {
+    versionId: string
+    productId: string
+    version: string
+    openApiUrl: string
+    fetchedAt: string | null
+    schema: string
+}
 
 export type CatalogProduct = ListProductsResponse extends { items: (infer Item)[] }
     ? Item
@@ -182,6 +190,16 @@ export const createCatalogApi = (client?: CatalogClient) => {
                 ...options,
                 method: "PATCH",
                 body: payload
+            })
+        },
+        getVersionSchema: async (
+            versionId: string,
+            options: HttpOptions = {}
+        ): Promise<VersionSchemaResponse> => {
+            const encodedId = encodeURIComponent(versionId)
+            return await request<VersionSchemaResponse>(`/catalog/versions/${encodedId}/schema`, {
+                ...options,
+                method: "GET"
             })
         }
     }

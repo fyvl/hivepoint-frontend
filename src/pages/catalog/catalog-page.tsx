@@ -170,7 +170,7 @@ export const CatalogPage = () => {
         return () => {
             isActive = false
         }
-    }, [catalogApi, debouncedSearch, debouncedCategory, limit, offset, retryKey])
+    }, [accessToken, catalogApi, debouncedSearch, debouncedCategory, limit, offset, retryKey])
 
     const hasPrev = offset > 0
     const hasNext = state.total !== undefined

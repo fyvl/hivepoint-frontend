@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react"
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react"
 
 import { ApiError } from "@/api/http"
 import { createKeysApi, type CreateKeyResponse, type KeyItem } from "@/api/keys"
@@ -26,8 +26,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
-import { notifyError, notifySuccess } from "@/lib/notify"
 import { formatDate } from "@/lib/format"
+import { notifyError, notifySuccess } from "@/lib/notify"
+import { saveCachedRawApiKey } from "@/lib/raw-api-key-cache"
 
 export const KeysPage = () => {
     const { accessToken, refresh } = useAuth()
@@ -49,7 +50,7 @@ export const KeysPage = () => {
     const [pendingRevoke, setPendingRevoke] = useState<KeyItem | null>(null)
     const [isRevokeDialogOpen, setIsRevokeDialogOpen] = useState(false)
 
-    const loadKeys = async () => {
+    const loadKeys = useCallback(async () => {
         setIsLoading(true)
         setError(null)
         try {
@@ -63,11 +64,11 @@ export const KeysPage = () => {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [keysApi])
 
     useEffect(() => {
-        loadKeys()
-    }, [keysApi, retryKey])
+        void loadKeys()
+    }, [loadKeys, retryKey])
 
     const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -82,6 +83,11 @@ export const KeysPage = () => {
             setRawKey(response.rawKey)
             setNewKeyMeta(response)
             setIsDialogOpen(true)
+            saveCachedRawApiKey({
+                value: response.rawKey,
+                label: response.label,
+                createdAt: response.createdAt
+            })
             notifySuccess("API key created", "Copy the key now. It will not be shown again.")
             await loadKeys()
         } catch (err) {
@@ -139,7 +145,8 @@ export const KeysPage = () => {
                 <CardHeader>
                     <CardTitle>Create API key</CardTitle>
                     <CardDescription>
-                        The raw key is shown only once. Store it securely.
+                        The raw key is shown only once. HivePoint also keeps the latest created key
+                        in this browser session for the product playground.
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleCreate}>
@@ -221,6 +228,10 @@ export const KeysPage = () => {
                                     Label: {newKeyMeta.label} · Created {formatDate(newKeyMeta.createdAt)}
                                 </div>
                             ) : null}
+                            <div className="text-xs text-muted-foreground">
+                                Saved for this browser session so product playgrounds can reuse it
+                                without another copy step.
+                            </div>
                         </div>
                     ) : (
                         <div className="text-sm text-muted-foreground">No key available.</div>
@@ -258,7 +269,7 @@ export const KeysPage = () => {
                                     if (!pendingRevoke) {
                                         return
                                     }
-                                    handleRevoke(pendingRevoke.id)
+                                    void handleRevoke(pendingRevoke.id)
                                     setIsRevokeDialogOpen(false)
                                 }}
                             >
@@ -303,4 +314,3 @@ const KeyRow = ({ item, onRevoke, isRevoking }: KeyRowProps) => {
         </div>
     )
 }
-

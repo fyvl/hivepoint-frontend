@@ -4,6 +4,8 @@ import { RequireAuth } from "@/auth/require-auth"
 import { RequireRole } from "@/auth/require-role"
 import { AppShell } from "@/components/layout/app-shell"
 import { BillingPage } from "@/pages/billing/billing-page"
+import { BillingCancelPage } from "@/pages/billing/billing-cancel-page"
+import { BillingSuccessPage } from "@/pages/billing/billing-success-page"
 import { CatalogPage } from "@/pages/catalog/catalog-page"
 import { ProductDetailsPage } from "@/pages/catalog/product-details-page"
 import { DashboardPage } from "@/pages/dashboard/dashboard-page"
@@ -29,8 +31,10 @@ export default function App() {
                     <Route path="/debug/connection" element={<DebugConnectionPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
 
-                    <Route element={<RequireRole allow={["BUYER", "ADMIN"]} />}>
+                    <Route element={<RequireRole allow={["BUYER", "SELLER", "ADMIN"]} />}>
                         <Route path="/billing" element={<BillingPage />} />
+                        <Route path="/billing/success" element={<BillingSuccessPage />} />
+                        <Route path="/billing/cancel" element={<BillingCancelPage />} />
                         <Route path="/keys" element={<KeysPage />} />
                         <Route path="/usage" element={<UsagePage />} />
                     </Route>

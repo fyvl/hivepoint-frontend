@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import {
     createUsageApi,
@@ -70,7 +70,7 @@ export const UsagePage = () => {
     const [isIngesting, setIsIngesting] = useState(false)
     const [retryKey, setRetryKey] = useState(0)
 
-    const loadSummary = async () => {
+    const loadSummary = useCallback(async () => {
         setIsLoading(true)
         setError(null)
         try {
@@ -84,11 +84,11 @@ export const UsagePage = () => {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [usageApi])
 
     useEffect(() => {
-        loadSummary()
-    }, [usageApi, retryKey])
+        void loadSummary()
+    }, [loadSummary, retryKey])
 
     useEffect(() => {
         if (items.length > 0 && !devSubscriptionId) {
@@ -347,6 +347,5 @@ const UsageCard = ({ item }: UsageCardProps) => {
         </Card>
     )
 }
-
 
 
