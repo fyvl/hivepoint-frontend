@@ -50,7 +50,7 @@ export const RegisterPage = () => {
 
         setIsSubmitting(true)
         try {
-            await register({ email, password, role })
+            await register({ email: trimmedEmail, password, role })
             notifySuccess("Registration complete", "You can now sign in with your credentials.")
             navigate("/login")
         } catch (error) {
@@ -122,7 +122,7 @@ export const RegisterPage = () => {
                                 <Input
                                     id="password"
                                     type="password"
-                                    placeholder="••••••••"
+                                    placeholder="********"
                                     autoComplete="new-password"
                                     value={password}
                                     onChange={(event) => {

@@ -31,7 +31,7 @@ import { notifyError, notifySuccess } from "@/lib/notify"
 import { saveCachedRawApiKey } from "@/lib/raw-api-key-cache"
 
 export const KeysPage = () => {
-    const { accessToken, refresh } = useAuth()
+    const { accessToken, refresh, userId } = useAuth()
     const keysApi = useMemo(
         () => createKeysApi({ accessToken, refresh }),
         [accessToken, refresh]
@@ -85,6 +85,7 @@ export const KeysPage = () => {
             setIsDialogOpen(true)
             saveCachedRawApiKey({
                 value: response.rawKey,
+                userId: userId ?? undefined,
                 label: response.label,
                 createdAt: response.createdAt
             })
@@ -225,7 +226,7 @@ export const KeysPage = () => {
                             <CopyButton value={rawKey} label="Copy key" />
                             {newKeyMeta ? (
                                 <div className="text-xs text-muted-foreground">
-                                    Label: {newKeyMeta.label} · Created {formatDate(newKeyMeta.createdAt)}
+                                    {`Label: ${newKeyMeta.label} | Created ${formatDate(newKeyMeta.createdAt)}`}
                                 </div>
                             ) : null}
                             <div className="text-xs text-muted-foreground">
@@ -299,8 +300,7 @@ const KeyRow = ({ item, onRevoke, isRevoking }: KeyRowProps) => {
                     <StatusBadge kind="key" value={isRevoked ? "Revoked" : "Active"} />
                 </div>
                 <div className="text-xs text-muted-foreground">
-                    Created: {formatDate(item.createdAt)}
-                    {item.revokedAt ? ` · Revoked: ${formatDate(item.revokedAt)}` : ""}
+                    {`Created: ${formatDate(item.createdAt)}${item.revokedAt ? ` | Revoked: ${formatDate(item.revokedAt)}` : ""}`}
                 </div>
             </div>
             <Button

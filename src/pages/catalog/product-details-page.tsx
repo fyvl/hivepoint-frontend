@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 
 import {
@@ -183,7 +183,7 @@ const buildGatewayCurl = (params: {
 
 export const ProductDetailsPage = () => {
     const { id } = useParams<{ id: string }>()
-    const { accessToken, refresh } = useAuth()
+    const { accessToken, refresh, userId, isHydrating } = useAuth()
     const catalogApi = useMemo(
         () => createCatalogApi({ accessToken, refresh }),
         [accessToken, refresh]
@@ -213,7 +213,7 @@ export const ProductDetailsPage = () => {
     const [selectedVersionId, setSelectedVersionId] = useState("")
     const [schemaState, setSchemaState] = useState<SchemaState>({ status: "idle" })
     const [schemaRetryKey, setSchemaRetryKey] = useState(0)
-    const [playgroundKey, setPlaygroundKey] = useState(() => getCachedRawApiKey()?.value ?? "")
+    const [playgroundKey, setPlaygroundKey] = useState("")
     const [isCreatingPlaygroundKey, setIsCreatingPlaygroundKey] = useState(false)
     const [gatewayMethod, setGatewayMethod] = useState<GatewayMethod>("GET")
     const [gatewayPath, setGatewayPath] = useState("/")
@@ -221,6 +221,27 @@ export const ProductDetailsPage = () => {
     const [gatewayResult, setGatewayResult] = useState<GatewayDispatchResponse | null>(null)
     const [gatewayError, setGatewayError] = useState<ApiError | null>(null)
     const [isGatewayLoading, setIsGatewayLoading] = useState(false)
+    const previousUserIdRef = useRef<string | null | undefined>(undefined)
+
+    useEffect(() => {
+        if (isHydrating) {
+            return
+        }
+
+        const previousUserId = previousUserIdRef.current
+        const cached = getCachedRawApiKey(userId)
+
+        if (previousUserId === undefined) {
+            setPlaygroundKey(cached?.value ?? "")
+            previousUserIdRef.current = userId
+            return
+        }
+
+        if (previousUserId !== userId) {
+            setPlaygroundKey(cached?.value ?? "")
+            previousUserIdRef.current = userId
+        }
+    }, [isHydrating, userId])
 
     useEffect(() => {
         if (!id) {
@@ -447,6 +468,7 @@ export const ProductDetailsPage = () => {
             setPlaygroundKey(response.rawKey)
             saveCachedRawApiKey({
                 value: response.rawKey,
+                userId: userId ?? undefined,
                 label: response.label,
                 createdAt: response.createdAt
             })
@@ -497,10 +519,13 @@ export const ProductDetailsPage = () => {
             )
 
             setGatewayResult(response)
-            saveCachedRawApiKey({
-                value: playgroundKey.trim(),
-                createdAt: new Date().toISOString()
-            })
+            if (userId) {
+                saveCachedRawApiKey({
+                    value: playgroundKey.trim(),
+                    userId,
+                    createdAt: new Date().toISOString()
+                })
+            }
             notifySuccess("Gateway request completed", `Upstream returned ${response.status}.`)
         } catch (err) {
             const apiError = err instanceof ApiError ? err : null

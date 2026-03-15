@@ -46,7 +46,7 @@ export const LoginPage = () => {
 
         setIsSubmitting(true)
         try {
-            await login({ email, password })
+            await login({ email: trimmedEmail, password })
             notifySuccess("Signed in", "Access token stored in memory.")
             navigate(from, { replace: true })
         } catch (error) {
@@ -104,7 +104,7 @@ export const LoginPage = () => {
                                 <Input
                                     id="password"
                                     type="password"
-                                    placeholder="••••••••"
+                                    placeholder="********"
                                     autoComplete="current-password"
                                     value={password}
                                     onChange={(event) => {

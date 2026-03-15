@@ -1,8 +1,9 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 import { login as loginApi, logout as logoutApi, refresh as refreshApi, register as registerApi } from "@/api/auth"
 import { ApiError, type HttpOptions, httpWithRetry } from "@/api/http"
+import { clearCachedRawApiKey } from "@/lib/raw-api-key-cache"
 
 export type UserRole = "BUYER" | "SELLER" | "ADMIN"
 export type RegisterRole = Exclude<UserRole, "ADMIN">
@@ -75,44 +76,86 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [accessToken, setAccessToken] = useState<string | null>(null)
     const [isHydrating, setIsHydrating] = useState(true)
     const [lastError, setLastError] = useState<ApiError | null>(null)
+    const accessTokenRef = useRef<string | null>(null)
+    const refreshPromiseRef = useRef<Promise<string | null> | null>(null)
+    const sessionVersionRef = useRef(0)
+    const previousUserIdRef = useRef<string | null | undefined>(undefined)
     const identity = useMemo(() => parseAccessToken(accessToken), [accessToken])
 
-    const refresh = useCallback(async () => {
-        try {
-            const response = await refreshApi()
-            if (!response || typeof response !== "object") {
-                setAccessToken(null)
-                return null
-            }
-            const accessTokenValue = (response as { accessToken?: string }).accessToken
-            if (!accessTokenValue) {
-                setAccessToken(null)
-                return null
-            }
-            setAccessToken(accessTokenValue)
-            setLastError(null)
-            return accessTokenValue
-        } catch (error) {
-            if (error instanceof ApiError) {
-                setLastError(error)
-            }
-            setAccessToken(null)
-            return null
-        }
+    const applyAccessToken = useCallback((nextAccessToken: string | null) => {
+        accessTokenRef.current = nextAccessToken
+        setAccessToken(nextAccessToken)
     }, [])
 
+    const refresh = useCallback(async () => {
+        if (refreshPromiseRef.current) {
+            return refreshPromiseRef.current
+        }
+
+        const requestVersion = sessionVersionRef.current
+        const refreshRequest = async () => {
+            try {
+                const response = await refreshApi()
+                if (sessionVersionRef.current !== requestVersion) {
+                    return accessTokenRef.current
+                }
+
+                if (!response || typeof response !== "object") {
+                    applyAccessToken(null)
+                    return null
+                }
+
+                const accessTokenValue = (response as { accessToken?: string }).accessToken
+                if (!accessTokenValue) {
+                    applyAccessToken(null)
+                    return null
+                }
+
+                applyAccessToken(accessTokenValue)
+                setLastError(null)
+                return accessTokenValue
+            } catch (error) {
+                if (sessionVersionRef.current !== requestVersion) {
+                    return accessTokenRef.current
+                }
+
+                if (error instanceof ApiError) {
+                    setLastError(error)
+                }
+                applyAccessToken(null)
+                return null
+            } finally {
+                if (refreshPromiseRef.current === requestPromise) {
+                    refreshPromiseRef.current = null
+                }
+            }
+        }
+
+        const requestPromise = refreshRequest()
+        refreshPromiseRef.current = requestPromise
+        return requestPromise
+    }, [applyAccessToken])
+
     const login = useCallback(async (payload: { email: string; password: string }) => {
-        const response = await loginApi(payload)
+        refreshPromiseRef.current = null
+        const response = await loginApi({
+            ...payload,
+            email: payload.email.trim()
+        })
         const accessTokenValue = (response as { accessToken?: string }).accessToken
         if (!accessTokenValue) {
             throw new ApiError(500, "Missing access token in login response", "INVALID_RESPONSE")
         }
-        setAccessToken(accessTokenValue)
+        sessionVersionRef.current += 1
+        applyAccessToken(accessTokenValue)
         setLastError(null)
-    }, [])
+    }, [applyAccessToken])
 
     const register = useCallback(async (payload: { email: string; password: string; role: RegisterRole }) => {
-        await registerApi(payload)
+        await registerApi({
+            ...payload,
+            email: payload.email.trim()
+        })
         setLastError(null)
     }, [])
 
@@ -120,11 +163,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             await logoutApi()
         } finally {
-            setAccessToken(null)
+            refreshPromiseRef.current = null
+            sessionVersionRef.current += 1
+            applyAccessToken(null)
             setLastError(null)
+            clearCachedRawApiKey()
             navigate("/login")
         }
-    }, [navigate])
+    }, [applyAccessToken, navigate])
 
     const authedRequest = useCallback(
         async <T,>(path: string, options: HttpOptions = {}) => {
@@ -168,6 +214,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             localStorage.removeItem("hp_access_token")
         }
     }, [accessToken])
+
+    useEffect(() => {
+        if (isHydrating) {
+            return
+        }
+
+        const previousUserId = previousUserIdRef.current
+        if (previousUserId !== undefined && previousUserId !== identity.userId) {
+            clearCachedRawApiKey()
+        }
+
+        previousUserIdRef.current = identity.userId
+    }, [identity.userId, isHydrating])
 
     const value = useMemo<AuthContextValue>(
         () => ({

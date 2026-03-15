@@ -2,14 +2,19 @@ const STORAGE_KEY = "hivepoint:last-raw-api-key"
 
 export type CachedRawApiKey = {
     value: string
+    userId?: string
     label?: string
     createdAt?: string
 }
 
 const isBrowser = () => typeof window !== "undefined" && typeof window.sessionStorage !== "undefined"
 
-export const getCachedRawApiKey = (): CachedRawApiKey | null => {
+export const getCachedRawApiKey = (userId?: string | null): CachedRawApiKey | null => {
     if (!isBrowser()) {
+        return null
+    }
+
+    if (userId === null) {
         return null
     }
 
@@ -22,6 +27,12 @@ export const getCachedRawApiKey = (): CachedRawApiKey | null => {
         const parsed = JSON.parse(raw) as CachedRawApiKey
         if (!parsed || typeof parsed.value !== "string" || parsed.value.trim() === "") {
             return null
+        }
+
+        if (userId !== undefined) {
+            if (typeof parsed.userId !== "string" || parsed.userId !== userId) {
+                return null
+            }
         }
 
         return parsed

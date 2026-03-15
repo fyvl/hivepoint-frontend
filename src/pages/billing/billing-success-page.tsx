@@ -10,7 +10,22 @@ import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { notifyError } from "@/lib/notify"
+
+const isCheckoutSuccessful = (status: BillingCheckoutStatusResponse | null) => {
+    return status?.invoiceStatus === "PAID" && status?.subscriptionStatus === "ACTIVE"
+}
+
+const isCheckoutFailed = (status: BillingCheckoutStatusResponse | null) => {
+    if (!status) {
+        return false
+    }
+
+    return (
+        status.invoiceStatus === "VOID" ||
+        status.subscriptionStatus === "PAST_DUE" ||
+        status.subscriptionStatus === "CANCELED"
+    )
+}
 
 export const BillingSuccessPage = () => {
     const [searchParams] = useSearchParams()
@@ -47,36 +62,24 @@ export const BillingSuccessPage = () => {
         }
 
         let isActive = true
-        let intervalId: ReturnType<typeof setInterval> | null = null
+        let timeoutId: ReturnType<typeof setTimeout> | null = null
 
-        const load = async () => {
+        const load = async (): Promise<boolean> => {
             try {
                 const response = await billingApi.getCheckoutStatus(sessionId)
                 if (!isActive) {
-                    return
+                    return false
                 }
                 setStatus(response)
                 setError(null)
-
-                const isSettled =
-                    response.invoiceStatus === "PAID" &&
-                    response.subscriptionStatus === "ACTIVE"
-
-                if (isSettled && intervalId) {
-                    clearInterval(intervalId)
-                    intervalId = null
-                }
+                return !isCheckoutSuccessful(response) && !isCheckoutFailed(response)
             } catch (err) {
                 if (!isActive) {
-                    return
+                    return false
                 }
                 const apiError = err instanceof ApiError ? err : null
                 setError(apiError)
-                if (apiError?.code === "CHECKOUT_SESSION_NOT_FOUND" && intervalId) {
-                    clearInterval(intervalId)
-                    intervalId = null
-                }
-                notifyError(apiError ?? err, "Could not verify checkout status")
+                return apiError?.code !== "CHECKOUT_SESSION_NOT_FOUND"
             } finally {
                 if (isActive) {
                     setIsLoading(false)
@@ -84,21 +87,39 @@ export const BillingSuccessPage = () => {
             }
         }
 
-        void load()
-        intervalId = setInterval(() => {
-            void load()
-        }, 2500)
+        const poll = async () => {
+            const shouldContinue = await load()
+            if (isActive && shouldContinue) {
+                timeoutId = setTimeout(() => {
+                    void poll()
+                }, 2500)
+            }
+        }
+
+        void poll()
 
         return () => {
             isActive = false
-            if (intervalId) {
-                clearInterval(intervalId)
+            if (timeoutId) {
+                clearTimeout(timeoutId)
             }
         }
     }, [billingApi, hasPlaceholderSessionId, sessionId])
 
-    const isSettled =
-        status?.invoiceStatus === "PAID" && status?.subscriptionStatus === "ACTIVE"
+    const isSettled = isCheckoutSuccessful(status)
+    const isFailed = isCheckoutFailed(status)
+    const title = isSettled
+        ? "Payment confirmed"
+        : isFailed
+          ? "Payment not completed"
+          : "Payment received, syncing..."
+    const description = sessionId
+        ? isSettled
+            ? "Your subscription is active and ready to use."
+            : isFailed
+              ? "The checkout session was found, but the invoice or subscription did not finish successfully."
+              : "The app is checking Stripe webhook sync and updating your subscription status."
+        : "Checkout completed, but session details were not provided in the return URL."
 
     return (
         <div className="mx-auto flex min-h-[60vh] w-full max-w-2xl items-center justify-center">
@@ -109,7 +130,9 @@ export const BillingSuccessPage = () => {
                             "mx-auto flex h-14 w-14 items-center justify-center rounded-full",
                             isSettled
                                 ? "bg-emerald-500/10 text-emerald-600"
-                                : "bg-amber-500/10 text-amber-600"
+                                : isFailed
+                                  ? "bg-rose-500/10 text-rose-600"
+                                  : "bg-amber-500/10 text-amber-600"
                         ].join(" ")}
                     >
                         {isSettled ? (
@@ -119,14 +142,8 @@ export const BillingSuccessPage = () => {
                         )}
                     </div>
                     <div className="space-y-1">
-                        <CardTitle>
-                            {isSettled ? "Payment confirmed" : "Payment received, syncing..."}
-                        </CardTitle>
-                        <CardDescription>
-                            {sessionId
-                                ? "The app is checking Stripe webhook sync and updating your subscription status."
-                                : "Checkout completed, but session details were not provided in the return URL."}
-                        </CardDescription>
+                        <CardTitle>{title}</CardTitle>
+                        <CardDescription>{description}</CardDescription>
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-5">

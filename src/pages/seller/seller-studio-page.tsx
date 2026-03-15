@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react"
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { CheckCircle2, CircleDashed, Rocket } from "lucide-react"
 
 import {
@@ -127,6 +127,7 @@ export const SellerStudioPage = () => {
     const [planQuota, setPlanQuota] = useState("")
     const [planCurrency, setPlanCurrency] = useState("USD")
     const [isCreatingPlan, setIsCreatingPlan] = useState(false)
+    const detailsRequestIdRef = useRef(0)
 
     const selectedProduct = useMemo(() => {
         return products.find((product) => getProductId(product) === selectedProductId) ?? null
@@ -146,14 +147,16 @@ export const SellerStudioPage = () => {
             const response = await catalogApi.listMyProducts({ limit: 48, offset: 0 })
             const items = extractProducts(response)
             setProducts(items)
+            setSelectedProductId((currentSelectedProductId) => {
+                const hasSelectedProduct = items.some(
+                    (item) => getProductId(item) === currentSelectedProductId
+                )
+                if (currentSelectedProductId && hasSelectedProduct) {
+                    return currentSelectedProductId
+                }
 
-            const hasSelectedProduct = items.some(
-                (item) => getProductId(item) === selectedProductId
-            )
-            if (!selectedProductId || !hasSelectedProduct) {
-                const fallbackId = items.map((item) => getProductId(item)).find(Boolean) ?? null
-                setSelectedProductId(fallbackId)
-            }
+                return items.map((item) => getProductId(item)).find(Boolean) ?? null
+            })
         } catch (err) {
             const apiError = err instanceof ApiError ? err : null
             setProductsError(apiError)
@@ -162,7 +165,7 @@ export const SellerStudioPage = () => {
         } finally {
             setIsProductsLoading(false)
         }
-    }, [catalogApi, selectedProductId])
+    }, [catalogApi])
 
     useEffect(() => {
         void loadProducts()
@@ -170,6 +173,8 @@ export const SellerStudioPage = () => {
 
     const loadSelectedDetails = useCallback(
         async (productId: string) => {
+            const requestId = detailsRequestIdRef.current + 1
+            detailsRequestIdRef.current = requestId
             setIsDetailsLoading(true)
             setDetailsError(null)
             try {
@@ -177,16 +182,24 @@ export const SellerStudioPage = () => {
                     catalogApi.getVersions(productId),
                     billingApi.listPlans({ productId })
                 ])
+                if (detailsRequestIdRef.current !== requestId) {
+                    return
+                }
                 setVersions(extractVersions(versionsResponse))
                 setPlans(extractPlans(plansResponse))
             } catch (err) {
+                if (detailsRequestIdRef.current !== requestId) {
+                    return
+                }
                 const apiError = err instanceof ApiError ? err : null
                 setDetailsError(apiError)
                 setVersions([])
                 setPlans([])
                 notifyError(apiError ?? err, "Could not load product details")
             } finally {
-                setIsDetailsLoading(false)
+                if (detailsRequestIdRef.current === requestId) {
+                    setIsDetailsLoading(false)
+                }
             }
         },
         [billingApi, catalogApi]
@@ -194,6 +207,9 @@ export const SellerStudioPage = () => {
 
     useEffect(() => {
         if (!selectedProductId) {
+            detailsRequestIdRef.current += 1
+            setIsDetailsLoading(false)
+            setDetailsError(null)
             setVersions([])
             setPlans([])
             return
@@ -456,10 +472,10 @@ export const SellerStudioPage = () => {
                     </CardHeader>
                     <CardContent className="space-y-2 text-sm text-muted-foreground">
                         <p>
-                            HivePoint stores your product metadata and OpenAPI link, but it is not a runtime proxy yet.
+                            HivePoint stores your metadata and OpenAPI snapshot, while buyers send traffic through the HivePoint gateway.
                         </p>
                         <p>
-                            Buyers call your API directly on your infrastructure. Provide a publicly reachable OpenAPI URL in Step 2.
+                            You still host the upstream API. Provide a publicly reachable OpenAPI URL and stable server URLs so the gateway can resolve your runtime target.
                         </p>
                     </CardContent>
                 </Card>
