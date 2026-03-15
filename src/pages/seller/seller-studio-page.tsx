@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label"
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { LoadingBlock } from "@/components/ui-states/loading-block"
-import { formatCurrency, formatNumber } from "@/lib/format"
+import { formatCurrency, formatNumber, formatRequestsPerMinute } from "@/lib/format"
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
 import { cn } from "@/lib/utils"
 
@@ -89,6 +89,10 @@ const splitTags = (raw: string) => {
         .filter((tag) => tag.length > 0)
 }
 
+const getPlanRateLimitLine = (rateLimitRpm: number | null | undefined) => {
+    return `Rate limit: ${formatRequestsPerMinute(rateLimitRpm)}`
+}
+
 export const SellerStudioPage = () => {
     const { accessToken, refresh } = useAuth()
     const catalogApi = useMemo(
@@ -125,6 +129,7 @@ export const SellerStudioPage = () => {
     const [planName, setPlanName] = useState("")
     const [planPrice, setPlanPrice] = useState("")
     const [planQuota, setPlanQuota] = useState("")
+    const [planRateLimitRpm, setPlanRateLimitRpm] = useState("")
     const [planCurrency, setPlanCurrency] = useState("USD")
     const [isCreatingPlan, setIsCreatingPlan] = useState(false)
     const detailsRequestIdRef = useRef(0)
@@ -345,9 +350,21 @@ export const SellerStudioPage = () => {
         const trimmedName = planName.trim()
         const parsedPrice = Number(planPrice)
         const parsedQuota = Number(planQuota)
+        const parsedRateLimit = planRateLimitRpm.trim() === "" ? null : Number(planRateLimitRpm)
 
-        if (!trimmedName || !Number.isFinite(parsedPrice) || parsedPrice <= 0 || !Number.isFinite(parsedQuota) || parsedQuota <= 0) {
-            notifyInfo("Invalid plan fields", "Use a name, positive price, and positive quota.")
+        if (
+            !trimmedName ||
+            !Number.isFinite(parsedPrice) ||
+            parsedPrice <= 0 ||
+            !Number.isFinite(parsedQuota) ||
+            parsedQuota <= 0 ||
+            (parsedRateLimit !== null &&
+                (!Number.isFinite(parsedRateLimit) || parsedRateLimit <= 0))
+        ) {
+            notifyInfo(
+                "Invalid plan fields",
+                "Use a name, positive price, positive quota, and an optional positive RPM limit."
+            )
             return
         }
 
@@ -360,12 +377,16 @@ export const SellerStudioPage = () => {
                 currency: planCurrency.trim().toUpperCase() || "USD",
                 period: "MONTH",
                 quotaRequests: Math.round(parsedQuota),
+                ...(parsedRateLimit !== null
+                    ? { rateLimitRpm: Math.round(parsedRateLimit) }
+                    : {}),
                 isActive: true
             })
             setPlans((prev) => [created, ...prev])
             setPlanName("")
             setPlanPrice("")
             setPlanQuota("")
+            setPlanRateLimitRpm("")
             notifySuccess("Plan created", "The pricing plan is now available for subscriptions.")
         } catch (err) {
             notifyError(err, "Create plan failed")
@@ -708,7 +729,7 @@ export const SellerStudioPage = () => {
                         <CardHeader>
                             <CardTitle>Create Pricing Plan</CardTitle>
                             <CardDescription>
-                                Set monthly pricing and quota for the selected product.
+                                Set monthly pricing, quota, and an optional per-minute rate limit.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -746,17 +767,34 @@ export const SellerStudioPage = () => {
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="plan-quota">Quota requests / month</Label>
-                                    <Input
-                                        id="plan-quota"
-                                        type="number"
-                                        min="1"
-                                        step="1"
-                                        placeholder="10000"
-                                        value={planQuota}
-                                        onChange={(event) => setPlanQuota(event.target.value)}
-                                    />
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="plan-quota">Quota requests / month</Label>
+                                        <Input
+                                            id="plan-quota"
+                                            type="number"
+                                            min="1"
+                                            step="1"
+                                            placeholder="10000"
+                                            value={planQuota}
+                                            onChange={(event) => setPlanQuota(event.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="plan-rate-limit">Rate limit / minute</Label>
+                                        <Input
+                                            id="plan-rate-limit"
+                                            type="number"
+                                            min="1"
+                                            step="1"
+                                            placeholder="Optional"
+                                            value={planRateLimitRpm}
+                                            onChange={(event) => setPlanRateLimitRpm(event.target.value)}
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            Leave blank to allow unrestricted burst traffic inside the monthly quota.
+                                        </p>
+                                    </div>
                                 </div>
                                 <Button type="submit" size="sm" disabled={isCreatingPlan || !selectedProductId}>
                                     {isCreatingPlan ? "Creating..." : "Create plan"}
@@ -782,7 +820,10 @@ export const SellerStudioPage = () => {
                                                 )}
                                             </div>
                                             <p className="text-xs text-muted-foreground">
-                                                {formatCurrency(plan.priceCents, plan.currency)} - {formatNumber(plan.quotaRequests)} requests
+                                                {formatCurrency(plan.priceCents, plan.currency)} - {formatNumber(plan.quotaRequests)} requests / month
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {getPlanRateLimitLine(plan.rateLimitRpm)}
                                             </p>
                                         </div>
                                     ))}

@@ -29,7 +29,12 @@ import {
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { notifyError, notifySuccess } from "@/lib/notify"
-import { formatCurrency, formatDate, formatNumber } from "@/lib/format"
+import {
+    formatCurrency,
+    formatDate,
+    formatNumber,
+    formatRequestsPerMinute
+} from "@/lib/format"
 
 type SubscriptionNotice = {
     title: string
@@ -43,11 +48,18 @@ const hasRecoverablePortalAction = (subscription: Subscription) => {
 
 const getSubscriptionNotice = (subscription: Subscription): SubscriptionNotice | null => {
     if (subscription.status === "PAST_DUE") {
+        const gracePeriodDescription = subscription.gracePeriodEndsAt
+            ? ` Access remains active through ${formatDate(subscription.gracePeriodEndsAt)} while billing is fixed.`
+            : " Access is no longer extended by a grace period."
+        const retryDescription = subscription.latestInvoice?.nextPaymentAttemptAt
+            ? ` Stripe will retry payment on ${formatDate(subscription.latestInvoice.nextPaymentAttemptAt)}.`
+            : ""
+
         if (hasRecoverablePortalAction(subscription)) {
             return {
                 title: "Payment action required",
                 description:
-                    "A renewal payment failed. Update the payment method in the customer portal to restore normal billing.",
+                    `A renewal payment failed.${gracePeriodDescription}${retryDescription} Update the payment method in the customer portal to restore normal billing.`,
                 tone: "danger"
             }
         }
@@ -55,7 +67,7 @@ const getSubscriptionNotice = (subscription: Subscription): SubscriptionNotice |
         return {
             title: "Checkout needs to be restarted",
             description:
-                "This failed billing record did not create a recoverable Stripe subscription. Start a new checkout from the product page.",
+                `A renewal payment failed.${gracePeriodDescription}${retryDescription} This billing record did not create a recoverable Stripe subscription, so a new checkout must be started from the product page.`,
             tone: "warning"
         }
     }
@@ -360,6 +372,7 @@ const SubscriptionCard = ({
                     <div>
                         {formatCurrency(plan.priceCents, plan.currency)} / {formatNumber(plan.quotaRequests)} requests
                     </div>
+                    <div>Rate limit: {formatRequestsPerMinute(plan.rateLimitRpm)}</div>
                 </div>
                 <div>
                     <div className="text-xs uppercase">Cancel at period end</div>
@@ -369,6 +382,16 @@ const SubscriptionCard = ({
                     <div className="text-xs uppercase">Provider</div>
                     <div>{subscription.paymentProvider ?? "Unknown"}</div>
                 </div>
+                {subscription.status === "PAST_DUE" || subscription.gracePeriodEndsAt ? (
+                    <div>
+                        <div className="text-xs uppercase">Grace period</div>
+                        <div>
+                            {subscription.gracePeriodEndsAt
+                                ? `Active through ${formatDate(subscription.gracePeriodEndsAt)}`
+                                : "No active grace period"}
+                        </div>
+                    </div>
+                ) : null}
                 <div>
                     <div className="text-xs uppercase">Latest invoice</div>
                     <div>
@@ -380,6 +403,18 @@ const SubscriptionCard = ({
                             : "No invoice"}
                     </div>
                 </div>
+                {latestInvoice?.status === "PAST_DUE" || latestInvoice?.nextPaymentAttemptAt ? (
+                    <div>
+                        <div className="text-xs uppercase">Retry status</div>
+                        <div>
+                            {latestInvoice?.nextPaymentAttemptAt
+                                ? `Retry #${latestInvoice.attemptCount ?? 0} scheduled for ${formatDate(latestInvoice.nextPaymentAttemptAt)}`
+                                : latestInvoice?.status === "PAST_DUE"
+                                    ? `Retry attempts: ${latestInvoice.attemptCount ?? 0}`
+                                    : "No retry scheduled"}
+                        </div>
+                    </div>
+                ) : null}
                 <div className="sm:col-span-2">
                     <div className="text-xs uppercase">Invoice history</div>
                     {invoices.length > 0 ? (
@@ -392,8 +427,15 @@ const SubscriptionCard = ({
                                     <span className="font-medium text-foreground">
                                         {formatDate(invoice.createdAt)}
                                     </span>
-                                    <span>
-                                        {invoice.status} / {formatCurrency(invoice.amountCents, invoice.currency)}
+                                    <span className="text-right">
+                                        <span>
+                                            {invoice.status} / {formatCurrency(invoice.amountCents, invoice.currency)}
+                                        </span>
+                                        {invoice.nextPaymentAttemptAt ? (
+                                            <span className="block text-xs text-muted-foreground">
+                                                Retry #{invoice.attemptCount ?? 0} on {formatDate(invoice.nextPaymentAttemptAt)}
+                                            </span>
+                                        ) : null}
                                     </span>
                                 </div>
                             ))}

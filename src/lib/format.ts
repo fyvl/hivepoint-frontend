@@ -28,4 +28,12 @@ export const formatCurrency = (priceCents: number, currency: string) => {
     }
 }
 
+export const formatRequestsPerMinute = (value: number | null | undefined) => {
+    if (typeof value !== "number" || value <= 0) {
+        return "No RPM cap"
+    }
+
+    return `${formatNumber(value)} req/min`
+}
+
 

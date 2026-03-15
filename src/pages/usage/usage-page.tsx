@@ -33,7 +33,13 @@ import {
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
-import { formatDate, formatNumber } from "@/lib/format"
+import { formatDate, formatNumber, formatRequestsPerMinute } from "@/lib/format"
+
+type UsageHealthNotice = {
+    title: string
+    description: string
+    tone: "warning" | "danger"
+}
 
 const clampPercent = (value: number) => {
     if (!Number.isFinite(value)) {
@@ -50,6 +56,31 @@ const resolvePercent = (item: UsageSummaryItem) => {
         return clampPercent((item.usedRequests / item.quotaRequests) * 100)
     }
     return 0
+}
+
+const usageHealthNoticeStyles: Record<UsageHealthNotice["tone"], string> = {
+    warning: "border-amber-500/30 bg-amber-500/10",
+    danger: "border-destructive/30 bg-destructive/10"
+}
+
+const getUsageHealthNotice = (item: UsageSummaryItem): UsageHealthNotice | null => {
+    if (item.status !== "PAST_DUE") {
+        return null
+    }
+
+    if (item.gracePeriodEndsAt) {
+        return {
+            title: "Billing grace period active",
+            description: `Renewal billing is past due, but access remains available through ${formatDate(item.gracePeriodEndsAt)}.`,
+            tone: "warning"
+        }
+    }
+
+    return {
+        title: "Billing past due",
+        description: "Renewal billing is past due and access may stop until payment is resolved.",
+        tone: "danger"
+    }
 }
 
 export const UsagePage = () => {
@@ -196,7 +227,7 @@ export const UsagePage = () => {
             {!isLoading && filteredItems.length === 0 && !error ? (
                 <EmptyBlock
                     title="No usage data"
-                    description="No active subscriptions were found for this account."
+                    description="No active or in-grace subscriptions were found for this account."
                     actionLabel="Browse catalog"
                     actionTo="/catalog"
                 />
@@ -296,9 +327,11 @@ type UsageCardProps = {
 }
 
 const UsageCard = ({ item }: UsageCardProps) => {
+    const subscriptionStatus = item.status ?? "ACTIVE"
     const percent = resolvePercent(item)
     const quotaExceeded = percent >= 100
     const usageStatus = quotaExceeded ? "Exceeded" : percent >= 80 ? "Near limit" : "OK"
+    const healthNotice = getUsageHealthNotice(item)
 
     return (
         <Card>
@@ -309,13 +342,26 @@ const UsageCard = ({ item }: UsageCardProps) => {
                         <CardDescription>{item.plan.name}</CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
+                        <StatusBadge kind="subscription" value={subscriptionStatus} />
                         <StatusBadge kind="usage" value={usageStatus} />
                         <Badge variant="outline">{`${Math.round(percent)}%`}</Badge>
                     </div>
                 </div>
             </CardHeader>
             <CardContent className="space-y-3">
+                {healthNotice ? (
+                    <div className={`rounded-lg border p-4 ${usageHealthNoticeStyles[healthNotice.tone]}`}>
+                        <div className="font-medium text-foreground">{healthNotice.title}</div>
+                        <div className="mt-1 text-sm text-muted-foreground">
+                            {healthNotice.description}
+                        </div>
+                    </div>
+                ) : null}
                 <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                    <div>
+                        <div className="text-xs uppercase">Subscription</div>
+                        <div>{subscriptionStatus === "PAST_DUE" ? "Past due" : "Active"}</div>
+                    </div>
                     <div>
                         <div className="text-xs uppercase">Usage</div>
                         <div>
@@ -326,6 +372,20 @@ const UsageCard = ({ item }: UsageCardProps) => {
                         <div className="text-xs uppercase">Plan quota</div>
                         <div>{formatNumber(item.plan.quotaRequests)} requests</div>
                     </div>
+                    <div>
+                        <div className="text-xs uppercase">Rate limit</div>
+                        <div>{formatRequestsPerMinute(item.plan.rateLimitRpm)}</div>
+                    </div>
+                    {item.status === "PAST_DUE" || item.gracePeriodEndsAt ? (
+                        <div>
+                            <div className="text-xs uppercase">Grace period</div>
+                            <div>
+                                {item.gracePeriodEndsAt
+                                    ? `Active through ${formatDate(item.gracePeriodEndsAt)}`
+                                    : "No active grace period"}
+                            </div>
+                        </div>
+                    ) : null}
                     <div className="sm:col-span-2">
                         <div className="text-xs uppercase">Period</div>
                         <div>
@@ -347,5 +407,3 @@ const UsageCard = ({ item }: UsageCardProps) => {
         </Card>
     )
 }
-
-

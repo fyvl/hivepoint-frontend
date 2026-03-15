@@ -46,7 +46,12 @@ import { ErrorBlock } from "@/components/ui-states/error-block"
 import { LoadingBlock } from "@/components/ui-states/loading-block"
 import { apiBaseUrl } from "@/config/env"
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
-import { formatCurrency, formatDate, formatNumber } from "@/lib/format"
+import {
+    formatCurrency,
+    formatDate,
+    formatNumber,
+    formatRequestsPerMinute
+} from "@/lib/format"
 import { clearCachedRawApiKey, getCachedRawApiKey, saveCachedRawApiKey } from "@/lib/raw-api-key-cache"
 import { DevMockPaymentActions } from "@/pages/billing/dev-mock-payment"
 
@@ -179,6 +184,10 @@ const buildGatewayCurl = (params: {
         `curl -X ${params.method} "${apiBaseUrl}/gateway/products/${params.productId}${normalizedPath}"`,
         `  -H "x-api-key: ${params.apiKey || "<your-api-key>"}"`
     ].join(" \\\n")
+}
+
+const getPlanRateLimitLine = (rateLimitRpm: number | null | undefined) => {
+    return `Rate limit: ${formatRequestsPerMinute(rateLimitRpm)}`
 }
 
 export const ProductDetailsPage = () => {
@@ -873,6 +882,14 @@ export const ProductDetailsPage = () => {
                                         <div>
                                             Remaining requests: {gatewayResult.usage.remainingRequests ?? "Unlimited"}
                                         </div>
+                                        <div>
+                                            {getPlanRateLimitLine(gatewayResult.usage.rateLimitRpm)}
+                                        </div>
+                                        {typeof gatewayResult.usage.remainingRateLimitRequests === "number" ? (
+                                            <div>
+                                                Remaining this minute: {formatNumber(gatewayResult.usage.remainingRateLimitRequests)}
+                                            </div>
+                                        ) : null}
                                         <div>Period end: {formatDate(gatewayResult.usage.periodEnd)}</div>
                                     </div>
                                     <div className="rounded-lg border border-border/60 bg-background/80 p-4 text-xs text-muted-foreground">
@@ -1068,7 +1085,8 @@ const PlanCard = ({ plan, onSubscribe, isSubscribing, isAuthenticated }: PlanCar
                 </div>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
-                {formatNumber(plan.quotaRequests)} requests per period
+                <div>{formatNumber(plan.quotaRequests)} requests per period</div>
+                <div>{getPlanRateLimitLine(plan.rateLimitRpm)}</div>
             </CardContent>
             <CardContent className="flex items-center justify-between">
                 {isAuthenticated ? (

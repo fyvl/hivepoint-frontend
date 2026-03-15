@@ -24,6 +24,8 @@ export type GatewayDispatchResponse = {
         subscriptionId: string
         requestCount: number
         remainingRequests: number | null
+        rateLimitRpm: number | null
+        remainingRateLimitRequests: number | null
         usageRecorded: boolean
         periodEnd: string | null
     }

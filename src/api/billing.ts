@@ -3,11 +3,24 @@ import type { paths } from "@/api/generated/schema"
 import type { GetQueryParams } from "@/api/types"
 
 export type ListPlansQuery = GetQueryParams<"/billing/plans">
-export type ListPlansResponse =
+type GeneratedListPlansResponse =
     paths["/billing/plans"]["get"]["responses"][200]["content"]["application/json"]
-export type Plan = ListPlansResponse["items"][number]
-export type CreatePlanBody =
+type GeneratedPlan = GeneratedListPlansResponse["items"][number]
+type GeneratedCreatePlanBody =
     paths["/billing/plans"]["post"]["requestBody"]["content"]["application/json"]
+type GeneratedListSubscriptionsResponse =
+    paths["/billing/subscriptions"]["get"]["responses"][200]["content"]["application/json"]
+type GeneratedSubscription = GeneratedListSubscriptionsResponse["items"][number]
+
+export type Plan = GeneratedPlan & {
+    rateLimitRpm?: number | null
+}
+export type ListPlansResponse = Omit<GeneratedListPlansResponse, "items"> & {
+    items: Plan[]
+}
+export type CreatePlanBody = GeneratedCreatePlanBody & {
+    rateLimitRpm?: number
+}
 export type CreatePlanResponse =
     paths["/billing/plans"]["post"]["responses"][200]["content"]["application/json"]
 
@@ -16,13 +29,21 @@ export type SubscribeBody =
 export type SubscribeResponse =
     paths["/billing/subscribe"]["post"]["responses"][200]["content"]["application/json"]
 
-export type ListSubscriptionsResponse =
-    paths["/billing/subscriptions"]["get"]["responses"][200]["content"]["application/json"]
-export type Subscription = ListSubscriptionsResponse["items"][number] & {
+export type Subscription = Omit<GeneratedSubscription, "plan"> & {
+    plan: GeneratedSubscription["plan"] & {
+        rateLimitRpm?: number | null
+    }
+    gracePeriodEndsAt?: string | null
     paymentProvider?: "MOCK" | "STRIPE"
     hasExternalSubscription?: boolean
     latestInvoice?: BillingLatestInvoice | null
     invoices?: BillingLatestInvoice[]
+}
+export type ListSubscriptionsResponse = Omit<
+    GeneratedListSubscriptionsResponse,
+    "items"
+> & {
+    items: Subscription[]
 }
 
 export type CancelSubscriptionResponse =
@@ -39,18 +60,21 @@ export type BillingConfigResponse = {
 
 export type BillingLatestInvoice = {
     id: string
-    status: "DRAFT" | "PAID" | "VOID"
+    status: "DRAFT" | "PAID" | "PAST_DUE" | "VOID"
     amountCents: number
     currency: string
+    attemptCount?: number
+    nextPaymentAttemptAt?: string | null
     createdAt: string
 }
 
 export type BillingCheckoutStatusResponse = {
     sessionId: string
     invoiceId: string
-    invoiceStatus: "DRAFT" | "PAID" | "VOID"
+    invoiceStatus: "DRAFT" | "PAID" | "PAST_DUE" | "VOID"
     subscriptionId: string
     subscriptionStatus: "PENDING" | "ACTIVE" | "CANCELED" | "PAST_DUE"
+    gracePeriodEndsAt?: string | null
     cancelAtPeriodEnd: boolean
     paymentProvider: "MOCK" | "STRIPE"
     productTitle: string

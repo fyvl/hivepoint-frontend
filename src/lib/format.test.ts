@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest"
 
-import { formatCurrency, formatDate, formatNumber } from "@/lib/format"
+import {
+    formatCurrency,
+    formatDate,
+    formatNumber,
+    formatRequestsPerMinute
+} from "@/lib/format"
 
 describe("formatDate", () => {
     it("returns dash for null", () => {
@@ -33,5 +38,15 @@ describe("formatCurrency", () => {
         }).format(12345 / 100)
 
         expect(formatCurrency(12345, "USD")).toBe(expected)
+    })
+})
+
+describe("formatRequestsPerMinute", () => {
+    it("formats RPM values with separators", () => {
+        expect(formatRequestsPerMinute(1200)).toBe("1,200 req/min")
+    })
+
+    it("returns a fallback label when unset", () => {
+        expect(formatRequestsPerMinute(null)).toBe("No RPM cap")
     })
 })

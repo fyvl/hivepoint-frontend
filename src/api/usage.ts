@@ -1,9 +1,20 @@
 ﻿import { type HttpOptions, http, httpWithRetry } from "@/api/http"
 import type { paths } from "@/api/generated/schema"
 
-export type UsageSummaryResponse =
+type GeneratedUsageSummaryResponse =
     paths["/usage/summary"]["get"]["responses"][200]["content"]["application/json"]
-export type UsageSummaryItem = UsageSummaryResponse["items"][number]
+type GeneratedUsageSummaryItem = GeneratedUsageSummaryResponse["items"][number]
+
+export type UsageSummaryItem = Omit<GeneratedUsageSummaryItem, "plan"> & {
+    status?: "ACTIVE" | "PAST_DUE"
+    gracePeriodEndsAt?: string | null
+    plan: GeneratedUsageSummaryItem["plan"] & {
+        rateLimitRpm?: number | null
+    }
+}
+export type UsageSummaryResponse = Omit<GeneratedUsageSummaryResponse, "items"> & {
+    items: UsageSummaryItem[]
+}
 
 export type UsageRecordBody =
     paths["/usage/record"]["post"]["requestBody"]["content"]["application/json"]
