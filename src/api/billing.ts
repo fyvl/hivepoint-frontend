@@ -11,16 +11,20 @@ type GeneratedCreatePlanBody =
 type GeneratedListSubscriptionsResponse =
     paths["/billing/subscriptions"]["get"]["responses"][200]["content"]["application/json"]
 type GeneratedSubscription = GeneratedListSubscriptionsResponse["items"][number]
+type GeneratedBillingPortalSessionResponse =
+    paths["/billing/portal-session"]["post"]["responses"][200]["content"]["application/json"]
+type GeneratedBillingConfigResponse =
+    paths["/billing/config"]["get"]["responses"][200]["content"]["application/json"]
+type GeneratedBillingCheckoutStatusResponse =
+    paths["/billing/checkout-status/{sessionId}"]["get"]["responses"][200]["content"]["application/json"]
 
-export type Plan = GeneratedPlan & {
-    rateLimitRpm?: number | null
+export type Plan = Omit<GeneratedPlan, "rateLimitRpm"> & {
+    rateLimitRpm: number | null
 }
 export type ListPlansResponse = Omit<GeneratedListPlansResponse, "items"> & {
     items: Plan[]
 }
-export type CreatePlanBody = GeneratedCreatePlanBody & {
-    rateLimitRpm?: number
-}
+export type CreatePlanBody = GeneratedCreatePlanBody
 export type CreatePlanResponse =
     paths["/billing/plans"]["post"]["responses"][200]["content"]["application/json"]
 
@@ -30,14 +34,9 @@ export type SubscribeResponse =
     paths["/billing/subscribe"]["post"]["responses"][200]["content"]["application/json"]
 
 export type Subscription = Omit<GeneratedSubscription, "plan"> & {
-    plan: GeneratedSubscription["plan"] & {
-        rateLimitRpm?: number | null
+    plan: Omit<GeneratedSubscription["plan"], "rateLimitRpm"> & {
+        rateLimitRpm: number | null
     }
-    gracePeriodEndsAt?: string | null
-    paymentProvider?: "MOCK" | "STRIPE"
-    hasExternalSubscription?: boolean
-    latestInvoice?: BillingLatestInvoice | null
-    invoices?: BillingLatestInvoice[]
 }
 export type ListSubscriptionsResponse = Omit<
     GeneratedListSubscriptionsResponse,
@@ -49,37 +48,13 @@ export type ListSubscriptionsResponse = Omit<
 export type CancelSubscriptionResponse =
     paths["/billing/subscriptions/{id}/cancel"]["post"]["responses"][200]["content"]["application/json"]
 
-export type BillingPortalSessionResponse = {
-    url: string
-}
+export type BillingPortalSessionResponse = GeneratedBillingPortalSessionResponse
 
-export type BillingConfigResponse = {
-    paymentProvider: "MOCK" | "STRIPE"
-    customerPortalAvailable: boolean
-}
+export type BillingConfigResponse = GeneratedBillingConfigResponse
 
-export type BillingLatestInvoice = {
-    id: string
-    status: "DRAFT" | "PAID" | "PAST_DUE" | "VOID"
-    amountCents: number
-    currency: string
-    attemptCount?: number
-    nextPaymentAttemptAt?: string | null
-    createdAt: string
-}
+export type BillingLatestInvoice = GeneratedSubscription["invoices"][number]
 
-export type BillingCheckoutStatusResponse = {
-    sessionId: string
-    invoiceId: string
-    invoiceStatus: "DRAFT" | "PAID" | "PAST_DUE" | "VOID"
-    subscriptionId: string
-    subscriptionStatus: "PENDING" | "ACTIVE" | "CANCELED" | "PAST_DUE"
-    gracePeriodEndsAt?: string | null
-    cancelAtPeriodEnd: boolean
-    paymentProvider: "MOCK" | "STRIPE"
-    productTitle: string
-    planName: string
-}
+export type BillingCheckoutStatusResponse = GeneratedBillingCheckoutStatusResponse
 
 export type MockPaymentResponse =
     paths["/billing/mock/succeed"]["post"]["responses"][200]["content"]["application/json"]

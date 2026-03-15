@@ -34,53 +34,16 @@ import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
 import { formatDate, formatNumber, formatRequestsPerMinute } from "@/lib/format"
-
-type UsageHealthNotice = {
-    title: string
-    description: string
-    tone: "warning" | "danger"
-}
-
-const clampPercent = (value: number) => {
-    if (!Number.isFinite(value)) {
-        return 0
-    }
-    return Math.min(100, Math.max(0, value))
-}
-
-const resolvePercent = (item: UsageSummaryItem) => {
-    if (Number.isFinite(item.percent)) {
-        return clampPercent(item.percent)
-    }
-    if (item.quotaRequests > 0) {
-        return clampPercent((item.usedRequests / item.quotaRequests) * 100)
-    }
-    return 0
-}
+import {
+    getUsageHealthNotice,
+    getUsageSubscriptionLabel,
+    resolvePercent,
+    type UsageHealthNotice
+} from "@/pages/usage/usage-state"
 
 const usageHealthNoticeStyles: Record<UsageHealthNotice["tone"], string> = {
     warning: "border-amber-500/30 bg-amber-500/10",
     danger: "border-destructive/30 bg-destructive/10"
-}
-
-const getUsageHealthNotice = (item: UsageSummaryItem): UsageHealthNotice | null => {
-    if (item.status !== "PAST_DUE") {
-        return null
-    }
-
-    if (item.gracePeriodEndsAt) {
-        return {
-            title: "Billing grace period active",
-            description: `Renewal billing is past due, but access remains available through ${formatDate(item.gracePeriodEndsAt)}.`,
-            tone: "warning"
-        }
-    }
-
-    return {
-        title: "Billing past due",
-        description: "Renewal billing is past due and access may stop until payment is resolved.",
-        tone: "danger"
-    }
 }
 
 export const UsagePage = () => {
@@ -360,7 +323,7 @@ const UsageCard = ({ item }: UsageCardProps) => {
                 <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
                     <div>
                         <div className="text-xs uppercase">Subscription</div>
-                        <div>{subscriptionStatus === "PAST_DUE" ? "Past due" : "Active"}</div>
+                        <div>{getUsageSubscriptionLabel(subscriptionStatus)}</div>
                     </div>
                     <div>
                         <div className="text-xs uppercase">Usage</div>

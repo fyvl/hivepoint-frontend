@@ -121,6 +121,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/profile-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get current user profile summary */
+        get: operations["UsersController_getProfileSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upgrade current user role to SELLER */
+        post: operations["UsersController_updateMyRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change current user password */
+        post: operations["UsersController_changePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/catalog/products": {
         parameters: {
             query?: never;
@@ -133,6 +184,23 @@ export interface paths {
         put?: never;
         /** Create product */
         post: operations["ProductsController_createProduct"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/catalog/my-products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List current seller products (all statuses) */
+        get: operations["ProductsController_listMyProducts"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -169,6 +237,23 @@ export interface paths {
         put?: never;
         /** Create product version */
         post: operations["ProductsController_createVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/catalog/versions/{versionId}/schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get stored OpenAPI schema snapshot for version */
+        get: operations["VersionsController_getVersionSchema"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -227,6 +312,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/billing/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get billing runtime configuration */
+        get: operations["SubscriptionsController_getBillingConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/portal-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create customer billing portal session */
+        post: operations["SubscriptionsController_createPortalSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/checkout-status/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get checkout session sync status for current user */
+        get: operations["SubscriptionsController_getCheckoutStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/billing/subscribe": {
         parameters: {
             query?: never;
@@ -255,6 +391,23 @@ export interface paths {
         put?: never;
         /** Cancel subscription at period end */
         post: operations["SubscriptionsController_cancelSubscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/mock/pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Mock payment helper page */
+        get: operations["MockPaymentsController_renderMockPaymentPage"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -330,6 +483,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/usage/authorize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Authorize API usage by raw API key and product */
+        post: operations["UsageController_authorizeUsage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/usage/record": {
         parameters: {
             query?: never;
@@ -362,6 +532,69 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/gateway/dispatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Forward a request to the seller API through HivePoint gateway */
+        post: operations["GatewayController_dispatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gateway/products/{productId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        get: operations["GatewayController_proxy_get"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        put: operations["GatewayController_proxy_put"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        post: operations["GatewayController_proxy_post"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        delete: operations["GatewayController_proxy_delete"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        options: operations["GatewayController_proxy_options"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        head: operations["GatewayController_proxy_head"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        patch: operations["GatewayController_proxy_patch"];
+        trace?: never;
+    };
+    "/gateway/products/{productId}/{proxyPath}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        get: operations["GatewayController_proxy_get"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        put: operations["GatewayController_proxy_put"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        post: operations["GatewayController_proxy_post"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        delete: operations["GatewayController_proxy_delete"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        options: operations["GatewayController_proxy_options"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        head: operations["GatewayController_proxy_head"];
+        /** Proxy a direct HTTP request to the seller API through HivePoint gateway */
+        patch: operations["GatewayController_proxy_patch"];
         trace?: never;
     };
     "/admin/products/{id}/hide": {
@@ -423,6 +656,11 @@ export interface components {
             /** @example user@example.com */
             email: string;
             password: string;
+            /**
+             * @default BUYER
+             * @enum {string}
+             */
+            role: "BUYER" | "SELLER";
         };
         AuthUserResponseDto: {
             /** @example uuid */
@@ -451,6 +689,35 @@ export interface components {
             email: string;
             /** @enum {string} */
             role: "BUYER" | "SELLER" | "ADMIN";
+        };
+        UserProfileSummaryDto: {
+            /** @example 2 */
+            subscriptionsTotal: number;
+            /** @example 1 */
+            subscriptionsActive: number;
+            /** @example 3 */
+            apiKeysActive: number;
+            /** @example 4 */
+            productsTotal: number;
+            /** @example 3 */
+            productsPublished: number;
+            /** @example true */
+            canUpgradeToSeller: boolean;
+        };
+        UpdateUserRoleDto: {
+            /**
+             * @default SELLER
+             * @enum {string}
+             */
+            role: "SELLER";
+        };
+        ChangePasswordDto: {
+            currentPassword: string;
+            newPassword: string;
+        };
+        ChangePasswordResponseDto: {
+            /** @example true */
+            ok: boolean;
         };
         ProductDto: {
             /** @example uuid */
@@ -541,6 +808,20 @@ export interface components {
             /** @example https://example.com/openapi.json */
             openApiUrl: string;
         };
+        VersionSchemaDto: {
+            /** @example uuid */
+            versionId: string;
+            /** @example uuid */
+            productId: string;
+            /** @example v1 */
+            version: string;
+            /** @example https://example.com/openapi.json */
+            openApiUrl: string;
+            /** Format: date-time */
+            fetchedAt: string | null;
+            /** @example {"openapi":"3.0.0","info":{"title":"Sample"}} */
+            schema: string;
+        };
         UpdateVersionDto: {
             /** @enum {string} */
             status?: "DRAFT" | "PUBLISHED";
@@ -562,6 +843,8 @@ export interface components {
             period: "MONTH";
             /** @example 10000 */
             quotaRequests: number;
+            /** @example 120 */
+            rateLimitRpm: number | null;
             /** @example true */
             isActive: boolean;
             /** Format: date-time */
@@ -583,6 +866,8 @@ export interface components {
             period?: "MONTH";
             /** @example 10000 */
             quotaRequests: number;
+            /** @example 120 */
+            rateLimitRpm?: number;
             /** @example true */
             isActive?: boolean;
         };
@@ -597,6 +882,8 @@ export interface components {
             currency: string;
             /** @example 10000 */
             quotaRequests: number;
+            /** @example 120 */
+            rateLimitRpm: number | null;
             /** @example uuid */
             productId: string;
         };
@@ -605,6 +892,22 @@ export interface components {
             id: string;
             /** @example Payments API */
             title: string;
+        };
+        SubscriptionInvoiceDto: {
+            /** @example uuid */
+            id: string;
+            /** @enum {string} */
+            status: "DRAFT" | "PAID" | "PAST_DUE" | "VOID";
+            /** @example 9900 */
+            amountCents: number;
+            /** @example USD */
+            currency: string;
+            /** @example 2 */
+            attemptCount: number;
+            /** Format: date-time */
+            nextPaymentAttemptAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
         };
         SubscriptionDto: {
             /** @example uuid */
@@ -615,17 +918,57 @@ export interface components {
             currentPeriodStart: string | null;
             /** Format: date-time */
             currentPeriodEnd: string | null;
+            /** Format: date-time */
+            gracePeriodEndsAt: string | null;
             /** @example false */
             cancelAtPeriodEnd: boolean;
+            /** @enum {string} */
+            paymentProvider: "MOCK" | "STRIPE";
+            /** @example false */
+            hasExternalSubscription: boolean;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
             plan: components["schemas"]["SubscriptionPlanDto"];
             product: components["schemas"]["SubscriptionProductDto"];
+            latestInvoice: components["schemas"]["SubscriptionInvoiceDto"] | null;
+            invoices: components["schemas"]["SubscriptionInvoiceDto"][];
         };
         SubscriptionListResponseDto: {
             items: components["schemas"]["SubscriptionDto"][];
+        };
+        BillingConfigResponseDto: {
+            /** @enum {string} */
+            paymentProvider: "MOCK" | "STRIPE";
+            /** @example true */
+            customerPortalAvailable: boolean;
+        };
+        BillingPortalSessionResponseDto: {
+            /** @example https://billing.stripe.com/session/... */
+            url: string;
+        };
+        CheckoutStatusDto: {
+            /** @example cs_test_123 */
+            sessionId: string;
+            /** @example uuid */
+            invoiceId: string;
+            /** @enum {string} */
+            invoiceStatus: "DRAFT" | "PAID" | "PAST_DUE" | "VOID";
+            /** @example uuid */
+            subscriptionId: string;
+            /** @enum {string} */
+            subscriptionStatus: "PENDING" | "ACTIVE" | "CANCELED" | "PAST_DUE";
+            /** Format: date-time */
+            gracePeriodEndsAt: string | null;
+            /** @example false */
+            cancelAtPeriodEnd: boolean;
+            /** @enum {string} */
+            paymentProvider: "MOCK" | "STRIPE";
+            /** @example Payments API */
+            productTitle: string;
+            /** @example Starter */
+            planName: string;
         };
         SubscribeDto: {
             /** @example uuid */
@@ -684,6 +1027,71 @@ export interface components {
             /** @example uuid */
             keyId: string;
         };
+        AuthorizeUsageDto: {
+            /** @example hp_example_api_key */
+            apiKey: string;
+            /** @example uuid */
+            productId: string;
+            /** @example /v1/search */
+            endpoint: string;
+            /** @example 1 */
+            requestCount: number;
+            /** @example 2026-01-25T10:00:00.000Z */
+            occurredAt?: string;
+            /**
+             * @description If true, records usage immediately after a successful authorization check.
+             * @example false
+             */
+            consume?: boolean;
+        };
+        UsageAuthorizationPlanDto: {
+            /** @example uuid */
+            id: string;
+            /** @example Starter */
+            name: string;
+            /** @example 1000 */
+            quotaRequests: number;
+            /** @example 120 */
+            rateLimitRpm: number | null;
+        };
+        UsageAuthorizationProductDto: {
+            /** @example uuid */
+            id: string;
+            /** @example Payments API */
+            title: string;
+        };
+        AuthorizeUsageResponseDto: {
+            /** @example true */
+            allowed: boolean;
+            /** @enum {string} */
+            reason?: "INVALID_API_KEY" | "NO_ACTIVE_SUBSCRIPTION" | "QUOTA_EXCEEDED" | "RATE_LIMIT_EXCEEDED";
+            /** @example uuid */
+            apiKeyId?: string;
+            /** @example uuid */
+            subscriptionId?: string;
+            /** @example uuid */
+            userId?: string;
+            /** Format: date-time */
+            periodStart?: string;
+            /** Format: date-time */
+            periodEnd?: string;
+            /** @example 120 */
+            usedRequests?: number;
+            /** @example 1 */
+            requestedRequests?: number;
+            /** @example 1000 */
+            quotaRequests?: number;
+            /** @example 879 */
+            remainingRequests?: number;
+            /** @example 120 */
+            rateLimitRpm?: number | null;
+            /** @example 52 */
+            remainingRateLimitRequests?: number | null;
+            /** @example false */
+            usageRecorded?: boolean;
+            plan?: components["schemas"]["UsageAuthorizationPlanDto"];
+            product?: components["schemas"]["UsageAuthorizationProductDto"];
+        };
         RecordUsageDto: {
             /** @example uuid */
             subscriptionId: string;
@@ -705,6 +1113,8 @@ export interface components {
             name: string;
             /** @example 1000 */
             quotaRequests: number;
+            /** @example 120 */
+            rateLimitRpm: number | null;
         };
         UsageSummaryProductDto: {
             /** @example uuid */
@@ -715,10 +1125,14 @@ export interface components {
         UsageSummaryItemDto: {
             /** @example uuid */
             subscriptionId: string;
+            /** @enum {string} */
+            status: "PENDING" | "ACTIVE" | "CANCELED" | "PAST_DUE";
             /** Format: date-time */
             periodStart: string;
             /** Format: date-time */
             periodEnd: string;
+            /** Format: date-time */
+            gracePeriodEndsAt: string | null;
             /** @example 123 */
             usedRequests: number;
             /** @example 1000 */
@@ -730,6 +1144,90 @@ export interface components {
         };
         UsageSummaryResponseDto: {
             items: components["schemas"]["UsageSummaryItemDto"][];
+        };
+        GatewayDispatchDto: {
+            /** @example prod_123 */
+            productId: string;
+            /** @example /health */
+            path: string;
+            /**
+             * @default GET
+             * @enum {string}
+             */
+            method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+            /**
+             * @example {
+             *       "Accept": "application/json"
+             *     }
+             */
+            headers?: {
+                [key: string]: string;
+            };
+            /**
+             * @example {
+             *       "verbose": true,
+             *       "limit": 10
+             *     }
+             */
+            query?: {
+                [key: string]: string | number | boolean;
+            };
+            /**
+             * @description JSON body forwarded to the upstream API when method allows a payload.
+             * @example {
+             *       "input": "hello"
+             *     }
+             */
+            body?: Record<string, never>;
+            /**
+             * @default 1
+             * @example 1
+             */
+            requestCount: number;
+        };
+        GatewayUsageMetaDto: {
+            /** @example sub_123 */
+            subscriptionId: string;
+            /** @example 1 */
+            requestCount: number;
+            /** @example 99 */
+            remainingRequests: Record<string, never> | null;
+            /** @example 120 */
+            rateLimitRpm: Record<string, never> | null;
+            /** @example 52 */
+            remainingRateLimitRequests: Record<string, never> | null;
+            /** @example true */
+            usageRecorded: boolean;
+            /** Format: date-time */
+            periodEnd: string | null;
+        };
+        GatewayDispatchResponseDto: {
+            /** @example true */
+            ok: boolean;
+            /** @example 200 */
+            status: number;
+            /** @example GET */
+            method: string;
+            /** @example https://seller.example.com/v1/health */
+            upstreamUrl: string;
+            /** @example application/json */
+            contentType: Record<string, never> | null;
+            /**
+             * @example {
+             *       "content-type": "application/json"
+             *     }
+             */
+            headers: {
+                [key: string]: string;
+            };
+            /**
+             * @description Parsed JSON body when upstream returns JSON, otherwise plain text or null.
+             * @example {
+             *       "status": "ok"
+             *     }
+             */
+            body: Record<string, never> | null;
+            usage: components["schemas"]["GatewayUsageMetaDto"];
         };
         HideProductResponseDto: {
             /** @example true */
@@ -917,6 +1415,127 @@ export interface operations {
             };
         };
     };
+    UsersController_getProfileSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfileSummaryDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description USER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UsersController_updateMyRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserRoleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserMeResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description FORBIDDEN_ROLE */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description USER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UsersController_changePassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangePasswordResponseDto"];
+                };
+            };
+            /** @description VALIDATION_ERROR */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_CURRENT_PASSWORD */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description USER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ProductsController_listProducts: {
         parameters: {
             query?: {
@@ -960,6 +1579,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProductDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description FORBIDDEN */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductsController_listMyProducts: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                category?: string;
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductListResponseDto"];
                 };
             };
             /** @description UNAUTHORIZED */
@@ -1154,6 +1811,48 @@ export interface operations {
             };
         };
     };
+    VersionsController_getVersionSchema: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionSchemaDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NOT_OWNER */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description VERSION_NOT_FOUND or OPENAPI_SCHEMA_NOT_AVAILABLE */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     VersionsController_updateVersion: {
         parameters: {
             query?: never;
@@ -1218,6 +1917,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PlanListResponseDto"];
                 };
+            };
+            /** @description PRODUCT_NOT_PUBLIC */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description PRODUCT_NOT_FOUND */
             404: {
@@ -1291,6 +1997,93 @@ export interface operations {
             };
             /** @description UNAUTHORIZED */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SubscriptionsController_getBillingConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingConfigResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SubscriptionsController_createPortalSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingPortalSessionResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SubscriptionsController_getCheckoutStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutStatusDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description CHECKOUT_SESSION_NOT_FOUND */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1377,6 +2170,25 @@ export interface operations {
             };
             /** @description SUBSCRIPTION_NOT_FOUND */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MockPaymentsController_renderMockPaymentPage: {
+        parameters: {
+            query: {
+                invoiceId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1556,6 +2368,45 @@ export interface operations {
             };
         };
     };
+    UsageController_authorizeUsage: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-usage-secret": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthorizeUsageDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizeUsageResponseDto"];
+                };
+            };
+            /** @description USAGE_INGEST_FORBIDDEN */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     UsageController_recordUsage: {
         parameters: {
             query?: never;
@@ -1621,6 +2472,893 @@ export interface operations {
             };
             /** @description UNAUTHORIZED */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_dispatch: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GatewayDispatchDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewayDispatchResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_get: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_put: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_post: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_delete: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_options: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_head: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_patch: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_get: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_put: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_post: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_delete: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_options: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_head: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GatewayController_proxy_patch: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description HivePoint API key used for subscription and quota validation. */
+                "x-api-key": string;
+            };
+            path: {
+                /** @description Target API product id. */
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the upstream response status, headers, and body directly. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHORIZED or INVALID_API_KEY */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_PUBLIC or NO_ACTIVE_SUBSCRIPTION */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PRODUCT_NOT_FOUND or VERSION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };

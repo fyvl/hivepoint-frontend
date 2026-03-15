@@ -6,10 +6,8 @@ type GeneratedUsageSummaryResponse =
 type GeneratedUsageSummaryItem = GeneratedUsageSummaryResponse["items"][number]
 
 export type UsageSummaryItem = Omit<GeneratedUsageSummaryItem, "plan"> & {
-    status?: "ACTIVE" | "PAST_DUE"
-    gracePeriodEndsAt?: string | null
-    plan: GeneratedUsageSummaryItem["plan"] & {
-        rateLimitRpm?: number | null
+    plan: Omit<GeneratedUsageSummaryItem["plan"], "rateLimitRpm"> & {
+        rateLimitRpm: number | null
     }
 }
 export type UsageSummaryResponse = Omit<GeneratedUsageSummaryResponse, "items"> & {

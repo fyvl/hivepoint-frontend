@@ -10,24 +10,13 @@ import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+    getCheckoutDescription,
+    getCheckoutTitle,
+    isCheckoutFailed,
+    isCheckoutSuccessful
+} from "@/pages/billing/billing-state"
 import { formatDate } from "@/lib/format"
-
-const isCheckoutSuccessful = (status: BillingCheckoutStatusResponse | null) => {
-    return status?.invoiceStatus === "PAID" && status?.subscriptionStatus === "ACTIVE"
-}
-
-const isCheckoutFailed = (status: BillingCheckoutStatusResponse | null) => {
-    if (!status) {
-        return false
-    }
-
-    return (
-        status.invoiceStatus === "VOID" ||
-        status.invoiceStatus === "PAST_DUE" ||
-        status.subscriptionStatus === "PAST_DUE" ||
-        status.subscriptionStatus === "CANCELED"
-    )
-}
 
 export const BillingSuccessPage = () => {
     const [searchParams] = useSearchParams()
@@ -110,22 +99,8 @@ export const BillingSuccessPage = () => {
 
     const isSettled = isCheckoutSuccessful(status)
     const isFailed = isCheckoutFailed(status)
-    const isPastDueWithGrace =
-        status?.subscriptionStatus === "PAST_DUE" && Boolean(status.gracePeriodEndsAt)
-    const title = isSettled
-        ? "Payment confirmed"
-        : isFailed
-          ? "Payment not completed"
-          : "Payment received, syncing..."
-    const description = sessionId
-        ? isSettled
-            ? "Your subscription is active and ready to use."
-            : isFailed
-              ? isPastDueWithGrace && status?.gracePeriodEndsAt
-                ? `The subscription is past due, but access remains available through ${formatDate(status.gracePeriodEndsAt)} while billing is resolved.`
-                : "The checkout session was found, but the invoice or subscription did not finish successfully."
-              : "The app is checking Stripe webhook sync and updating your subscription status."
-        : "Checkout completed, but session details were not provided in the return URL."
+    const title = getCheckoutTitle(status)
+    const description = getCheckoutDescription(status, Boolean(sessionId))
 
     return (
         <div className="mx-auto flex min-h-[60vh] w-full max-w-2xl items-center justify-center">

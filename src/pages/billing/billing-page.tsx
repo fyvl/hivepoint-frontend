@@ -30,69 +30,16 @@ import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { notifyError, notifySuccess } from "@/lib/notify"
 import {
+    getSubscriptionNotice,
+    hasRecoverablePortalAction,
+    type SubscriptionNotice
+} from "@/pages/billing/billing-state"
+import {
     formatCurrency,
     formatDate,
     formatNumber,
     formatRequestsPerMinute
 } from "@/lib/format"
-
-type SubscriptionNotice = {
-    title: string
-    description: string
-    tone: "default" | "warning" | "danger"
-}
-
-const hasRecoverablePortalAction = (subscription: Subscription) => {
-    return subscription.paymentProvider === "STRIPE" && Boolean(subscription.hasExternalSubscription)
-}
-
-const getSubscriptionNotice = (subscription: Subscription): SubscriptionNotice | null => {
-    if (subscription.status === "PAST_DUE") {
-        const gracePeriodDescription = subscription.gracePeriodEndsAt
-            ? ` Access remains active through ${formatDate(subscription.gracePeriodEndsAt)} while billing is fixed.`
-            : " Access is no longer extended by a grace period."
-        const retryDescription = subscription.latestInvoice?.nextPaymentAttemptAt
-            ? ` Stripe will retry payment on ${formatDate(subscription.latestInvoice.nextPaymentAttemptAt)}.`
-            : ""
-
-        if (hasRecoverablePortalAction(subscription)) {
-            return {
-                title: "Payment action required",
-                description:
-                    `A renewal payment failed.${gracePeriodDescription}${retryDescription} Update the payment method in the customer portal to restore normal billing.`,
-                tone: "danger"
-            }
-        }
-
-        return {
-            title: "Checkout needs to be restarted",
-            description:
-                `A renewal payment failed.${gracePeriodDescription}${retryDescription} This billing record did not create a recoverable Stripe subscription, so a new checkout must be started from the product page.`,
-            tone: "warning"
-        }
-    }
-
-    if (subscription.cancelAtPeriodEnd) {
-        return {
-            title: "Cancellation scheduled",
-            description: subscription.currentPeriodEnd
-                ? `Access remains active through ${formatDate(subscription.currentPeriodEnd)}.`
-                : "Access remains active until the current billing period ends.",
-            tone: "warning"
-        }
-    }
-
-    if (subscription.status === "PENDING") {
-        return {
-            title: "Payment pending",
-            description:
-                "Complete checkout or wait for the payment confirmation webhook before using the subscription.",
-            tone: "default"
-        }
-    }
-
-    return null
-}
 
 const noticeStyles: Record<SubscriptionNotice["tone"], string> = {
     default: "border-border/60 bg-muted/10",
