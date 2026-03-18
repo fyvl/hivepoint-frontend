@@ -8,6 +8,10 @@ import {
     type ListProductsResponse
 } from "@/api/catalog"
 import { createBillingApi, type ListPlansResponse, type Plan } from "@/api/billing"
+import {
+    createSellerApi,
+    type SellerAnalyticsOverview
+} from "@/api/seller"
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
 import { CopyButton } from "@/components/copy-button"
@@ -103,16 +107,23 @@ export const SellerStudioPage = () => {
         () => createBillingApi({ accessToken, refresh }),
         [accessToken, refresh]
     )
+    const sellerApi = useMemo(
+        () => createSellerApi({ accessToken, refresh }),
+        [accessToken, refresh]
+    )
 
     const [products, setProducts] = useState<CatalogProduct[]>([])
     const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
     const [versions, setVersions] = useState<CatalogVersion[]>([])
     const [plans, setPlans] = useState<Plan[]>([])
+    const [analytics, setAnalytics] = useState<SellerAnalyticsOverview | null>(null)
 
     const [isProductsLoading, setIsProductsLoading] = useState(true)
     const [isDetailsLoading, setIsDetailsLoading] = useState(false)
+    const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(true)
     const [productsError, setProductsError] = useState<ApiError | null>(null)
     const [detailsError, setDetailsError] = useState<ApiError | null>(null)
+    const [analyticsError, setAnalyticsError] = useState<ApiError | null>(null)
     const [retryKey, setRetryKey] = useState(0)
 
     const [title, setTitle] = useState("")
@@ -137,6 +148,9 @@ export const SellerStudioPage = () => {
     const selectedProduct = useMemo(() => {
         return products.find((product) => getProductId(product) === selectedProductId) ?? null
     }, [products, selectedProductId])
+    const selectedProductAnalytics = useMemo(() => {
+        return analytics?.products.find((product) => product.productId === selectedProductId) ?? null
+    }, [analytics, selectedProductId])
 
     const publishedCount = useMemo(() => {
         return products.filter((product) => {
@@ -175,6 +189,26 @@ export const SellerStudioPage = () => {
     useEffect(() => {
         void loadProducts()
     }, [loadProducts, retryKey])
+
+    const loadAnalytics = useCallback(async () => {
+        setIsAnalyticsLoading(true)
+        setAnalyticsError(null)
+        try {
+            const response = await sellerApi.getAnalyticsOverview()
+            setAnalytics(response)
+        } catch (err) {
+            const apiError = err instanceof ApiError ? err : null
+            setAnalyticsError(apiError)
+            setAnalytics(null)
+            notifyError(apiError ?? err, "Could not load seller analytics")
+        } finally {
+            setIsAnalyticsLoading(false)
+        }
+    }, [sellerApi])
+
+    useEffect(() => {
+        void loadAnalytics()
+    }, [loadAnalytics, retryKey])
 
     const loadSelectedDetails = useCallback(
         async (productId: string) => {
@@ -253,6 +287,7 @@ export const SellerStudioPage = () => {
             setDescription("")
             setCategory("")
             setTags("")
+            await loadAnalytics()
             notifySuccess("Product created", "Your API product has been added to the workspace.")
         } catch (err) {
             notifyError(err, "Create product failed")
@@ -276,6 +311,7 @@ export const SellerStudioPage = () => {
                         : product
                 })
             )
+            await loadAnalytics()
             notifySuccess("Status updated", `Product status set to ${status}.`)
         } catch (err) {
             notifyError(err, "Update status failed")
@@ -305,6 +341,7 @@ export const SellerStudioPage = () => {
             setVersions((prev) => [created as CatalogVersion, ...prev])
             setVersionLabel("")
             setOpenApiUrl("")
+            await loadAnalytics()
             notifySuccess("Version created", "New API version is now available in draft mode.")
         } catch (err) {
             notifyError(err, "Create version failed")
@@ -332,6 +369,7 @@ export const SellerStudioPage = () => {
                         : version
                 })
             )
+            await loadAnalytics()
             notifySuccess("Version status updated", `Version set to ${status}.`)
         } catch (err) {
             notifyError(err, "Update version status failed")
@@ -387,6 +425,7 @@ export const SellerStudioPage = () => {
             setPlanPrice("")
             setPlanQuota("")
             setPlanRateLimitRpm("")
+            await loadAnalytics()
             notifySuccess("Plan created", "The pricing plan is now available for subscriptions.")
         } catch (err) {
             notifyError(err, "Create plan failed")
@@ -447,6 +486,44 @@ export const SellerStudioPage = () => {
                     </div>
                 </div>
             </section>
+
+            {isAnalyticsLoading ? (
+                <LoadingBlock title="Loading seller analytics..." count={1} />
+            ) : analyticsError ? (
+                <ErrorBlock
+                    title="Seller analytics unavailable"
+                    description={analyticsError.message || "Please retry."}
+                    code={analyticsError.code}
+                    onRetry={() => setRetryKey((prev) => prev + 1)}
+                />
+            ) : analytics ? (
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Active clients</CardDescription>
+                            <CardTitle>{formatNumber(analytics.totals.activeClients)}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Past due clients</CardDescription>
+                            <CardTitle>{formatNumber(analytics.totals.pastDueClients)}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Requests ({analytics.windowDays}d)</CardDescription>
+                            <CardTitle>{formatNumber(analytics.totals.requests30d)}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Active MRR</CardDescription>
+                            <CardTitle>{formatCurrency(analytics.totals.mrrCents, "EUR")}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                </div>
+            ) : null}
 
             <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
                 <Card>
@@ -628,6 +705,98 @@ export const SellerStudioPage = () => {
                                 title="No product selected"
                                 description="Create or choose a product to manage releases and plans."
                                 variant="question"
+                            />
+                        )}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Product Analytics</CardTitle>
+                        <CardDescription>
+                            Views, subscriptions, conversion, billing issues, and top endpoints.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {selectedProductAnalytics ? (
+                            <>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <AnalyticsStat
+                                        label="Views (30d)"
+                                        value={formatNumber(selectedProductAnalytics.views30d)}
+                                    />
+                                    <AnalyticsStat
+                                        label="Subscriptions (30d)"
+                                        value={formatNumber(selectedProductAnalytics.subscriptions30d)}
+                                    />
+                                    <AnalyticsStat
+                                        label="Conversion"
+                                        value={`${selectedProductAnalytics.conversionRate30d}%`}
+                                    />
+                                    <AnalyticsStat
+                                        label="Active clients"
+                                        value={formatNumber(selectedProductAnalytics.activeClients)}
+                                    />
+                                    <AnalyticsStat
+                                        label="Failed payments"
+                                        value={formatNumber(selectedProductAnalytics.failedPayments30d)}
+                                    />
+                                    <AnalyticsStat
+                                        label="Requests (30d)"
+                                        value={formatNumber(selectedProductAnalytics.requests30d)}
+                                    />
+                                </div>
+
+                                <div className="rounded-lg border p-3">
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                        Latest published version
+                                    </p>
+                                    <p className="mt-1 text-sm font-medium">
+                                        {selectedProductAnalytics.latestPublishedVersion
+                                            ? selectedProductAnalytics.latestPublishedVersion.version
+                                            : "No published version yet"}
+                                    </p>
+                                    {selectedProductAnalytics.latestPublishedVersion ? (
+                                        <p className="text-xs text-muted-foreground">
+                                            Published{" "}
+                                            {new Date(
+                                                selectedProductAnalytics.latestPublishedVersion.createdAt
+                                            ).toLocaleDateString()}
+                                        </p>
+                                    ) : null}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                        Top endpoints
+                                    </p>
+                                    {selectedProductAnalytics.topEndpoints.length > 0 ? (
+                                        <div className="grid gap-2">
+                                            {selectedProductAnalytics.topEndpoints.map((endpoint) => (
+                                                <div
+                                                    key={endpoint.endpoint}
+                                                    className="flex items-center justify-between rounded-lg border px-3 py-2"
+                                                >
+                                                    <span className="font-mono text-xs text-foreground">
+                                                        {endpoint.endpoint}
+                                                    </span>
+                                                    <span className="text-sm text-muted-foreground">
+                                                        {formatNumber(endpoint.requestCount)}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <EmptyBlock
+                                            title="No endpoint traffic yet"
+                                            description="Analytics will populate once buyers send gateway traffic."
+                                        />
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <EmptyBlock
+                                title="No analytics yet"
+                                description="Views, subscriptions, and usage will appear here once the selected product is visited and used."
                             />
                         )}
                     </CardContent>
@@ -909,6 +1078,15 @@ const StatChip = ({ label, value }: { label: string; value: string }) => {
         <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm">
             <p className="text-[11px] uppercase tracking-wide text-white/70">{label}</p>
             <p className="text-xl font-semibold text-white">{value}</p>
+        </div>
+    )
+}
+
+const AnalyticsStat = ({ label, value }: { label: string; value: string }) => {
+    return (
+        <div className="rounded-lg border bg-muted/20 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="mt-1 text-lg font-semibold">{value}</p>
         </div>
     )
 }

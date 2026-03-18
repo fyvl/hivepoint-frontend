@@ -7,6 +7,14 @@ export type UsageHealthNotice = {
     tone: "warning" | "danger"
 }
 
+export type UsagePageAlert = {
+    title: string
+    description: string
+    tone: "warning" | "danger"
+    actionLabel: string
+    actionTo: string
+}
+
 export const clampPercent = (value: number) => {
     if (!Number.isFinite(value)) {
         return 0
@@ -46,4 +54,52 @@ export const getUsageHealthNotice = (item: UsageSummaryItem): UsageHealthNotice 
 
 export const getUsageSubscriptionLabel = (status?: UsageSummaryItem["status"]) => {
     return status === "PAST_DUE" ? "Past due" : "Active"
+}
+
+export const getUsageQuotaNotice = (item: UsageSummaryItem): UsagePageAlert | null => {
+    const percent = resolvePercent(item)
+
+    if (percent >= 100) {
+        return {
+            title: `Quota exceeded for ${item.product.title}`,
+            description: `${item.usedRequests} of ${item.quotaRequests} requests have been consumed in the current billing period.`,
+            tone: "danger",
+            actionLabel: "Review billing",
+            actionTo: "/billing"
+        }
+    }
+
+    if (percent >= 80) {
+        return {
+            title: `Quota nearing limit for ${item.product.title}`,
+            description: `${item.usedRequests} of ${item.quotaRequests} requests have been consumed before ${formatDate(item.periodEnd)}.`,
+            tone: "warning",
+            actionLabel: "Review usage",
+            actionTo: "/usage"
+        }
+    }
+
+    return null
+}
+
+export const getUsageAlerts = (items: UsageSummaryItem[]): UsagePageAlert[] => {
+    const alerts: UsagePageAlert[] = []
+
+    items.forEach((item) => {
+        const quotaAlert = getUsageQuotaNotice(item)
+        if (quotaAlert) {
+            alerts.push(quotaAlert)
+        }
+
+        const healthNotice = getUsageHealthNotice(item)
+        if (healthNotice) {
+            alerts.push({
+                ...healthNotice,
+                actionLabel: "Open billing",
+                actionTo: "/billing"
+            })
+        }
+    })
+
+    return alerts
 }

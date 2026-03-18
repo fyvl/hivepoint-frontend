@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { Link } from "react-router-dom"
 
 import {
     createUsageApi,
@@ -35,13 +36,20 @@ import { ErrorBlock } from "@/components/ui-states/error-block"
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
 import { formatDate, formatNumber, formatRequestsPerMinute } from "@/lib/format"
 import {
+    getUsageAlerts,
     getUsageHealthNotice,
     getUsageSubscriptionLabel,
     resolvePercent,
+    type UsagePageAlert,
     type UsageHealthNotice
 } from "@/pages/usage/usage-state"
 
 const usageHealthNoticeStyles: Record<UsageHealthNotice["tone"], string> = {
+    warning: "border-amber-500/30 bg-amber-500/10",
+    danger: "border-destructive/30 bg-destructive/10"
+}
+
+const usagePageAlertStyles: Record<UsagePageAlert["tone"], string> = {
     warning: "border-amber-500/30 bg-amber-500/10",
     danger: "border-destructive/30 bg-destructive/10"
 }
@@ -99,6 +107,7 @@ export const UsagePage = () => {
     const filteredItems = selectedId === "all"
         ? items
         : items.filter((item) => item.subscriptionId === selectedId)
+    const usageAlerts = useMemo(() => getUsageAlerts(filteredItems), [filteredItems])
 
     const handleIngest = async () => {
         if (!import.meta.env.DEV) {
@@ -197,11 +206,40 @@ export const UsagePage = () => {
             ) : null}
 
             {!isLoading && filteredItems.length > 0 ? (
-                <div className="grid gap-4">
-                    {filteredItems.map((item) => (
-                        <UsageCard key={item.subscriptionId} item={item} />
-                    ))}
-                </div>
+                <>
+                    {usageAlerts.length > 0 ? (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Usage alerts</CardTitle>
+                                <CardDescription>
+                                    Quota and billing alerts derived from the current billing period.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="grid gap-3">
+                                {usageAlerts.map((alert, index) => (
+                                    <div
+                                        key={`${alert.title}-${index}`}
+                                        className={`flex flex-col gap-3 rounded-lg border p-4 md:flex-row md:items-center md:justify-between ${usagePageAlertStyles[alert.tone]}`}
+                                    >
+                                        <div className="space-y-1">
+                                            <div className="font-medium text-foreground">{alert.title}</div>
+                                            <div className="text-sm text-muted-foreground">{alert.description}</div>
+                                        </div>
+                                        <Button asChild type="button" variant="ghost" size="sm">
+                                            <Link to={alert.actionTo}>{alert.actionLabel}</Link>
+                                        </Button>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    ) : null}
+
+                    <div className="grid gap-4">
+                        {filteredItems.map((item) => (
+                            <UsageCard key={item.subscriptionId} item={item} />
+                        ))}
+                    </div>
+                </>
             ) : null}
 
             {import.meta.env.DEV ? (

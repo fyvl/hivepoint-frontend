@@ -17,6 +17,8 @@ type GeneratedBillingConfigResponse =
     paths["/billing/config"]["get"]["responses"][200]["content"]["application/json"]
 type GeneratedBillingCheckoutStatusResponse =
     paths["/billing/checkout-status/{sessionId}"]["get"]["responses"][200]["content"]["application/json"]
+type GeneratedBillingAlertsResponse =
+    paths["/billing/alerts"]["get"]["responses"][200]["content"]["application/json"]
 
 export type Plan = Omit<GeneratedPlan, "rateLimitRpm"> & {
     rateLimitRpm: number | null
@@ -55,6 +57,8 @@ export type BillingConfigResponse = GeneratedBillingConfigResponse
 export type BillingLatestInvoice = GeneratedSubscription["invoices"][number]
 
 export type BillingCheckoutStatusResponse = GeneratedBillingCheckoutStatusResponse
+export type BillingAlertsResponse = GeneratedBillingAlertsResponse
+export type BillingAlert = GeneratedBillingAlertsResponse["items"][number]
 
 export type MockPaymentResponse =
     paths["/billing/mock/succeed"]["post"]["responses"][200]["content"]["application/json"]
@@ -144,6 +148,11 @@ export const createBillingApi = (client?: BillingClient) => {
         },
         listSubscriptions: async (): Promise<ListSubscriptionsResponse> => {
             return await request<ListSubscriptionsResponse>("/billing/subscriptions", {
+                method: "GET"
+            })
+        },
+        listAlerts: async (): Promise<BillingAlertsResponse> => {
+            return await request<BillingAlertsResponse>("/billing/alerts", {
                 method: "GET"
             })
         },

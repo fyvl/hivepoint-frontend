@@ -5,8 +5,9 @@
 - `httpWithRetry` retries once on `401` by calling the refresh flow.
 - `src/api/auth.ts` implements `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` exactly as documented.
 - `src/api/catalog.ts` implements catalog endpoints using OpenAPI-derived types for `/catalog/products`, `/catalog/products/{id}`, `/catalog/products/{id}/versions`.
-- `src/api/billing.ts` implements plan listing, subscribe, subscription list/cancel, and DEV mock payment helpers using OpenAPI-derived types.
+- `src/api/billing.ts` implements plan listing, subscribe, subscription list/cancel, billing alerts, and DEV mock payment helpers using OpenAPI-derived types.
 - `src/api/keys.ts` implements key creation, listing, and revocation using OpenAPI-derived types.
+- `src/api/seller.ts` implements seller analytics overview.
 - `src/api/usage.ts` implements usage summary plus DEV usage ingestion helpers using OpenAPI-derived types.
 - `src/api/generated/schema.d.ts` is generated from OpenAPI (`/openapi.json`) via `openapi-typescript`.
 - `src/api/types.ts` provides helper types for schema-derived request/response typing.
@@ -47,10 +48,11 @@
 ## Catalog UI
 - `src/pages/catalog/catalog-page.tsx` renders `/catalog` with search, category, and pagination.
 - `src/pages/catalog/product-details-page.tsx` renders `/products/:id` with product details and versions.
-- `src/pages/billing/billing-page.tsx` renders `/billing` with subscriptions and cancel actions.
+- `src/pages/billing/billing-page.tsx` renders `/billing` with subscriptions, cancel actions, and page-level buyer alerts.
 - `src/pages/billing/dev-mock-payment.tsx` renders DEV-only mock payment controls in the subscribe dialog.
 - `src/pages/keys/keys-page.tsx` renders `/keys` with key creation, listing, and revocation.
-- `src/pages/usage/usage-page.tsx` renders `/usage` with per-subscription usage cards and DEV ingest tools.
+- `src/pages/usage/usage-page.tsx` renders `/usage` with per-subscription usage cards, page-level quota/billing alerts, and DEV ingest tools.
+- `src/pages/seller/seller-studio-page.tsx` renders `/seller/studio` with seller workflow tooling and seller analytics overview.
 
 ## UI system
 - UI uses shadcn/ui components (Button, Card, Input, Label, Toast, Tabs, Dialog, Dropdown Menu, Badge, Separator, Skeleton).

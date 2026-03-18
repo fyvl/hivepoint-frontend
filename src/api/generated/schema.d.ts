@@ -312,6 +312,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/billing/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List buyer billing and quota alerts */
+        get: operations["SubscriptionsController_listAlerts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/billing/config": {
         parameters: {
             query?: never;
@@ -448,41 +465,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/keys": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List API keys */
-        get: operations["KeysController_listKeys"];
-        put?: never;
-        /** Create API key */
-        post: operations["KeysController_createKey"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/keys/{id}/revoke": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Revoke API key */
-        post: operations["KeysController_revokeKey"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/usage/authorize": {
         parameters: {
             query?: never;
@@ -528,6 +510,41 @@ export interface paths {
         get: operations["UsageController_getSummary"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List API keys */
+        get: operations["KeysController_listKeys"];
+        put?: never;
+        /** Create API key */
+        post: operations["KeysController_createKey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/keys/{id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke API key */
+        post: operations["KeysController_revokeKey"];
         delete?: never;
         options?: never;
         head?: never;
@@ -642,6 +659,23 @@ export interface paths {
         put?: never;
         /** Revoke API key (admin override) */
         post: operations["AdminController_revokeKey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seller/analytics/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get seller analytics overview */
+        get: operations["AnalyticsController_getOverview"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -938,6 +972,33 @@ export interface components {
         SubscriptionListResponseDto: {
             items: components["schemas"]["SubscriptionDto"][];
         };
+        BillingAlertDto: {
+            /** @enum {string} */
+            kind: "QUOTA_NEAR_LIMIT" | "QUOTA_EXCEEDED" | "UPCOMING_RENEWAL" | "PAYMENT_PAST_DUE" | "PAYMENT_RETRY_SCHEDULED" | "NEW_VERSION_AVAILABLE";
+            /** @enum {string} */
+            severity: "INFO" | "WARNING" | "DANGER";
+            /** @example uuid */
+            subscriptionId: Record<string, never> | null;
+            /** @example uuid */
+            productId: Record<string, never> | null;
+            /** @example uuid */
+            invoiceId: Record<string, never> | null;
+            /** @example uuid */
+            versionId: Record<string, never> | null;
+            /** @example Payment action required */
+            title: string;
+            /** @example A renewal payment failed. Update the payment method before access expires. */
+            message: string;
+            /** @example Open billing */
+            actionLabel: Record<string, never> | null;
+            /** @example /billing */
+            actionUrl: Record<string, never> | null;
+            /** Format: date-time */
+            effectiveAt: string;
+        };
+        BillingAlertsResponseDto: {
+            items: components["schemas"]["BillingAlertDto"][];
+        };
         BillingConfigResponseDto: {
             /** @enum {string} */
             paymentProvider: "MOCK" | "STRIPE";
@@ -991,41 +1052,6 @@ export interface components {
         MockPaymentResponseDto: {
             /** @example true */
             ok: boolean;
-        };
-        CreateKeyDto: {
-            /** @example My key */
-            label: string;
-        };
-        CreateKeyResponseDto: {
-            /** @example uuid */
-            id: string;
-            /** @example My key */
-            label: string;
-            /** @example hp_b64url... */
-            rawKey: string;
-            /** Format: date-time */
-            createdAt: string;
-        };
-        KeyItemDto: {
-            /** @example uuid */
-            id: string;
-            /** @example My key */
-            label: string;
-            /** @example true */
-            isActive: boolean;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            revokedAt: string | null;
-        };
-        ListKeysResponseDto: {
-            items: components["schemas"]["KeyItemDto"][];
-        };
-        RevokeKeyResponseDto: {
-            /** @example true */
-            ok: boolean;
-            /** @example uuid */
-            keyId: string;
         };
         AuthorizeUsageDto: {
             /** @example hp_example_api_key */
@@ -1145,6 +1171,41 @@ export interface components {
         UsageSummaryResponseDto: {
             items: components["schemas"]["UsageSummaryItemDto"][];
         };
+        CreateKeyDto: {
+            /** @example My key */
+            label: string;
+        };
+        CreateKeyResponseDto: {
+            /** @example uuid */
+            id: string;
+            /** @example My key */
+            label: string;
+            /** @example hp_b64url... */
+            rawKey: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        KeyItemDto: {
+            /** @example uuid */
+            id: string;
+            /** @example My key */
+            label: string;
+            /** @example true */
+            isActive: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            revokedAt: string | null;
+        };
+        ListKeysResponseDto: {
+            items: components["schemas"]["KeyItemDto"][];
+        };
+        RevokeKeyResponseDto: {
+            /** @example true */
+            ok: boolean;
+            /** @example uuid */
+            keyId: string;
+        };
         GatewayDispatchDto: {
             /** @example prod_123 */
             productId: string;
@@ -1240,6 +1301,70 @@ export interface components {
             ok: boolean;
             /** @example uuid */
             versionId: string;
+        };
+        SellerAnalyticsTotalsDto: {
+            /** @example 3 */
+            productCount: number;
+            /** @example 2 */
+            publishedProductCount: number;
+            /** @example 540 */
+            views30d: number;
+            /** @example 24 */
+            subscriptions30d: number;
+            /** @example 11 */
+            activeClients: number;
+            /** @example 2 */
+            pastDueClients: number;
+            /** @example 3 */
+            failedPayments30d: number;
+            /** @example 14500 */
+            requests30d: number;
+            /** @example 29900 */
+            mrrCents: number;
+        };
+        SellerAnalyticsLatestVersionDto: {
+            /** @example uuid */
+            id: string;
+            /** @example v2 */
+            version: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        SellerAnalyticsTopEndpointDto: {
+            /** @example /v1/search */
+            endpoint: string;
+            /** @example 240 */
+            requestCount: number;
+        };
+        SellerProductAnalyticsDto: {
+            /** @example uuid */
+            productId: string;
+            /** @example Payments API */
+            title: string;
+            /** @enum {string} */
+            status: "DRAFT" | "PUBLISHED" | "HIDDEN";
+            /** @example 128 */
+            views30d: number;
+            /** @example 12 */
+            subscriptions30d: number;
+            /** @example 9.4 */
+            conversionRate30d: number;
+            /** @example 5 */
+            activeClients: number;
+            /** @example 1 */
+            pastDueClients: number;
+            /** @example 2 */
+            failedPayments30d: number;
+            /** @example 1240 */
+            requests30d: number;
+            latestPublishedVersion: components["schemas"]["SellerAnalyticsLatestVersionDto"] | null;
+            topEndpoints: components["schemas"]["SellerAnalyticsTopEndpointDto"][];
+        };
+        SellerAnalyticsOverviewResponseDto: {
+            /** @example 30 */
+            windowDays: number;
+            totals: components["schemas"]["SellerAnalyticsTotalsDto"];
+            products: components["schemas"]["SellerProductAnalyticsDto"][];
         };
     };
     responses: never;
@@ -2004,6 +2129,32 @@ export interface operations {
             };
         };
     };
+    SubscriptionsController_listAlerts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingAlertsResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     SubscriptionsController_getBillingConfig: {
         parameters: {
             query?: never;
@@ -2270,104 +2421,6 @@ export interface operations {
             };
         };
     };
-    KeysController_listKeys: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListKeysResponseDto"];
-                };
-            };
-            /** @description UNAUTHORIZED */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    KeysController_createKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateKeyDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CreateKeyResponseDto"];
-                };
-            };
-            /** @description UNAUTHORIZED */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    KeysController_revokeKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RevokeKeyResponseDto"];
-                };
-            };
-            /** @description UNAUTHORIZED */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description NOT_OWNER */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description KEY_NOT_FOUND */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     UsageController_authorizeUsage: {
         parameters: {
             query?: never;
@@ -2472,6 +2525,104 @@ export interface operations {
             };
             /** @description UNAUTHORIZED */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    KeysController_listKeys: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListKeysResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    KeysController_createKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateKeyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateKeyResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    KeysController_revokeKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevokeKeyResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description NOT_OWNER */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description KEY_NOT_FOUND */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3485,6 +3636,39 @@ export interface operations {
             };
             /** @description KEY_NOT_FOUND */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AnalyticsController_getOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerAnalyticsOverviewResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description FORBIDDEN */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

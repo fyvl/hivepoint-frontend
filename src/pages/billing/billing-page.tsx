@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 import {
     createBillingApi,
+    type BillingAlert,
     type BillingConfigResponse,
     type Subscription
 } from "@/api/billing"
@@ -29,6 +30,7 @@ import {
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { notifyError, notifySuccess } from "@/lib/notify"
+import { Link } from "react-router-dom"
 import {
     getSubscriptionNotice,
     hasRecoverablePortalAction,
@@ -47,6 +49,20 @@ const noticeStyles: Record<SubscriptionNotice["tone"], string> = {
     danger: "border-destructive/30 bg-destructive/10"
 }
 
+const alertToneStyles: Record<string, string> = {
+    INFO: "border-border/60 bg-muted/10",
+    WARNING: "border-amber-500/30 bg-amber-500/10",
+    DANGER: "border-destructive/30 bg-destructive/10"
+}
+
+const getAlertActionUrl = (alert: BillingAlert) => {
+    return typeof alert.actionUrl === "string" ? alert.actionUrl : null
+}
+
+const getAlertActionLabel = (alert: BillingAlert) => {
+    return typeof alert.actionLabel === "string" ? alert.actionLabel : "Open"
+}
+
 export const BillingPage = () => {
     const { accessToken, refresh } = useAuth()
     const billingApi = useMemo(
@@ -55,6 +71,7 @@ export const BillingPage = () => {
     )
 
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+    const [alerts, setAlerts] = useState<BillingAlert[]>([])
     const [billingConfig, setBillingConfig] = useState<BillingConfigResponse | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<ApiError | null>(null)
@@ -76,16 +93,19 @@ export const BillingPage = () => {
         setError(null)
 
         try {
-            const [subscriptionsResponse, configResponse] = await Promise.all([
+            const [subscriptionsResponse, configResponse, alertsResponse] = await Promise.all([
                 billingApi.listSubscriptions(),
-                billingApi.getConfig()
+                billingApi.getConfig(),
+                billingApi.listAlerts()
             ])
             setSubscriptions(subscriptionsResponse.items)
             setBillingConfig(configResponse)
+            setAlerts(alertsResponse.items)
         } catch (err) {
             const apiError = err instanceof ApiError ? err : null
             setError(apiError)
             setSubscriptions([])
+            setAlerts([])
             setBillingConfig(null)
             notifyError(apiError ?? err, "Billing error")
         } finally {
@@ -179,6 +199,63 @@ export const BillingPage = () => {
 
             {!isLoading && subscriptions.length > 0 ? (
                 <>
+                    {alerts.length > 0 ? (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Attention needed</CardTitle>
+                                <CardDescription>
+                                    Billing, quota, and version alerts for your active subscriptions.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="grid gap-3">
+                                {alerts.map((alert, index) => {
+                                    const actionUrl = getAlertActionUrl(alert)
+                                    const showPortalAction =
+                                        billingConfig?.customerPortalAvailable &&
+                                        (alert.kind === "PAYMENT_PAST_DUE" ||
+                                            alert.kind === "PAYMENT_RETRY_SCHEDULED")
+
+                                    return (
+                                        <div
+                                            key={`${alert.kind}-${alert.subscriptionId ?? "global"}-${index}`}
+                                            className={`flex flex-col gap-3 rounded-lg border p-4 md:flex-row md:items-center md:justify-between ${alertToneStyles[alert.severity] ?? alertToneStyles.INFO}`}
+                                        >
+                                            <div className="space-y-1">
+                                                <div className="font-medium text-foreground">{alert.title}</div>
+                                                <div className="text-sm text-muted-foreground">
+                                                    {alert.message}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    Effective {formatDate(alert.effectiveAt)}
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {showPortalAction ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        disabled={isOpeningPortal}
+                                                        onClick={handleOpenPortal}
+                                                    >
+                                                        {isOpeningPortal ? "Opening..." : "Open customer portal"}
+                                                    </Button>
+                                                ) : null}
+                                                {actionUrl && actionUrl !== "/billing" ? (
+                                                    <Button asChild type="button" variant="ghost" size="sm">
+                                                        <Link to={actionUrl}>
+                                                            {getAlertActionLabel(alert)}
+                                                        </Link>
+                                                    </Button>
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </CardContent>
+                        </Card>
+                    ) : null}
+
                     <div className="grid gap-4 md:grid-cols-3">
                         <Card>
                             <CardHeader className="pb-2">

@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest"
 
 import type { UsageSummaryItem } from "@/api/usage"
 import {
+    getUsageAlerts,
     getUsageHealthNotice,
+    getUsageQuotaNotice,
     getUsageSubscriptionLabel,
     resolvePercent
 } from "@/pages/usage/usage-state"
@@ -61,5 +63,41 @@ describe("usage-state", () => {
     it("labels past due subscriptions clearly", () => {
         expect(getUsageSubscriptionLabel("PAST_DUE")).toBe("Past due")
         expect(getUsageSubscriptionLabel("ACTIVE")).toBe("Active")
+    })
+
+    it("builds a quota warning notice at 80 percent", () => {
+        const item = createUsageItem({
+            usedRequests: 800,
+            quotaRequests: 1000,
+            percent: 80
+        })
+
+        expect(getUsageQuotaNotice(item)).toMatchObject({
+            title: "Quota nearing limit for Payments API",
+            tone: "warning"
+        })
+    })
+
+    it("collects quota and billing alerts for page-level rendering", () => {
+        const alerts = getUsageAlerts([
+            createUsageItem({
+                usedRequests: 1200,
+                quotaRequests: 1000,
+                percent: 100
+            }),
+            createUsageItem({
+                subscriptionId: "sub-2",
+                status: "PAST_DUE",
+                gracePeriodEndsAt: "2026-03-18T00:00:00.000Z"
+            })
+        ])
+
+        expect(alerts).toHaveLength(2)
+        expect(alerts[0]).toMatchObject({
+            tone: "danger"
+        })
+        expect(alerts[1]).toMatchObject({
+            actionTo: "/billing"
+        })
     })
 })
