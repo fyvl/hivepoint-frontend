@@ -102,6 +102,16 @@ const sellerCards: DashboardCard[] = [
     }
 ]
 
+const adminCards: DashboardCard[] = [
+    {
+        title: "Admin Ops",
+        description: "Operational alerts, audit log, and moderation tools.",
+        to: "/admin/ops",
+        icon: ShieldCheck,
+        gradient: "from-sky-500/20 via-blue-500/10 to-transparent"
+    }
+]
+
 export const DashboardPage = () => {
     const { accessToken, role, refresh } = useAuth()
     const navigate = useNavigate()
@@ -157,10 +167,10 @@ export const DashboardPage = () => {
             return {
                 badge: "Admin Workspace",
                 title: "Oversee buyer and seller flows",
-                description: "Access operational buyer tools and seller publishing surfaces.",
+                description: "Access operational alerts, audit trail, and seller publishing surfaces.",
                 gradient: "from-indigo-600 via-violet-700 to-slate-900",
-                ctaLabel: "Open Seller Studio",
-                ctaTo: "/seller/studio"
+                ctaLabel: "Open Admin Ops",
+                ctaTo: "/admin/ops"
             }
         }
 
@@ -182,7 +192,7 @@ export const DashboardPage = () => {
             return sellerCards
         }
         if (role === "ADMIN") {
-            return [...sellerCards, ...buyerCards]
+            return [...adminCards, ...sellerCards, ...buyerCards]
         }
         return buyerCards
     }, [accessToken, role])

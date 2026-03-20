@@ -1,4 +1,4 @@
-import { BarChart3, BriefcaseBusiness, CreditCard, Home, Key, Laptop, LayoutGrid, Menu, Moon, Sun, User } from "lucide-react"
+import { BarChart3, BriefcaseBusiness, CreditCard, Home, Key, Laptop, LayoutGrid, Menu, Moon, ShieldCheck, Sun, User } from "lucide-react"
 import { Link, NavLink } from "react-router-dom"
 import { useMemo, useState } from "react"
 
@@ -38,6 +38,10 @@ const buyerNav: NavItem[] = [
 
 const sellerNav: NavItem[] = [
     { to: "/seller/studio", label: "Seller Studio", icon: BriefcaseBusiness }
+]
+
+const adminNav: NavItem[] = [
+    { to: "/admin/ops", label: "Admin Ops", icon: ShieldCheck }
 ]
 
 const accountNav: NavItem[] = [
@@ -82,7 +86,7 @@ export const AppShell = ({ children }: AppShellProps) => {
             return [...buyerNav, ...accountNav]
         }
 
-        return [...sellerNav, ...buyerNav, ...accountNav]
+        return [...adminNav, ...sellerNav, ...buyerNav, ...accountNav]
     }, [accessToken, role])
 
     return (

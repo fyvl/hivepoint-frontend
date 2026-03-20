@@ -28,6 +28,7 @@ Protected routes (auth required):
 - http://localhost:5173/keys
 - http://localhost:5173/usage
 - http://localhost:5173/seller/studio (SELLER / ADMIN)
+- http://localhost:5173/admin/ops (ADMIN)
 
 ## API types (OpenAPI)
 When the backend is running and serving `/openapi.json`:
@@ -54,3 +55,4 @@ If you get a 401, confirm backend is running and cookies are allowed.
 - `/billing` shows buyer alerts for quota, renewals, payment retries, and new API versions.
 - `/usage` shows quota-pressure and grace-period alerts derived from current subscription usage.
 - `/seller/studio` shows seller analytics such as views, conversion, active clients, billing issues, and top endpoints.
+- `/admin/ops` shows the operational dashboard, alert delivery status, audit trail, and admin moderation tools.

@@ -9,6 +9,9 @@ import { LoadingBlock } from "@/components/ui-states/loading-block"
 const BillingPage = lazy(() =>
     import("@/pages/billing/billing-page").then((module) => ({ default: module.BillingPage }))
 )
+const AdminOpsPage = lazy(() =>
+    import("@/pages/admin/admin-ops-page").then((module) => ({ default: module.AdminOpsPage }))
+)
 const BillingCancelPage = lazy(() =>
     import("@/pages/billing/billing-cancel-page").then((module) => ({
         default: module.BillingCancelPage
@@ -91,6 +94,10 @@ export default function App() {
 
                         <Route element={<RequireRole allow={["SELLER", "ADMIN"]} />}>
                             <Route path="/seller/studio" element={<SellerStudioPage />} />
+                        </Route>
+
+                        <Route element={<RequireRole allow={["ADMIN"]} />}>
+                            <Route path="/admin/ops" element={<AdminOpsPage />} />
                         </Route>
                     </Route>
                     <Route path="*" element={<NotFoundPage />} />
