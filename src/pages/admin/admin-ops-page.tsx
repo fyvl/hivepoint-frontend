@@ -14,6 +14,7 @@ import {
     type AuditLogItem,
     type OperationalAlert,
     type OperationalAlertDeliveryStatus,
+    type OperationalMetricsHistoryStatus,
     type OperationalMetricsSnapshot
 } from "@/api/admin"
 import {
@@ -173,6 +174,7 @@ export const AdminOpsPage = () => {
     const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([])
     const [metricsSnapshot, setMetricsSnapshot] = useState<OperationalMetricsSnapshot | null>(null)
     const [alertDeliveryStatus, setAlertDeliveryStatus] = useState<OperationalAlertDeliveryStatus | null>(null)
+    const [metricsHistory, setMetricsHistory] = useState<OperationalMetricsHistoryStatus | null>(null)
     const [products, setProducts] = useState<CatalogProduct[]>([])
     const [versions, setVersions] = useState<CatalogVersion[]>([])
     const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
@@ -203,6 +205,7 @@ export const AdminOpsPage = () => {
             setMetricsSnapshot(dashboardResponse.snapshot ?? null)
             setAlerts(dashboardResponse.alerts ?? [])
             setAlertDeliveryStatus(dashboardResponse.alertDelivery ?? null)
+            setMetricsHistory(dashboardResponse.metricsHistory ?? null)
             setAuditLogs(auditLogsResponse.items ?? [])
         } catch (error) {
             const apiError = error instanceof ApiError ? error : null
@@ -210,6 +213,7 @@ export const AdminOpsPage = () => {
             setMetricsSnapshot(null)
             setAlerts([])
             setAlertDeliveryStatus(null)
+            setMetricsHistory(null)
             setAuditLogs([])
             notifyError(apiError ?? error, "Could not load admin operations data")
         } finally {
@@ -406,6 +410,9 @@ export const AdminOpsPage = () => {
 
     const overviewAuditLogs = auditLogs.slice(0, 5)
     const recentDeliveryStates = alertDeliveryStatus?.items.slice(0, 3) ?? []
+    const recentTargetDeliveryStates = alertDeliveryStatus?.targetItems.slice(0, 3) ?? []
+    const deliveryTargetHosts = alertDeliveryStatus?.targets.map((target) => target.host).join(", ") ?? ""
+    const latestHistoryPoint = metricsHistory?.items.at(-1) ?? null
 
     return (
         <div className="flex flex-col gap-8">
@@ -489,7 +496,7 @@ export const AdminOpsPage = () => {
                                             ))}
                                         </div>
                                         {metricsSnapshot ? (
-                                            <div className="grid gap-3 sm:grid-cols-3">
+                                            <div className="grid gap-3 sm:grid-cols-4">
                                                 <OverviewStat
                                                     label="Queue pending"
                                                     value={formatNumber(metricsSnapshot.usageIngestPendingJobs)}
@@ -505,6 +512,28 @@ export const AdminOpsPage = () => {
                                                     value={formatNumber(metricsSnapshot.subscriptionsPastDue)}
                                                     tone={metricsSnapshot.subscriptionsPastDue > 0 ? "warning" : "default"}
                                                 />
+                                                <OverviewStat
+                                                    label="Overage worker"
+                                                    value={metricsSnapshot.billingOverageCollectionLeasePresent ? "Lease ok" : "Missing"}
+                                                    tone={metricsSnapshot.billingOverageCollectionLeasePresent ? "default" : "warning"}
+                                                />
+                                            </div>
+                                        ) : null}
+                                        {metricsHistory ? (
+                                            <div className="rounded-xl border bg-muted/30 p-4">
+                                                <p className="text-sm font-medium">
+                                                    Metrics history points: {formatNumber(metricsHistory.items.length)}
+                                                </p>
+                                                <p className="mt-1 text-sm text-muted-foreground">
+                                                    {metricsHistory.enabled
+                                                        ? `Captured every ${formatNumber(metricsHistory.intervalSeconds)}s and retained for ${formatNumber(metricsHistory.retentionDays)} day(s).`
+                                                        : "Persistent metrics history is disabled."}
+                                                </p>
+                                                {latestHistoryPoint ? (
+                                                    <p className="mt-2 text-xs text-muted-foreground">
+                                                        Latest capture: {formatDateTime(latestHistoryPoint.capturedAt)}
+                                                    </p>
+                                                ) : null}
                                             </div>
                                         ) : null}
                                     </div>
@@ -597,7 +626,7 @@ export const AdminOpsPage = () => {
                                     <LoadingBlock title="Loading delivery status..." count={3} variant="lines" />
                                 ) : alertDeliveryStatus ? (
                                     <>
-                                        <div className="grid gap-3 sm:grid-cols-2">
+                                        <div className="grid gap-3 sm:grid-cols-3">
                                             <OverviewStat
                                                 label="Delivery enabled"
                                                 value={alertDeliveryStatus.enabled ? "Yes" : "No"}
@@ -608,6 +637,11 @@ export const AdminOpsPage = () => {
                                                 value={alertDeliveryStatus.webhookConfigured ? "Yes" : "No"}
                                                 tone={alertDeliveryStatus.webhookConfigured ? "default" : "warning"}
                                             />
+                                            <OverviewStat
+                                                label="Targets"
+                                                value={formatNumber(alertDeliveryStatus.configuredTargetCount)}
+                                                tone={alertDeliveryStatus.configuredTargetCount > 1 ? "default" : "secondary"}
+                                            />
                                         </div>
                                         <div className="rounded-xl border bg-muted/30 p-4">
                                             <p className="text-sm font-medium">
@@ -616,6 +650,11 @@ export const AdminOpsPage = () => {
                                             <p className="mt-1 text-sm text-muted-foreground">
                                                 Active alerts are pushed to the configured webhook, with reminder sends after the cooldown window.
                                             </p>
+                                            {deliveryTargetHosts ? (
+                                                <p className="mt-2 text-xs text-muted-foreground">
+                                                    Targets: {deliveryTargetHosts}
+                                                </p>
+                                            ) : null}
                                         </div>
                                         {recentDeliveryStates.length > 0 ? (
                                             <div className="space-y-3">
@@ -629,6 +668,30 @@ export const AdminOpsPage = () => {
                                                 description="Tracked alert delivery state will appear after the first webhook cycle."
                                             />
                                         )}
+                                        {recentTargetDeliveryStates.length > 0 ? (
+                                            <div className="space-y-2 rounded-xl border bg-muted/20 p-4">
+                                                <p className="text-sm font-medium">Target fan-out</p>
+                                                <div className="space-y-2">
+                                                    {recentTargetDeliveryStates.map((item) => (
+                                                        <div
+                                                            key={`${item.alertKind}:${item.targetKey}`}
+                                                            className="flex items-center justify-between gap-3 rounded-lg border bg-background/80 px-3 py-2"
+                                                        >
+                                                            <div>
+                                                                <p className="text-sm font-medium">{item.targetKey}</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {item.alertKind}
+                                                                </p>
+                                                            </div>
+                                                            <div className="text-right text-xs text-muted-foreground">
+                                                                <p>Delivered {formatNumber(item.deliveryCount)}</p>
+                                                                <p>Failures {formatNumber(item.deliveryFailures)}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : null}
                                     </>
                                 ) : (
                                     <EmptyBlock

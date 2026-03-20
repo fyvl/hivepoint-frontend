@@ -55,4 +55,4 @@ If you get a 401, confirm backend is running and cookies are allowed.
 - `/billing` shows buyer alerts for quota, renewals, payment retries, and new API versions.
 - `/usage` shows quota-pressure and grace-period alerts derived from current subscription usage.
 - `/seller/studio` shows seller analytics such as views, conversion, active clients, billing issues, and top endpoints.
-- `/admin/ops` shows the operational dashboard, alert delivery status, audit trail, and admin moderation tools.
+- `/admin/ops` shows the operational dashboard, persisted metrics history, multi-target alert delivery status, audit trail, and admin moderation tools.

@@ -23,6 +23,8 @@ export type OperationalMetricsSnapshot = {
     usageIngestLeaseSecondsUntilExpiry: number
     billingReconciliationLeasePresent: boolean
     billingReconciliationLeaseSecondsUntilExpiry: number
+    billingOverageCollectionLeasePresent: boolean
+    billingOverageCollectionLeaseSecondsUntilExpiry: number
     subscriptionsPastDue: number
     auditLogsLast24h: number
 }
@@ -46,15 +48,42 @@ export type OperationalAlertDeliveryState = {
 export type OperationalAlertDeliveryStatus = {
     enabled: boolean
     webhookConfigured: boolean
+    configuredTargetCount: number
+    targets: Array<{
+        key: string
+        host: string
+    }>
     intervalSeconds: number
     cooldownSeconds: number
     items: OperationalAlertDeliveryState[]
+    targetItems: Array<{
+        alertKind: string
+        targetKey: string
+        resolvedAt: string | null
+        lastDeliveredAt: string | null
+        lastDeliveryAttemptAt: string | null
+        deliveryCount: number
+        deliveryFailures: number
+        lastDeliveryError: string | null
+    }>
+}
+
+export type OperationalMetricsHistoryPoint = OperationalMetricsSnapshot & {
+    capturedAt: string
+}
+
+export type OperationalMetricsHistoryStatus = {
+    enabled: boolean
+    intervalSeconds: number
+    retentionDays: number
+    items: OperationalMetricsHistoryPoint[]
 }
 
 export type OperationalDashboardResponse = {
     snapshot: OperationalMetricsSnapshot
     alerts: OperationalAlert[]
     alertDelivery: OperationalAlertDeliveryStatus
+    metricsHistory: OperationalMetricsHistoryStatus
 }
 
 export type AuditLogActorRole = "BUYER" | "SELLER" | "ADMIN" | null
