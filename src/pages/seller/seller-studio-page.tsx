@@ -1,394 +1,425 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { CheckCircle2, CircleDashed, Rocket } from "lucide-react"
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CheckCircle2, CircleDashed, Rocket } from "lucide-react";
 
 import {
     createCatalogApi,
     type CatalogProduct,
     type CatalogVersion,
     type ListProductsResponse
-} from "@/api/catalog"
-import { createBillingApi, type ListPlansResponse, type Plan } from "@/api/billing"
-import {
-    createSellerApi,
-    type SellerAnalyticsOverview
-} from "@/api/seller"
-import { ApiError } from "@/api/http"
-import { useAuth } from "@/auth/auth-context"
-import { CopyButton } from "@/components/copy-button"
-import { StatusBadge } from "@/components/status-badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { EmptyBlock } from "@/components/ui-states/empty-block"
-import { ErrorBlock } from "@/components/ui-states/error-block"
-import { LoadingBlock } from "@/components/ui-states/loading-block"
-import { formatCurrency, formatNumber, formatRequestsPerMinute } from "@/lib/format"
-import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
-import { cn } from "@/lib/utils"
+} from "@/api/catalog";
+import { createBillingApi, type ListPlansResponse, type Plan } from "@/api/billing";
+import { createSellerApi, type SellerAnalyticsOverview } from "@/api/seller";
+import { ApiError } from "@/api/http";
+import { useAuth } from "@/auth/auth-context";
+import { CopyButton } from "@/components/copy-button";
+import { StatusBadge } from "@/components/status-badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { EmptyBlock } from "@/components/ui-states/empty-block";
+import { ErrorBlock } from "@/components/ui-states/error-block";
+import { LoadingBlock } from "@/components/ui-states/loading-block";
+import { formatCurrency, formatNumber, formatRequestsPerMinute } from "@/lib/format";
+import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify";
+import { cn } from "@/lib/utils";
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
-    return typeof value === "object" && value !== null
-}
+    return typeof value === "object" && value !== null;
+};
 
 const getString = (record: Record<string, unknown> | null, key: string) => {
     if (!record) {
-        return undefined
+        return undefined;
     }
-    const value = record[key]
-    return typeof value === "string" ? value : undefined
-}
+    const value = record[key];
+    return typeof value === "string" ? value : undefined;
+};
 
 const getStringArray = (record: Record<string, unknown> | null, key: string) => {
     if (!record) {
-        return []
+        return [];
     }
-    const value = record[key]
+    const value = record[key];
     if (!Array.isArray(value)) {
-        return []
+        return [];
     }
-    return value.filter((item) => typeof item === "string")
-}
+    return value.filter((item) => typeof item === "string");
+};
 
 const getProductId = (product: CatalogProduct) => {
-    const record = isRecord(product) ? product : null
-    return getString(record, "id") ?? null
-}
+    const record = isRecord(product) ? product : null;
+    return getString(record, "id") ?? null;
+};
 
 const getVersionId = (version: CatalogVersion) => {
-    const record = isRecord(version) ? version : null
-    return getString(record, "id") ?? null
-}
+    const record = isRecord(version) ? version : null;
+    return getString(record, "id") ?? null;
+};
 
 const extractProducts = (payload: ListProductsResponse): CatalogProduct[] => {
     if (Array.isArray(payload)) {
-        return payload
+        return payload;
     }
     if (!isRecord(payload)) {
-        return []
+        return [];
     }
-    const items = payload.items
-    return Array.isArray(items) ? items : []
-}
+    const items = payload.items;
+    return Array.isArray(items) ? items : [];
+};
 
 const extractVersions = (payload: unknown): CatalogVersion[] => {
     if (Array.isArray(payload)) {
-        return payload
+        return payload;
     }
     if (!isRecord(payload)) {
-        return []
+        return [];
     }
-    const items = payload.items
-    return Array.isArray(items) ? items : []
-}
+    const items = payload.items;
+    return Array.isArray(items) ? items : [];
+};
 
 const extractPlans = (payload: ListPlansResponse): Plan[] => {
-    return payload.items ?? []
-}
+    return payload.items ?? [];
+};
 
 const splitTags = (raw: string) => {
     return raw
         .split(",")
         .map((tag) => tag.trim())
-        .filter((tag) => tag.length > 0)
-}
+        .filter((tag) => tag.length > 0);
+};
 
 const getPlanRateLimitLine = (rateLimitRpm: number | null | undefined) => {
-    return `Rate limit: ${formatRequestsPerMinute(rateLimitRpm)}`
-}
+    return `Rate limit: ${formatRequestsPerMinute(rateLimitRpm)}`;
+};
 
 export const SellerStudioPage = () => {
-    const { accessToken, refresh } = useAuth()
+    const { accessToken, refresh } = useAuth();
     const catalogApi = useMemo(
         () => createCatalogApi({ accessToken, refresh }),
         [accessToken, refresh]
-    )
+    );
     const billingApi = useMemo(
         () => createBillingApi({ accessToken, refresh }),
         [accessToken, refresh]
-    )
+    );
     const sellerApi = useMemo(
         () => createSellerApi({ accessToken, refresh }),
         [accessToken, refresh]
-    )
+    );
 
-    const [products, setProducts] = useState<CatalogProduct[]>([])
-    const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
-    const [versions, setVersions] = useState<CatalogVersion[]>([])
-    const [plans, setPlans] = useState<Plan[]>([])
-    const [analytics, setAnalytics] = useState<SellerAnalyticsOverview | null>(null)
+    const [products, setProducts] = useState<CatalogProduct[]>([]);
+    const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+    const [versions, setVersions] = useState<CatalogVersion[]>([]);
+    const [plans, setPlans] = useState<Plan[]>([]);
+    const [analytics, setAnalytics] = useState<SellerAnalyticsOverview | null>(null);
 
-    const [isProductsLoading, setIsProductsLoading] = useState(true)
-    const [isDetailsLoading, setIsDetailsLoading] = useState(false)
-    const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(true)
-    const [productsError, setProductsError] = useState<ApiError | null>(null)
-    const [detailsError, setDetailsError] = useState<ApiError | null>(null)
-    const [analyticsError, setAnalyticsError] = useState<ApiError | null>(null)
-    const [retryKey, setRetryKey] = useState(0)
+    const [isProductsLoading, setIsProductsLoading] = useState(true);
+    const [isDetailsLoading, setIsDetailsLoading] = useState(false);
+    const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(true);
+    const [productsError, setProductsError] = useState<ApiError | null>(null);
+    const [detailsError, setDetailsError] = useState<ApiError | null>(null);
+    const [analyticsError, setAnalyticsError] = useState<ApiError | null>(null);
+    const [retryKey, setRetryKey] = useState(0);
 
-    const [title, setTitle] = useState("")
-    const [description, setDescription] = useState("")
-    const [category, setCategory] = useState("")
-    const [tags, setTags] = useState("")
-    const [isCreatingProduct, setIsCreatingProduct] = useState(false)
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [category, setCategory] = useState("");
+    const [tags, setTags] = useState("");
+    const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+    const [isCreatingProduct, setIsCreatingProduct] = useState(false);
 
-    const [versionLabel, setVersionLabel] = useState("")
-    const [openApiUrl, setOpenApiUrl] = useState("")
-    const [isCreatingVersion, setIsCreatingVersion] = useState(false)
-    const [updatingVersionId, setUpdatingVersionId] = useState<string | null>(null)
+    const [versionLabel, setVersionLabel] = useState("");
+    const [openApiUrl, setOpenApiUrl] = useState("");
+    const [isCreatingVersion, setIsCreatingVersion] = useState(false);
+    const [updatingVersionId, setUpdatingVersionId] = useState<string | null>(null);
 
-    const [planName, setPlanName] = useState("")
-    const [planPrice, setPlanPrice] = useState("")
-    const [planQuota, setPlanQuota] = useState("")
-    const [planRateLimitRpm, setPlanRateLimitRpm] = useState("")
-    const [planCurrency, setPlanCurrency] = useState("USD")
-    const [isCreatingPlan, setIsCreatingPlan] = useState(false)
-    const detailsRequestIdRef = useRef(0)
+    const [planName, setPlanName] = useState("");
+    const [planPrice, setPlanPrice] = useState("");
+    const [planQuota, setPlanQuota] = useState("");
+    const [planRateLimitRpm, setPlanRateLimitRpm] = useState("");
+    const [planCurrency, setPlanCurrency] = useState("USD");
+    const [isCreatingPlan, setIsCreatingPlan] = useState(false);
+    const detailsRequestIdRef = useRef(0);
 
     const selectedProduct = useMemo(() => {
-        return products.find((product) => getProductId(product) === selectedProductId) ?? null
-    }, [products, selectedProductId])
+        return products.find((product) => getProductId(product) === selectedProductId) ?? null;
+    }, [products, selectedProductId]);
     const selectedProductAnalytics = useMemo(() => {
-        return analytics?.products.find((product) => product.productId === selectedProductId) ?? null
-    }, [analytics, selectedProductId])
+        return (
+            analytics?.products.find((product) => product.productId === selectedProductId) ?? null
+        );
+    }, [analytics, selectedProductId]);
 
     const publishedCount = useMemo(() => {
         return products.filter((product) => {
-            const record = isRecord(product) ? product : null
-            return getString(record, "status") === "PUBLISHED"
-        }).length
-    }, [products])
+            const record = isRecord(product) ? product : null;
+            return getString(record, "status") === "PUBLISHED";
+        }).length;
+    }, [products]);
 
     const loadProducts = useCallback(async () => {
-        setIsProductsLoading(true)
-        setProductsError(null)
+        setIsProductsLoading(true);
+        setProductsError(null);
         try {
-            const response = await catalogApi.listMyProducts({ limit: 48, offset: 0 })
-            const items = extractProducts(response)
-            setProducts(items)
+            const response = await catalogApi.listMyProducts({ limit: 48, offset: 0 });
+            const items = extractProducts(response);
+            setProducts(items);
             setSelectedProductId((currentSelectedProductId) => {
                 const hasSelectedProduct = items.some(
                     (item) => getProductId(item) === currentSelectedProductId
-                )
+                );
                 if (currentSelectedProductId && hasSelectedProduct) {
-                    return currentSelectedProductId
+                    return currentSelectedProductId;
                 }
 
-                return items.map((item) => getProductId(item)).find(Boolean) ?? null
-            })
+                return items.map((item) => getProductId(item)).find(Boolean) ?? null;
+            });
         } catch (err) {
-            const apiError = err instanceof ApiError ? err : null
-            setProductsError(apiError)
-            setProducts([])
-            notifyError(apiError ?? err, "Could not load products")
+            const apiError = err instanceof ApiError ? err : null;
+            setProductsError(apiError);
+            setProducts([]);
+            notifyError(apiError ?? err, "Could not load products");
         } finally {
-            setIsProductsLoading(false)
+            setIsProductsLoading(false);
         }
-    }, [catalogApi])
+    }, [catalogApi]);
 
     useEffect(() => {
-        void loadProducts()
-    }, [loadProducts, retryKey])
+        void loadProducts();
+    }, [loadProducts, retryKey]);
 
     const loadAnalytics = useCallback(async () => {
-        setIsAnalyticsLoading(true)
-        setAnalyticsError(null)
+        setIsAnalyticsLoading(true);
+        setAnalyticsError(null);
         try {
-            const response = await sellerApi.getAnalyticsOverview()
-            setAnalytics(response)
+            const response = await sellerApi.getAnalyticsOverview();
+            setAnalytics(response);
         } catch (err) {
-            const apiError = err instanceof ApiError ? err : null
-            setAnalyticsError(apiError)
-            setAnalytics(null)
-            notifyError(apiError ?? err, "Could not load seller analytics")
+            const apiError = err instanceof ApiError ? err : null;
+            setAnalyticsError(apiError);
+            setAnalytics(null);
+            notifyError(apiError ?? err, "Could not load seller analytics");
         } finally {
-            setIsAnalyticsLoading(false)
+            setIsAnalyticsLoading(false);
         }
-    }, [sellerApi])
+    }, [sellerApi]);
 
     useEffect(() => {
-        void loadAnalytics()
-    }, [loadAnalytics, retryKey])
+        void loadAnalytics();
+    }, [loadAnalytics, retryKey]);
 
     const loadSelectedDetails = useCallback(
         async (productId: string) => {
-            const requestId = detailsRequestIdRef.current + 1
-            detailsRequestIdRef.current = requestId
-            setIsDetailsLoading(true)
-            setDetailsError(null)
+            const requestId = detailsRequestIdRef.current + 1;
+            detailsRequestIdRef.current = requestId;
+            setIsDetailsLoading(true);
+            setDetailsError(null);
             try {
                 const [versionsResponse, plansResponse] = await Promise.all([
                     catalogApi.getVersions(productId),
                     billingApi.listPlans({ productId })
-                ])
+                ]);
                 if (detailsRequestIdRef.current !== requestId) {
-                    return
+                    return;
                 }
-                setVersions(extractVersions(versionsResponse))
-                setPlans(extractPlans(plansResponse))
+                setVersions(extractVersions(versionsResponse));
+                setPlans(extractPlans(plansResponse));
             } catch (err) {
                 if (detailsRequestIdRef.current !== requestId) {
-                    return
+                    return;
                 }
-                const apiError = err instanceof ApiError ? err : null
-                setDetailsError(apiError)
-                setVersions([])
-                setPlans([])
-                notifyError(apiError ?? err, "Could not load product details")
+                const apiError = err instanceof ApiError ? err : null;
+                setDetailsError(apiError);
+                setVersions([]);
+                setPlans([]);
+                notifyError(apiError ?? err, "Could not load product details");
             } finally {
                 if (detailsRequestIdRef.current === requestId) {
-                    setIsDetailsLoading(false)
+                    setIsDetailsLoading(false);
                 }
             }
         },
         [billingApi, catalogApi]
-    )
+    );
 
     useEffect(() => {
         if (!selectedProductId) {
-            detailsRequestIdRef.current += 1
-            setIsDetailsLoading(false)
-            setDetailsError(null)
-            setVersions([])
-            setPlans([])
-            return
+            detailsRequestIdRef.current += 1;
+            setIsDetailsLoading(false);
+            setDetailsError(null);
+            setVersions([]);
+            setPlans([]);
+            return;
         }
-        void loadSelectedDetails(selectedProductId)
-    }, [selectedProductId, loadSelectedDetails])
+        void loadSelectedDetails(selectedProductId);
+    }, [selectedProductId, loadSelectedDetails]);
 
     const handleCreateProduct = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-        const trimmedTitle = title.trim()
-        const trimmedDescription = description.trim()
-        const trimmedCategory = category.trim()
+        event.preventDefault();
+        const trimmedTitle = title.trim();
+        const trimmedDescription = description.trim();
+        const trimmedCategory = category.trim();
 
         if (!trimmedTitle || !trimmedDescription || !trimmedCategory) {
-            notifyInfo("Missing fields", "Title, description, and category are required.")
-            return
+            notifyInfo("Missing fields", "Title, description, and category are required.");
+            return;
         }
 
-        setIsCreatingProduct(true)
+        setIsCreatingProduct(true);
         try {
             const created = await catalogApi.createProduct({
                 title: trimmedTitle,
                 description: trimmedDescription,
                 category: trimmedCategory,
                 tags: splitTags(tags)
-            })
-            const createdProduct = created as CatalogProduct
-            const createdId = getProductId(createdProduct)
+            });
+            const createdProduct = created as CatalogProduct;
+            const createdId = getProductId(createdProduct);
 
-            setProducts((prev) => [createdProduct, ...prev])
+            setProducts((prev) => [createdProduct, ...prev]);
             if (createdId) {
-                setSelectedProductId(createdId)
+                setSelectedProductId(createdId);
             }
 
-            setTitle("")
-            setDescription("")
-            setCategory("")
-            setTags("")
-            await loadAnalytics()
-            notifySuccess("Product created", "Your API product has been added to the workspace.")
+            setTitle("");
+            setDescription("");
+            setCategory("");
+            setTags("");
+            await loadAnalytics();
+            notifySuccess("Product created", "Your API product has been added to the workspace.");
         } catch (err) {
-            notifyError(err, "Create product failed")
+            notifyError(err, "Create product failed");
         } finally {
-            setIsCreatingProduct(false)
+            setIsCreatingProduct(false);
         }
-    }
+    };
+
+    const handleGenerateDescription = async () => {
+        const trimmedTitle = title.trim();
+        const trimmedCategory = category.trim();
+
+        if (!trimmedTitle || !trimmedCategory) {
+            notifyInfo(
+                "Missing fields",
+                "Add a title and category before generating a description."
+            );
+            return;
+        }
+
+        setIsGeneratingDescription(true);
+        try {
+            const response = await catalogApi.generateProductDescription({
+                title: trimmedTitle,
+                category: trimmedCategory,
+                tags: splitTags(tags)
+            });
+            setDescription(response.description);
+            notifySuccess(
+                "Description generated",
+                "Review the draft and edit it before publishing."
+            );
+        } catch (err) {
+            notifyError(err, "Description generation failed");
+        } finally {
+            setIsGeneratingDescription(false);
+        }
+    };
 
     const handleChangeProductStatus = async (status: "DRAFT" | "PUBLISHED" | "HIDDEN") => {
         if (!selectedProductId) {
-            notifyInfo("Select a product", "Pick a product before changing status.")
-            return
+            notifyInfo("Select a product", "Pick a product before changing status.");
+            return;
         }
 
         try {
-            const updated = await catalogApi.updateProduct(selectedProductId, { status })
+            const updated = await catalogApi.updateProduct(selectedProductId, { status });
             setProducts((prev) =>
                 prev.map((product) => {
                     return getProductId(product) === selectedProductId
                         ? (updated as CatalogProduct)
-                        : product
+                        : product;
                 })
-            )
-            await loadAnalytics()
-            notifySuccess("Status updated", `Product status set to ${status}.`)
+            );
+            await loadAnalytics();
+            notifySuccess("Status updated", `Product status set to ${status}.`);
         } catch (err) {
-            notifyError(err, "Update status failed")
+            notifyError(err, "Update status failed");
         }
-    }
+    };
 
     const handleCreateVersion = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
+        event.preventDefault();
         if (!selectedProductId) {
-            notifyInfo("Select a product", "Pick a product before creating versions.")
-            return
+            notifyInfo("Select a product", "Pick a product before creating versions.");
+            return;
         }
 
-        const trimmedVersion = versionLabel.trim()
-        const trimmedUrl = openApiUrl.trim()
+        const trimmedVersion = versionLabel.trim();
+        const trimmedUrl = openApiUrl.trim();
         if (!trimmedVersion || !trimmedUrl) {
-            notifyInfo("Missing fields", "Version label and OpenAPI URL are required.")
-            return
+            notifyInfo("Missing fields", "Version label and OpenAPI URL are required.");
+            return;
         }
 
-        setIsCreatingVersion(true)
+        setIsCreatingVersion(true);
         try {
             const created = await catalogApi.createVersion(selectedProductId, {
                 version: trimmedVersion,
                 openApiUrl: trimmedUrl
-            })
-            setVersions((prev) => [created as CatalogVersion, ...prev])
-            setVersionLabel("")
-            setOpenApiUrl("")
-            await loadAnalytics()
-            notifySuccess("Version created", "New API version is now available in draft mode.")
+            });
+            setVersions((prev) => [created as CatalogVersion, ...prev]);
+            setVersionLabel("");
+            setOpenApiUrl("");
+            await loadAnalytics();
+            notifySuccess("Version created", "New API version is now available in draft mode.");
         } catch (err) {
-            notifyError(err, "Create version failed")
+            notifyError(err, "Create version failed");
         } finally {
-            setIsCreatingVersion(false)
+            setIsCreatingVersion(false);
         }
-    }
+    };
 
     const handleChangeVersionStatus = async (
         versionId: string | null,
         status: "DRAFT" | "PUBLISHED"
     ) => {
         if (!versionId) {
-            notifyInfo("Missing version ID", "Reload the product details and try again.")
-            return
+            notifyInfo("Missing version ID", "Reload the product details and try again.");
+            return;
         }
 
-        setUpdatingVersionId(versionId)
+        setUpdatingVersionId(versionId);
         try {
-            const updated = await catalogApi.updateVersion(versionId, { status })
+            const updated = await catalogApi.updateVersion(versionId, { status });
             setVersions((prev) =>
                 prev.map((version) => {
                     return getVersionId(version) === versionId
                         ? (updated as CatalogVersion)
-                        : version
+                        : version;
                 })
-            )
-            await loadAnalytics()
-            notifySuccess("Version status updated", `Version set to ${status}.`)
+            );
+            await loadAnalytics();
+            notifySuccess("Version status updated", `Version set to ${status}.`);
         } catch (err) {
-            notifyError(err, "Update version status failed")
+            notifyError(err, "Update version status failed");
         } finally {
-            setUpdatingVersionId(null)
+            setUpdatingVersionId(null);
         }
-    }
+    };
 
     const handleCreatePlan = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
+        event.preventDefault();
         if (!selectedProductId) {
-            notifyInfo("Select a product", "Pick a product before creating plans.")
-            return
+            notifyInfo("Select a product", "Pick a product before creating plans.");
+            return;
         }
 
-        const trimmedName = planName.trim()
-        const parsedPrice = Number(planPrice)
-        const parsedQuota = Number(planQuota)
-        const parsedRateLimit = planRateLimitRpm.trim() === "" ? null : Number(planRateLimitRpm)
+        const trimmedName = planName.trim();
+        const parsedPrice = Number(planPrice);
+        const parsedQuota = Number(planQuota);
+        const parsedRateLimit = planRateLimitRpm.trim() === "" ? null : Number(planRateLimitRpm);
 
         if (
             !trimmedName ||
@@ -402,11 +433,11 @@ export const SellerStudioPage = () => {
             notifyInfo(
                 "Invalid plan fields",
                 "Use a name, positive price, positive quota, and an optional positive RPM limit."
-            )
-            return
+            );
+            return;
         }
 
-        setIsCreatingPlan(true)
+        setIsCreatingPlan(true);
         try {
             const created = await billingApi.createPlan({
                 productId: selectedProductId,
@@ -415,35 +446,33 @@ export const SellerStudioPage = () => {
                 currency: planCurrency.trim().toUpperCase() || "USD",
                 period: "MONTH",
                 quotaRequests: Math.round(parsedQuota),
-                ...(parsedRateLimit !== null
-                    ? { rateLimitRpm: Math.round(parsedRateLimit) }
-                    : {}),
+                ...(parsedRateLimit !== null ? { rateLimitRpm: Math.round(parsedRateLimit) } : {}),
                 isActive: true
-            })
-            setPlans((prev) => [created, ...prev])
-            setPlanName("")
-            setPlanPrice("")
-            setPlanQuota("")
-            setPlanRateLimitRpm("")
-            await loadAnalytics()
-            notifySuccess("Plan created", "The pricing plan is now available for subscriptions.")
+            });
+            setPlans((prev) => [created, ...prev]);
+            setPlanName("");
+            setPlanPrice("");
+            setPlanQuota("");
+            setPlanRateLimitRpm("");
+            await loadAnalytics();
+            notifySuccess("Plan created", "The pricing plan is now available for subscriptions.");
         } catch (err) {
-            notifyError(err, "Create plan failed")
+            notifyError(err, "Create plan failed");
         } finally {
-            setIsCreatingPlan(false)
+            setIsCreatingPlan(false);
         }
-    }
+    };
 
-    const selectedProductRecord = isRecord(selectedProduct) ? selectedProduct : null
-    const selectedStatus = getString(selectedProductRecord, "status")
-    const selectedTags = getStringArray(selectedProductRecord, "tags")
-    const hasSchemaConnected = versions.length > 0
+    const selectedProductRecord = isRecord(selectedProduct) ? selectedProduct : null;
+    const selectedStatus = getString(selectedProductRecord, "status");
+    const selectedTags = getStringArray(selectedProductRecord, "tags");
+    const hasSchemaConnected = versions.length > 0;
     const hasPublishedVersion = useMemo(() => {
         return versions.some((version) => {
-            const record = isRecord(version) ? version : null
-            return getString(record, "status") === "PUBLISHED"
-        })
-    }, [versions])
+            const record = isRecord(version) ? version : null;
+            return getString(record, "status") === "PUBLISHED";
+        });
+    }, [versions]);
     const setupSteps = [
         {
             label: "Create product",
@@ -461,7 +490,7 @@ export const SellerStudioPage = () => {
             label: "Create pricing plan",
             done: plans.length > 0
         }
-    ]
+    ];
 
     return (
         <div className="flex flex-col gap-8">
@@ -477,7 +506,8 @@ export const SellerStudioPage = () => {
                         Build, release, and monetize your APIs
                     </h1>
                     <p className="max-w-2xl text-sm text-white/85 md:text-base">
-                        This workspace is tailored for sellers: publish products, release versions, and create pricing plans.
+                        This workspace is tailored for sellers: publish products, release versions,
+                        and create pricing plans.
                     </p>
                     <div className="grid gap-3 sm:grid-cols-3">
                         <StatChip label="Visible products" value={String(products.length)} />
@@ -519,7 +549,9 @@ export const SellerStudioPage = () => {
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription>Active MRR</CardDescription>
-                            <CardTitle>{formatCurrency(analytics.totals.mrrCents, "EUR")}</CardTitle>
+                            <CardTitle>
+                                {formatCurrency(analytics.totals.mrrCents, "EUR")}
+                            </CardTitle>
                         </CardHeader>
                     </Card>
                 </div>
@@ -539,7 +571,9 @@ export const SellerStudioPage = () => {
                                 key={step.label}
                                 className={cn(
                                     "flex items-center justify-between rounded-lg border px-3 py-2",
-                                    step.done ? "border-emerald-500/40 bg-emerald-500/5" : "border-border"
+                                    step.done
+                                        ? "border-emerald-500/40 bg-emerald-500/5"
+                                        : "border-border"
                                 )}
                             >
                                 <span className="text-sm">
@@ -570,10 +604,13 @@ export const SellerStudioPage = () => {
                     </CardHeader>
                     <CardContent className="space-y-2 text-sm text-muted-foreground">
                         <p>
-                            HivePoint stores your metadata and OpenAPI snapshot, while buyers send traffic through the HivePoint gateway.
+                            HivePoint stores your metadata and OpenAPI snapshot, while buyers send
+                            traffic through the HivePoint gateway.
                         </p>
                         <p>
-                            You still host the upstream API. Provide a publicly reachable OpenAPI URL and stable server URLs so the gateway can resolve your runtime target.
+                            You still host the upstream API. Provide a publicly reachable OpenAPI
+                            URL and stable server URLs so the gateway can resolve your runtime
+                            target.
                         </p>
                     </CardContent>
                 </Card>
@@ -616,7 +653,29 @@ export const SellerStudioPage = () => {
                                     />
                                 </div>
                                 <div className="space-y-2 sm:col-span-2">
-                                    <Label htmlFor="seller-description">Description</Label>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <Label htmlFor="seller-description">Description</Label>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="outline"
+                                            disabled={
+                                                isGeneratingDescription ||
+                                                isCreatingProduct ||
+                                                !title.trim() ||
+                                                !category.trim()
+                                            }
+                                            onClick={handleGenerateDescription}
+                                        >
+                                            {isGeneratingDescription
+                                                ? "Generating..."
+                                                : "Generate with AI"}
+                                        </Button>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Uses the current title, category, and tags to draft catalog
+                                        copy.
+                                    </p>
                                     <textarea
                                         id="seller-description"
                                         className={cn(
@@ -649,14 +708,18 @@ export const SellerStudioPage = () => {
                             <>
                                 <div className="space-y-1">
                                     <p className="text-sm font-semibold">
-                                        {getString(selectedProductRecord, "title") ?? "Untitled product"}
+                                        {getString(selectedProductRecord, "title") ??
+                                            "Untitled product"}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {getString(selectedProductRecord, "category") ?? "Uncategorized"}
+                                        {getString(selectedProductRecord, "category") ??
+                                            "Uncategorized"}
                                     </p>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2">
-                                    {selectedStatus ? <StatusBadge kind="product" value={selectedStatus} /> : null}
+                                    {selectedStatus ? (
+                                        <StatusBadge kind="product" value={selectedStatus} />
+                                    ) : null}
                                     {selectedTags.slice(0, 4).map((tag) => (
                                         <span
                                             key={tag}
@@ -685,7 +748,9 @@ export const SellerStudioPage = () => {
                                     <Button
                                         type="button"
                                         size="sm"
-                                        variant={selectedStatus === "PUBLISHED" ? "default" : "outline"}
+                                        variant={
+                                            selectedStatus === "PUBLISHED" ? "default" : "outline"
+                                        }
                                         onClick={() => handleChangeProductStatus("PUBLISHED")}
                                     >
                                         Publish
@@ -693,7 +758,9 @@ export const SellerStudioPage = () => {
                                     <Button
                                         type="button"
                                         size="sm"
-                                        variant={selectedStatus === "HIDDEN" ? "default" : "outline"}
+                                        variant={
+                                            selectedStatus === "HIDDEN" ? "default" : "outline"
+                                        }
                                         onClick={() => handleChangeProductStatus("HIDDEN")}
                                     >
                                         Hide
@@ -726,7 +793,9 @@ export const SellerStudioPage = () => {
                                     />
                                     <AnalyticsStat
                                         label="Subscriptions (30d)"
-                                        value={formatNumber(selectedProductAnalytics.subscriptions30d)}
+                                        value={formatNumber(
+                                            selectedProductAnalytics.subscriptions30d
+                                        )}
                                     />
                                     <AnalyticsStat
                                         label="Conversion"
@@ -738,7 +807,9 @@ export const SellerStudioPage = () => {
                                     />
                                     <AnalyticsStat
                                         label="Failed payments"
-                                        value={formatNumber(selectedProductAnalytics.failedPayments30d)}
+                                        value={formatNumber(
+                                            selectedProductAnalytics.failedPayments30d
+                                        )}
                                     />
                                     <AnalyticsStat
                                         label="Requests (30d)"
@@ -752,14 +823,16 @@ export const SellerStudioPage = () => {
                                     </p>
                                     <p className="mt-1 text-sm font-medium">
                                         {selectedProductAnalytics.latestPublishedVersion
-                                            ? selectedProductAnalytics.latestPublishedVersion.version
+                                            ? selectedProductAnalytics.latestPublishedVersion
+                                                  .version
                                             : "No published version yet"}
                                     </p>
                                     {selectedProductAnalytics.latestPublishedVersion ? (
                                         <p className="text-xs text-muted-foreground">
                                             Published{" "}
                                             {new Date(
-                                                selectedProductAnalytics.latestPublishedVersion.createdAt
+                                                selectedProductAnalytics.latestPublishedVersion
+                                                    .createdAt
                                             ).toLocaleDateString()}
                                         </p>
                                     ) : null}
@@ -771,19 +844,21 @@ export const SellerStudioPage = () => {
                                     </p>
                                     {selectedProductAnalytics.topEndpoints.length > 0 ? (
                                         <div className="grid gap-2">
-                                            {selectedProductAnalytics.topEndpoints.map((endpoint) => (
-                                                <div
-                                                    key={endpoint.endpoint}
-                                                    className="flex items-center justify-between rounded-lg border px-3 py-2"
-                                                >
-                                                    <span className="font-mono text-xs text-foreground">
-                                                        {endpoint.endpoint}
-                                                    </span>
-                                                    <span className="text-sm text-muted-foreground">
-                                                        {formatNumber(endpoint.requestCount)}
-                                                    </span>
-                                                </div>
-                                            ))}
+                                            {selectedProductAnalytics.topEndpoints.map(
+                                                (endpoint) => (
+                                                    <div
+                                                        key={endpoint.endpoint}
+                                                        className="flex items-center justify-between rounded-lg border px-3 py-2"
+                                                    >
+                                                        <span className="font-mono text-xs text-foreground">
+                                                            {endpoint.endpoint}
+                                                        </span>
+                                                        <span className="text-sm text-muted-foreground">
+                                                            {formatNumber(endpoint.requestCount)}
+                                                        </span>
+                                                    </div>
+                                                )
+                                            )}
                                         </div>
                                     ) : (
                                         <EmptyBlock
@@ -806,7 +881,8 @@ export const SellerStudioPage = () => {
                         <CardHeader>
                             <CardTitle>Step 2: Connect API Schema</CardTitle>
                             <CardDescription>
-                                Add a version and OpenAPI URL. New versions start as DRAFT, then publish below.
+                                Add a version and OpenAPI URL. New versions start as DRAFT, then
+                                publish below.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -829,19 +905,29 @@ export const SellerStudioPage = () => {
                                         onChange={(event) => setOpenApiUrl(event.target.value)}
                                     />
                                 </div>
-                                <Button type="submit" size="sm" disabled={isCreatingVersion || !selectedProductId}>
+                                <Button
+                                    type="submit"
+                                    size="sm"
+                                    disabled={isCreatingVersion || !selectedProductId}
+                                >
                                     {isCreatingVersion ? "Creating..." : "Create version"}
                                 </Button>
                             </form>
 
                             {isDetailsLoading ? (
-                                <LoadingBlock title="Loading versions..." count={2} variant="lines" />
+                                <LoadingBlock
+                                    title="Loading versions..."
+                                    count={2}
+                                    variant="lines"
+                                />
                             ) : null}
 
                             {detailsError && !isDetailsLoading ? (
                                 <ErrorBlock
                                     title="Could not load versions"
-                                    description={detailsError.message || "Please select another product."}
+                                    description={
+                                        detailsError.message || "Please select another product."
+                                    }
                                     code={detailsError.code}
                                 />
                             ) : null}
@@ -849,19 +935,25 @@ export const SellerStudioPage = () => {
                             {!isDetailsLoading && !detailsError && versions.length > 0 ? (
                                 <div className="space-y-2">
                                     {versions.slice(0, 4).map((version, index) => {
-                                        const record = isRecord(version) ? version : null
-                                        const versionId = getVersionId(version)
-                                        const versionName = getString(record, "version") ?? `Version ${index + 1}`
-                                        const versionStatus = getString(record, "status")
+                                        const record = isRecord(version) ? version : null;
+                                        const versionId = getVersionId(version);
+                                        const versionName =
+                                            getString(record, "version") ?? `Version ${index + 1}`;
+                                        const versionStatus = getString(record, "status");
                                         return (
                                             <div
                                                 key={versionId ?? `${versionName}-${index}`}
                                                 className="space-y-2 rounded-lg border px-3 py-2"
                                             >
                                                 <div className="flex items-center justify-between gap-3">
-                                                    <span className="text-sm font-medium">{versionName}</span>
+                                                    <span className="text-sm font-medium">
+                                                        {versionName}
+                                                    </span>
                                                     {versionStatus ? (
-                                                        <StatusBadge kind="version" value={versionStatus} />
+                                                        <StatusBadge
+                                                            kind="version"
+                                                            value={versionStatus}
+                                                        />
                                                     ) : (
                                                         <CircleDashed className="h-4 w-4 text-muted-foreground" />
                                                     )}
@@ -870,24 +962,50 @@ export const SellerStudioPage = () => {
                                                     <Button
                                                         type="button"
                                                         size="sm"
-                                                        variant={versionStatus === "PUBLISHED" ? "default" : "outline"}
-                                                        disabled={!versionId || updatingVersionId === versionId}
-                                                        onClick={() => handleChangeVersionStatus(versionId, "PUBLISHED")}
+                                                        variant={
+                                                            versionStatus === "PUBLISHED"
+                                                                ? "default"
+                                                                : "outline"
+                                                        }
+                                                        disabled={
+                                                            !versionId ||
+                                                            updatingVersionId === versionId
+                                                        }
+                                                        onClick={() =>
+                                                            handleChangeVersionStatus(
+                                                                versionId,
+                                                                "PUBLISHED"
+                                                            )
+                                                        }
                                                     >
-                                                        {updatingVersionId === versionId ? "Updating..." : "Publish"}
+                                                        {updatingVersionId === versionId
+                                                            ? "Updating..."
+                                                            : "Publish"}
                                                     </Button>
                                                     <Button
                                                         type="button"
                                                         size="sm"
-                                                        variant={versionStatus === "DRAFT" ? "default" : "outline"}
-                                                        disabled={!versionId || updatingVersionId === versionId}
-                                                        onClick={() => handleChangeVersionStatus(versionId, "DRAFT")}
+                                                        variant={
+                                                            versionStatus === "DRAFT"
+                                                                ? "default"
+                                                                : "outline"
+                                                        }
+                                                        disabled={
+                                                            !versionId ||
+                                                            updatingVersionId === versionId
+                                                        }
+                                                        onClick={() =>
+                                                            handleChangeVersionStatus(
+                                                                versionId,
+                                                                "DRAFT"
+                                                            )
+                                                        }
                                                     >
                                                         Set draft
                                                     </Button>
                                                 </div>
                                             </div>
-                                        )
+                                        );
                                     })}
                                 </div>
                             ) : null}
@@ -932,7 +1050,9 @@ export const SellerStudioPage = () => {
                                             maxLength={3}
                                             placeholder="USD"
                                             value={planCurrency}
-                                            onChange={(event) => setPlanCurrency(event.target.value)}
+                                            onChange={(event) =>
+                                                setPlanCurrency(event.target.value)
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -958,14 +1078,21 @@ export const SellerStudioPage = () => {
                                             step="1"
                                             placeholder="Optional"
                                             value={planRateLimitRpm}
-                                            onChange={(event) => setPlanRateLimitRpm(event.target.value)}
+                                            onChange={(event) =>
+                                                setPlanRateLimitRpm(event.target.value)
+                                            }
                                         />
                                         <p className="text-xs text-muted-foreground">
-                                            Leave blank to allow unrestricted burst traffic inside the monthly quota.
+                                            Leave blank to allow unrestricted burst traffic inside
+                                            the monthly quota.
                                         </p>
                                     </div>
                                 </div>
-                                <Button type="submit" size="sm" disabled={isCreatingPlan || !selectedProductId}>
+                                <Button
+                                    type="submit"
+                                    size="sm"
+                                    disabled={isCreatingPlan || !selectedProductId}
+                                >
                                     {isCreatingPlan ? "Creating..." : "Create plan"}
                                 </Button>
                             </form>
@@ -973,10 +1100,7 @@ export const SellerStudioPage = () => {
                             {!isDetailsLoading && plans.length > 0 ? (
                                 <div className="space-y-2">
                                     {plans.slice(0, 4).map((plan) => (
-                                        <div
-                                            key={plan.id}
-                                            className="rounded-lg border px-3 py-2"
-                                        >
+                                        <div key={plan.id} className="rounded-lg border px-3 py-2">
                                             <div className="flex items-center justify-between gap-2">
                                                 <p className="text-sm font-medium">{plan.name}</p>
                                                 {plan.isActive ? (
@@ -985,11 +1109,14 @@ export const SellerStudioPage = () => {
                                                         Active
                                                     </span>
                                                 ) : (
-                                                    <span className="text-xs text-muted-foreground">Inactive</span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        Inactive
+                                                    </span>
                                                 )}
                                             </div>
                                             <p className="text-xs text-muted-foreground">
-                                                {formatCurrency(plan.priceCents, plan.currency)} - {formatNumber(plan.quotaRequests)} requests / month
+                                                {formatCurrency(plan.priceCents, plan.currency)} -{" "}
+                                                {formatNumber(plan.quotaRequests)} requests / month
                                             </p>
                                             <p className="text-xs text-muted-foreground">
                                                 {getPlanRateLimitLine(plan.rateLimitRpm)}
@@ -1006,9 +1133,7 @@ export const SellerStudioPage = () => {
             <Card>
                 <CardHeader>
                     <CardTitle>Your Product List</CardTitle>
-                    <CardDescription>
-                        Select the API you want to configure.
-                    </CardDescription>
+                    <CardDescription>Select the API you want to configure.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {isProductsLoading ? (
@@ -1035,12 +1160,15 @@ export const SellerStudioPage = () => {
                     {!isProductsLoading && !productsError && products.length > 0 ? (
                         <div className="grid gap-3 sm:grid-cols-2">
                             {products.map((product, index) => {
-                                const record = isRecord(product) ? product : null
-                                const productId = getProductId(product)
-                                const isSelected = productId !== null && productId === selectedProductId
-                                const titleValue = getString(record, "title") ?? `Product ${index + 1}`
-                                const descriptionValue = getString(record, "description") ?? "No description"
-                                const statusValue = getString(record, "status")
+                                const record = isRecord(product) ? product : null;
+                                const productId = getProductId(product);
+                                const isSelected =
+                                    productId !== null && productId === selectedProductId;
+                                const titleValue =
+                                    getString(record, "title") ?? `Product ${index + 1}`;
+                                const descriptionValue =
+                                    getString(record, "description") ?? "No description";
+                                const statusValue = getString(record, "status");
 
                                 return (
                                     <button
@@ -1063,15 +1191,15 @@ export const SellerStudioPage = () => {
                                             {descriptionValue}
                                         </p>
                                     </button>
-                                )
+                                );
                             })}
                         </div>
                     ) : null}
                 </CardContent>
             </Card>
         </div>
-    )
-}
+    );
+};
 
 const StatChip = ({ label, value }: { label: string; value: string }) => {
     return (
@@ -1079,8 +1207,8 @@ const StatChip = ({ label, value }: { label: string; value: string }) => {
             <p className="text-[11px] uppercase tracking-wide text-white/70">{label}</p>
             <p className="text-xl font-semibold text-white">{value}</p>
         </div>
-    )
-}
+    );
+};
 
 const AnalyticsStat = ({ label, value }: { label: string; value: string }) => {
     return (
@@ -1088,5 +1216,5 @@ const AnalyticsStat = ({ label, value }: { label: string; value: string }) => {
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
             <p className="mt-1 text-lg font-semibold">{value}</p>
         </div>
-    )
-}
+    );
+};

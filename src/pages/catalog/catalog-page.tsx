@@ -1,6 +1,14 @@
 import { type CSSProperties, useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { ArrowRight, ChevronLeft, ChevronRight, Search, Tag } from "lucide-react"
+import {
+    ArrowRight,
+    ChevronLeft,
+    ChevronRight,
+    FilterX,
+    Search,
+    Sparkles,
+    Tag
+} from "lucide-react"
 
 import {
     createCatalogApi,
@@ -25,6 +33,7 @@ import { Label } from "@/components/ui/label"
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
+import { formatNumber } from "@/lib/format"
 import { notifyError } from "@/lib/notify"
 import { fetchWithCache } from "@/lib/request-cache"
 import { cn } from "@/lib/utils"
@@ -33,10 +42,29 @@ const limitOptions = [6, 12, 24]
 
 const clampStyle: CSSProperties = {
     display: "-webkit-box",
-    WebkitLineClamp: 2,
+    WebkitLineClamp: 3,
     WebkitBoxOrient: "vertical",
     overflow: "hidden"
 }
+
+const accentPalettes = [
+    {
+        gradient: "from-amber-500 via-orange-400 to-yellow-300",
+        badge: "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+    },
+    {
+        gradient: "from-emerald-500 via-teal-400 to-cyan-400",
+        badge: "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+    },
+    {
+        gradient: "from-sky-500 via-cyan-400 to-blue-500",
+        badge: "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+    },
+    {
+        gradient: "from-violet-500 via-fuchsia-400 to-indigo-400",
+        badge: "border-violet-500/20 bg-violet-500/10 text-violet-700 dark:text-violet-300"
+    }
+]
 
 type CatalogFetchState = {
     items: CatalogProduct[]
@@ -86,6 +114,25 @@ const extractListTotal = (payload: ListProductsResponse): number | undefined => 
 
     const total = payload.total
     return typeof total === "number" ? total : undefined
+}
+
+const getCardKey = (product: CatalogProduct, index: number) => {
+    const record = isRecord(product) ? product : null
+    const id = getString(record, "id")
+    return id ?? `product-${index}`
+}
+
+const getPalette = (key: string) => {
+    const normalized = key.trim()
+    if (!normalized) {
+        return accentPalettes[0]
+    }
+
+    const score = Array.from(normalized).reduce(
+        (sum, char) => sum + char.charCodeAt(0),
+        0
+    )
+    return accentPalettes[score % accentPalettes.length]
 }
 
 export const CatalogPage = () => {
@@ -156,7 +203,6 @@ export const CatalogPage = () => {
                 const apiError = err instanceof ApiError ? err : null
                 setError(apiError)
                 setState({ items: [] })
-
                 notifyError(apiError ?? err, "Catalog error")
             } finally {
                 if (isActive) {
@@ -173,87 +219,230 @@ export const CatalogPage = () => {
     }, [accessToken, catalogApi, debouncedSearch, debouncedCategory, limit, offset, retryKey])
 
     const hasPrev = offset > 0
-    const hasNext = state.total !== undefined
-        ? offset + limit < state.total
-        : state.items.length === limit
+    const hasNext =
+        state.total !== undefined
+            ? offset + limit < state.total
+            : state.items.length === limit
 
-    const showingText = state.total !== undefined
-        ? state.total === 0
-            ? "0 of 0"
-            : `${offset + 1}-${Math.min(offset + limit, state.total)} of ${state.total}`
-        : `Showing ${state.items.length} items`
+    const showingText =
+        state.total !== undefined
+            ? state.total === 0
+                ? "0 of 0"
+                : `${offset + 1}-${Math.min(offset + limit, state.total)} of ${state.total}`
+            : `Showing ${state.items.length} items`
     const hasFilters = Boolean(search) || Boolean(category)
+
+    const categoriesInView = useMemo(() => {
+        const categories = new Set<string>()
+        state.items.forEach((product) => {
+            const record = isRecord(product) ? product : null
+            const value = getString(record, "category")
+            if (value) {
+                categories.add(value)
+            }
+        })
+        return Array.from(categories).slice(0, 6)
+    }, [state.items])
+
+    const featuredTags = useMemo(() => {
+        const counts = new Map<string, number>()
+        state.items.forEach((product) => {
+            const record = isRecord(product) ? product : null
+            getStringArray(record, "tags").forEach((tag) => {
+                counts.set(tag, (counts.get(tag) ?? 0) + 1)
+            })
+        })
+
+        return [...counts.entries()]
+            .sort((left, right) => right[1] - left[1])
+            .slice(0, 6)
+            .map(([tag]) => tag)
+    }, [state.items])
+
+    const totalProductsLabel =
+        state.total !== undefined
+            ? formatNumber(state.total)
+            : formatNumber(state.items.length)
+    const pageLabel = formatNumber(Math.floor(offset / limit) + 1)
 
     return (
         <div className="flex flex-col gap-8">
-            {/* Header */}
-            <div className="flex flex-col gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">API Catalog</h1>
-                    <p className="text-muted-foreground">
-                        Discover and integrate powerful APIs for your applications
+            <section className="surface-panel-strong relative overflow-hidden px-6 py-6 md:px-8 md:py-8">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-primary/85 via-amber-400/70 to-transparent" />
+                <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[34%] bg-[linear-gradient(180deg,rgba(15,23,42,0.03),transparent)] xl:block" />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)/0.1),_transparent_56%)]" />
+
+                <div className="grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_400px]">
+                    <div>
+                        <div className="section-kicker">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            Public marketplace
+                        </div>
+                        <h1 className="display-title mt-5 text-4xl text-foreground sm:text-5xl">
+                            Find API products that are already shaped for real traffic.
+                        </h1>
+                        <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+                            Search the catalog, move from product metadata into versions, then
+                            step into billing and gateway workflows without context switching.
+                        </p>
+
+                        <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                            <StatPanel
+                                label="Visible products"
+                                value={totalProductsLabel}
+                                caption="Matching the current query and filters."
+                            />
+                            <StatPanel
+                                label="Categories in view"
+                                value={formatNumber(categoriesInView.length)}
+                                caption="A quick read on breadth inside the current slice."
+                            />
+                            <StatPanel
+                                label="Page"
+                                value={pageLabel}
+                                caption={`${limit} cards per page right now.`}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="surface-panel border-border/80 bg-background/78 px-5 py-5">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                            Refine discovery
+                        </div>
+
+                        <div className="mt-5 grid gap-4">
+                            <div className="space-y-1.5">
+                                <Label
+                                    htmlFor="catalog-search"
+                                    className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground"
+                                >
+                                    Search
+                                </Label>
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        id="catalog-search"
+                                        placeholder="Payments, embeddings, routing..."
+                                        value={search}
+                                        onChange={(event) => setSearch(event.target.value)}
+                                        className="h-12 pl-10"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label
+                                    htmlFor="catalog-category"
+                                    className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground"
+                                >
+                                    Category
+                                </Label>
+                                <div className="relative">
+                                    <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        id="catalog-category"
+                                        placeholder="payments"
+                                        value={category}
+                                        onChange={(event) => setCategory(event.target.value)}
+                                        className="h-12 pl-10"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                                    Density
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {limitOptions.map((value) => (
+                                        <Button
+                                            key={value}
+                                            variant={limit === value ? "default" : "outline"}
+                                            size="sm"
+                                            onClick={() => setLimit(value)}
+                                        >
+                                            {value} cards
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <Button
+                                variant="outline"
+                                className="justify-between"
+                                onClick={() => {
+                                    setSearch("")
+                                    setCategory("")
+                                }}
+                                disabled={!hasFilters}
+                            >
+                                Clear filters
+                                <FilterX className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {categoriesInView.length > 0 || featuredTags.length > 0 ? (
+                    <div className="mt-8 grid gap-4 lg:grid-cols-2">
+                        {categoriesInView.length > 0 ? (
+                            <div className="rounded-[1.2rem] border border-border/70 bg-background/72 px-4 py-4">
+                                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                                    Browse by category
+                                </div>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {categoriesInView.map((value) => (
+                                        <Button
+                                            key={value}
+                                            variant={category === value ? "default" : "outline"}
+                                            size="sm"
+                                            onClick={() => setCategory(value)}
+                                        >
+                                            {value}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : null}
+
+                        {featuredTags.length > 0 ? (
+                            <div className="rounded-[1.2rem] border border-border/70 bg-background/72 px-4 py-4">
+                                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                                    Tags showing up now
+                                </div>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {featuredTags.map((value) => (
+                                        <Badge key={value} variant="outline">
+                                            {value}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
+                ) : null}
+            </section>
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <p className="text-sm font-medium text-foreground">{showingText}</p>
+                    <p className="text-sm text-muted-foreground">
+                        {hasFilters
+                            ? "Current filters are tightening the marketplace view."
+                            : "Showing the catalog without extra constraints."}
                     </p>
                 </div>
-
-                {/* Search and Filter Bar */}
-                <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-soft sm:flex-row sm:items-end">
-                    <div className="flex-1 space-y-1.5">
-                        <Label htmlFor="catalog-search" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                            Search
-                        </Label>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                id="catalog-search"
-                                placeholder="Search products..."
-                                value={search}
-                                onChange={(event) => setSearch(event.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
+                {hasFilters ? (
+                    <div className="flex flex-wrap gap-2">
+                        {search ? <Badge variant="secondary">Search: {search}</Badge> : null}
+                        {category ? (
+                            <Badge variant="secondary">Category: {category}</Badge>
+                        ) : null}
                     </div>
-                    <div className="flex-1 space-y-1.5 sm:max-w-[200px]">
-                        <Label htmlFor="catalog-category" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                            Category
-                        </Label>
-                        <div className="relative">
-                            <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                id="catalog-category"
-                                placeholder="All categories"
-                                value={category}
-                                onChange={(event) => setCategory(event.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
-                    </div>
-                </div>
+                ) : null}
             </div>
 
-            {/* Results Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">{showingText}</p>
-                <div className="flex items-center gap-1 rounded-lg border bg-muted/30 p-1">
-                    {limitOptions.map((value) => (
-                        <Button
-                            key={value}
-                            variant={limit === value ? "default" : "ghost"}
-                            size="sm"
-                            className={cn(
-                                "h-8 px-3",
-                                limit === value && "shadow-sm"
-                            )}
-                            onClick={() => setLimit(value)}
-                        >
-                            {value}
-                        </Button>
-                    ))}
-                </div>
-            </div>
-
-            {isLoading ? (
-                <CatalogGridSkeleton count={Math.min(limit, 6)} />
-            ) : null}
+            {isLoading ? <CatalogGridSkeleton count={Math.min(limit, 6)} /> : null}
 
             {error && !isLoading ? (
                 <ErrorBlock
@@ -288,90 +477,122 @@ export const CatalogPage = () => {
                 </div>
             ) : null}
 
-            {/* Pagination */}
-            <div className="flex items-center justify-center gap-2">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setOffset((prev) => Math.max(prev - limit, 0))}
-                    disabled={!hasPrev}
-                    className="gap-1"
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setOffset((prev) => prev + limit)}
-                    disabled={!hasNext}
-                    className="gap-1"
-                >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-border/80 bg-card/80 px-4 py-4 shadow-soft">
+                <div className="text-sm text-muted-foreground">
+                    Page {pageLabel} - {showingText}
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setOffset((prev) => Math.max(prev - limit, 0))}
+                        disabled={!hasPrev}
+                        className="gap-1"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setOffset((prev) => prev + limit)}
+                        disabled={!hasNext}
+                        className="gap-1"
+                    >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
         </div>
     )
 }
 
-const getCardKey = (product: CatalogProduct, index: number) => {
-    const record = isRecord(product) ? product : null
-    const id = getString(record, "id")
-    return id ?? `product-${index}`
+const StatPanel = ({
+    label,
+    value,
+    caption
+}: {
+    label: string
+    value: string
+    caption: string
+}) => {
+    return (
+        <div className="rounded-[1.2rem] border border-border/70 bg-background/72 px-4 py-4">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+                {label}
+            </div>
+            <div className="mt-2 text-2xl font-semibold text-foreground">{value}</div>
+            <div className="mt-2 text-sm leading-6 text-muted-foreground">{caption}</div>
+        </div>
+    )
 }
 
 const CatalogCard = ({ product }: { product: CatalogProduct }) => {
     const record = isRecord(product) ? product : null
     const title = getString(record, "title") ?? "Untitled product"
-    const description = getString(record, "description") ?? "No description available yet."
+    const description =
+        getString(record, "description") ?? "No description available yet."
     const category = getString(record, "category") ?? "Uncategorized"
     const status = getString(record, "status") ?? ""
     const tags = getStringArray(record, "tags")
     const productId = getString(record, "id")
+    const palette = getPalette(category)
 
     return (
-        <Card className="group flex h-full flex-col overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5">
-            <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                    <Badge variant="secondary" className="mb-2 text-xs font-normal">
+        <Card className="group relative flex h-full flex-col overflow-hidden border-border/80 bg-card">
+            <div
+                className={cn(
+                    "absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r",
+                    palette.gradient
+                )}
+            />
+
+            <CardHeader className="relative pb-4">
+                <div className="flex items-start justify-between gap-3">
+                    <Badge variant="outline" className={cn("font-medium", palette.badge)}>
                         {category}
                     </Badge>
                     {status ? <StatusBadge kind="product" value={status} /> : null}
                 </div>
-                <CardTitle className="line-clamp-1 text-xl">{title}</CardTitle>
+                <CardTitle className="mt-5 text-[1.6rem] leading-tight">{title}</CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 pb-4">
-                <p className="text-sm text-muted-foreground" style={clampStyle}>
+
+            <CardContent className="relative flex-1 pb-4">
+                <p className="text-sm leading-7 text-muted-foreground" style={clampStyle}>
                     {description}
                 </p>
+
                 {tags.length > 0 ? (
-                    <div className="mt-4 flex flex-wrap gap-1.5">
+                    <div className="mt-5 flex flex-wrap gap-1.5">
                         {tags.slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-xs font-normal">
+                            <Badge key={tag} variant="secondary">
                                 {tag}
                             </Badge>
                         ))}
-                        {tags.length > 3 && (
-                            <Badge variant="outline" className="text-xs font-normal">
-                                +{tags.length - 3}
-                            </Badge>
-                        )}
+                        {tags.length > 3 ? (
+                            <Badge variant="secondary">+{tags.length - 3}</Badge>
+                        ) : null}
                     </div>
                 ) : null}
             </CardContent>
-            <CardFooter className="border-t bg-muted/30 pt-4">
+
+            <CardFooter className="relative mt-auto border-t border-border/70 bg-background/45 pt-4">
                 {productId ? (
-                    <Button asChild className="w-full gap-2 shadow-glow hover:shadow-glow-lg">
-                        <Link to={`/products/${productId}`}>
-                            View Details
+                    <Link
+                        to={`/products/${productId}`}
+                        className="flex w-full items-center justify-between text-sm font-medium text-foreground transition-colors hover:text-primary"
+                    >
+                        <span>Open product</span>
+                        <span className="flex items-center gap-1">
+                            Details
                             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Link>
-                    </Button>
+                        </span>
+                    </Link>
                 ) : (
-                    <Button className="w-full" disabled>
-                        View Details
-                    </Button>
+                    <div className="text-sm font-medium text-muted-foreground">
+                        Open product
+                    </div>
                 )}
             </CardFooter>
         </Card>

@@ -1,6 +1,19 @@
-import { BarChart3, BriefcaseBusiness, CreditCard, Home, Key, Laptop, LayoutGrid, Menu, Moon, ShieldCheck, Sun, User } from "lucide-react"
-import { Link, NavLink } from "react-router-dom"
+import {
+    BarChart3,
+    BriefcaseBusiness,
+    CreditCard,
+    Home,
+    Key,
+    Laptop,
+    LayoutGrid,
+    Menu,
+    Moon,
+    ShieldCheck,
+    Sun,
+    User
+} from "lucide-react"
 import { useMemo, useState } from "react"
+import { Link, NavLink } from "react-router-dom"
 
 import { useAuth } from "@/auth/auth-context"
 import { Logo } from "@/components/brand/logo"
@@ -15,7 +28,13 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger
+} from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useTheme } from "@/theme/theme-context"
 
@@ -44,9 +63,7 @@ const adminNav: NavItem[] = [
     { to: "/admin/ops", label: "Admin Ops", icon: ShieldCheck }
 ]
 
-const accountNav: NavItem[] = [
-    { to: "/profile", label: "Profile", icon: User }
-]
+const accountNav: NavItem[] = [{ to: "/profile", label: "Profile", icon: User }]
 
 type AppShellProps = {
     children: React.ReactNode
@@ -72,6 +89,7 @@ export const AppShell = ({ children }: AppShellProps) => {
 
     const accountLabel = email || "Account"
     const accountRole = getRoleLabel(role)
+    const workspaceLabel = accountRole ? `${accountRole} workspace` : "Public workspace"
 
     const protectedNav = useMemo(() => {
         if (!accessToken || !role) {
@@ -88,78 +106,126 @@ export const AppShell = ({ children }: AppShellProps) => {
 
         return [...adminNav, ...sellerNav, ...buyerNav, ...accountNav]
     }, [accessToken, role])
+    const shellNav = accessToken ? [...publicNav, ...protectedNav] : publicNav
 
     return (
-        <div className="flex min-h-screen flex-col bg-background">
-            {/* Header */}
-            <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
-                <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center gap-4">
+        <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-background">
+            <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)/0.12),_transparent_60%)]" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+
+            <header className="sticky top-0 z-50 border-b border-border/70 bg-background/92">
+                <div className="mx-auto flex h-[4.5rem] w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center gap-3">
                         <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
                             <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="md:hidden"
+                                    aria-label="Open menu"
+                                >
                                     <Menu className="h-5 w-5" />
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent className="w-72">
+                            <SheetContent className="w-80">
                                 <SheetHeader className="text-left">
                                     <SheetTitle>
                                         <Logo size="sm" />
                                     </SheetTitle>
                                 </SheetHeader>
-                                <div className="mt-8 flex flex-col gap-2">
-                                    <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        Navigation
-                                    </p>
-                                    {publicNav.map((item) => (
-                                        <MobileNavLink
-                                            key={item.to}
-                                            to={item.to}
-                                            label={item.label}
-                                            icon={item.icon}
-                                            onNavigate={() => setIsMobileNavOpen(false)}
-                                        />
-                                    ))}
+
+                                <div className="mt-8 flex flex-col gap-4">
+                                    <div className="surface-panel bg-muted/40 px-4 py-4">
+                                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                                            {workspaceLabel}
+                                        </p>
+                                        <p className="mt-2 text-sm text-foreground">
+                                            {accessToken
+                                                ? "Role-aware tools are unlocked for this session."
+                                                : "Browse the catalog and sign in when you are ready to operate."}
+                                        </p>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2">
+                                        <p className="px-3 text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                                            Navigation
+                                        </p>
+                                        {shellNav.map((item) => (
+                                            <MobileNavLink
+                                                key={item.to}
+                                                to={item.to}
+                                                label={item.label}
+                                                icon={item.icon}
+                                                onNavigate={() => setIsMobileNavOpen(false)}
+                                            />
+                                        ))}
+                                    </div>
+
                                     {accessToken ? (
                                         <>
-                                            <Separator className="my-4" />
-                                            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                                Account
-                                            </p>
-                                            {protectedNav.map((item) => (
-                                                <MobileNavLink
-                                                    key={item.to}
-                                                    to={item.to}
-                                                    label={item.label}
-                                                    icon={item.icon}
-                                                    onNavigate={() => setIsMobileNavOpen(false)}
-                                                />
-                                            ))}
+                                            <Separator className="my-2" />
+                                            <div className="grid gap-2">
+                                                <Button asChild variant="outline" className="justify-start">
+                                                    <Link
+                                                        to="/debug/connection"
+                                                        onClick={() => setIsMobileNavOpen(false)}
+                                                    >
+                                                        Debug connection
+                                                    </Link>
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    className="justify-start text-destructive hover:text-destructive"
+                                                    onClick={() => {
+                                                        setIsMobileNavOpen(false)
+                                                        logout()
+                                                    }}
+                                                >
+                                                    Logout
+                                                </Button>
+                                            </div>
                                         </>
                                     ) : null}
                                 </div>
                             </SheetContent>
                         </Sheet>
-                        <Link to="/" className="transition-transform hover:scale-105">
+
+                        <Link
+                            to="/"
+                            className="group flex items-center gap-3"
+                        >
                             <Logo size="md" />
+                            <div className="hidden flex-col sm:flex">
+                                <span className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
+                                    Marketplace control
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                    Discovery, billing, gateway.
+                                </span>
+                            </div>
                         </Link>
                     </div>
 
-                    {/* Desktop Navigation in Header */}
-                    <nav className="hidden items-center gap-1 md:flex">
-                        {publicNav.map((item) => (
-                            <HeaderNavLink key={item.to} to={item.to} label={item.label} />
-                        ))}
-                        {accessToken && protectedNav.map((item) => (
-                            <HeaderNavLink key={item.to} to={item.to} label={item.label} />
+                    <nav className="hidden items-center gap-1 rounded-full border border-border/70 bg-background/88 p-1 md:flex">
+                        {shellNav.map((item) => (
+                            <HeaderNavLink
+                                key={item.to}
+                                to={item.to}
+                                label={item.label}
+                                icon={item.icon}
+                            />
                         ))}
                     </nav>
 
                     <div className="flex items-center gap-2">
-                        {/* Theme Toggle */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Toggle theme">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-10 w-10 rounded-full"
+                                    aria-label="Toggle theme"
+                                >
                                     {theme === "dark" ? (
                                         <Moon className="h-4 w-4" />
                                     ) : theme === "light" ? (
@@ -194,18 +260,34 @@ export const AppShell = ({ children }: AppShellProps) => {
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        {/* Account Menu */}
                         {accessToken ? (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-primary/10">
-                                        <User className="h-4 w-4 text-primary" />
+                                    <Button
+                                        variant="outline"
+                                        className="h-10 rounded-full px-2 sm:px-3"
+                                    >
+                                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary">
+                                            <User className="h-4 w-4" />
+                                        </span>
+                                        <span className="hidden flex-col items-start text-left sm:flex">
+                                            <span className="max-w-40 truncate text-sm text-foreground">
+                                                {accountLabel}
+                                            </span>
+                                            {accountRole ? (
+                                                <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                                                    {accountRole}
+                                                </span>
+                                            ) : null}
+                                        </span>
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-56">
                                     <DropdownMenuLabel className="font-normal">
                                         <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">{accountLabel}</p>
+                                            <p className="text-sm font-medium leading-none">
+                                                {accountLabel}
+                                            </p>
                                             {accountRole ? (
                                                 <p className="text-xs leading-none text-muted-foreground">
                                                     {accountRole}
@@ -225,7 +307,10 @@ export const AppShell = ({ children }: AppShellProps) => {
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
+                                    <DropdownMenuItem
+                                        onClick={logout}
+                                        className="text-destructive focus:text-destructive"
+                                    >
                                         Logout
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -235,7 +320,7 @@ export const AppShell = ({ children }: AppShellProps) => {
                                 <Button asChild variant="ghost" size="sm">
                                     <Link to="/login">Sign in</Link>
                                 </Button>
-                                <Button asChild size="sm" className="bg-primary text-primary-foreground shadow-glow hover:shadow-glow-lg">
+                                <Button asChild size="sm" className="shadow-glow hover:shadow-glow-lg">
                                     <Link to="/register">Get Started</Link>
                                 </Button>
                             </div>
@@ -244,24 +329,49 @@ export const AppShell = ({ children }: AppShellProps) => {
                 </div>
             </header>
 
-            {/* Main Content */}
-            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
-                <div className="animate-fade-in">
-                    {children}
-                </div>
+            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+                <div className="animate-fade-in">{children}</div>
             </main>
 
-            {/* Footer */}
-            <footer className="mt-auto border-t bg-muted/30">
-                <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row sm:px-6 lg:px-8">
-                    <Logo size="sm" />
-                    <p className="text-sm text-muted-foreground">
-                        (c) {new Date().getFullYear()} HivePoint. API Platform.
-                    </p>
+            <footer className="mt-auto border-t border-border/70 bg-background/55">
+                <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end lg:px-8">
+                    <div className="max-w-xl">
+                        <Logo size="sm" />
+                        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                            One control plane for API discovery, subscription operations, gateway
+                            access, and seller publishing.
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                        {publicNav.map((item) => (
+                            <Link
+                                key={item.to}
+                                to={item.to}
+                                className="transition-colors hover:text-foreground"
+                            >
+                                {item.label}
+                            </Link>
+                        ))}
+                        {accessToken ? (
+                            <Link
+                                to="/profile"
+                                className="transition-colors hover:text-foreground"
+                            >
+                                Profile
+                            </Link>
+                        ) : null}
+                    </div>
+                    <div className="rounded-[1rem] border border-border/70 bg-background/80 px-4 py-3">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                            Workspace
+                        </div>
+                        <div className="mt-1 text-sm font-medium text-foreground">
+                            {workspaceLabel}
+                        </div>
+                    </div>
                 </div>
             </footer>
 
-            {/* Scroll to Top Button */}
             <ScrollToTop />
         </div>
     )
@@ -270,22 +380,23 @@ export const AppShell = ({ children }: AppShellProps) => {
 type HeaderNavLinkProps = {
     to: string
     label: string
+    icon: React.ComponentType<{ className?: string }>
 }
 
-const HeaderNavLink = ({ to, label }: HeaderNavLinkProps) => {
+const HeaderNavLink = ({ to, label, icon: Icon }: HeaderNavLinkProps) => {
     return (
         <NavLink
             to={to}
             className={({ isActive }) =>
                 cn(
-                    "relative px-3 py-2 text-sm font-medium transition-colors",
-                    "hover:text-primary",
-                    isActive 
-                        ? "text-primary after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-4 after:-translate-x-1/2 after:rounded-full after:bg-primary" 
-                        : "text-muted-foreground"
+                    "flex items-center gap-2 rounded-full border border-transparent px-3.5 py-2 text-sm font-medium transition-[background-color,border-color,color]",
+                    isActive
+                        ? "border-primary/20 bg-primary/10 text-foreground"
+                        : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                 )
             }
         >
+            <Icon className="h-4 w-4" />
             {label}
         </NavLink>
     )
@@ -298,15 +409,20 @@ type MobileNavLinkProps = {
     onNavigate?: () => void
 }
 
-const MobileNavLink = ({ to, label, icon: Icon, onNavigate }: MobileNavLinkProps) => {
+const MobileNavLink = ({
+    to,
+    label,
+    icon: Icon,
+    onNavigate
+}: MobileNavLinkProps) => {
     return (
         <NavLink
             to={to}
             className={({ isActive }) =>
                 cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
-                    isActive 
-                        ? "bg-primary/10 text-primary" 
+                    "flex items-center gap-3 rounded-[1rem] border border-transparent px-3 py-2.5 text-sm font-medium transition-[background-color,border-color,color]",
+                    isActive
+                        ? "border-primary/20 bg-primary/10 text-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )
             }

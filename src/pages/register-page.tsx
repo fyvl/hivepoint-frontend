@@ -1,20 +1,41 @@
 import { type FormEvent, useState } from "react"
+import {
+    ArrowRight,
+    BriefcaseBusiness,
+    CreditCard,
+    Loader2
+} from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
-import { ArrowRight, Check, Loader2 } from "lucide-react"
 
 import { ApiError } from "@/api/http"
 import { type RegisterRole, useAuth } from "@/auth/auth-context"
-import { Logo } from "@/components/brand/logo"
+import { AuthShell } from "@/components/layout/auth-shell"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { notifyError, notifySuccess } from "@/lib/notify"
+import { cn } from "@/lib/utils"
 
-const benefits = [
-    "Access to all API products",
-    "Real-time usage analytics",
-    "Dedicated support"
+type RoleOption = {
+    value: RegisterRole
+    title: string
+    description: string
+    icon: React.ComponentType<{ className?: string }>
+}
+
+const roleOptions: RoleOption[] = [
+    {
+        value: "BUYER",
+        title: "Buyer",
+        description: "Subscribe to APIs, manage keys, and watch usage from one workspace.",
+        icon: CreditCard
+    },
+    {
+        value: "SELLER",
+        title: "Dev",
+        description: "Publish APIs, connect schemas, and create pricing plans in Seller Studio.",
+        icon: BriefcaseBusiness
+    }
 ]
 
 export const RegisterPage = () => {
@@ -62,142 +83,152 @@ export const RegisterPage = () => {
     }
 
     return (
-        <div className="flex min-h-[80vh] w-full items-center justify-center">
-            <div className="w-full max-w-md space-y-6">
-                {/* Logo */}
-                <div className="flex justify-center">
-                    <Logo size="lg" />
+        <AuthShell
+            eyebrow="New workspace"
+            title="Create an account that matches how you want to use the platform."
+            description="Start as a buyer or jump straight into seller mode. Either way, the account lands inside the same shell and can grow with your workflow."
+            panelBadge="Role selection"
+            panelTitle="The platform is built for both sides of the API transaction."
+            panelDescription="Registration should make that split clear early: buyers need operational confidence, sellers need a path from API definition to packaged offering."
+            panelMetrics={[
+                { label: "Roles", value: "2" },
+                { label: "Switching", value: "Flexible" },
+                { label: "Onboarding", value: "Fast" }
+            ]}
+            panelHighlights={[
+                {
+                    title: "Buyer-first accounts stay operational",
+                    description: "Subscriptions, keys, usage, and billing remain the center of gravity after sign-up."
+                },
+                {
+                    title: "Seller-first accounts skip the awkward upgrade gap",
+                    description: "You can start from publishing instead of pretending you only consume APIs."
+                },
+                {
+                    title: "Role boundaries remain visible",
+                    description: "The UI keeps buyer, seller, and admin contexts legible instead of blending them together."
+                }
+            ]}
+        >
+            <form onSubmit={handleSubmit} className="grid gap-5">
+                <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(event) => {
+                            setEmail(event.target.value)
+                            if (errors.email) {
+                                setErrors((prev) => ({ ...prev, email: undefined }))
+                            }
+                        }}
+                        aria-invalid={Boolean(errors.email)}
+                        aria-describedby={errors.email ? "email-error" : undefined}
+                        className="h-12"
+                        required
+                    />
+                    {errors.email ? (
+                        <p id="email-error" className="text-xs text-destructive">
+                            {errors.email}
+                        </p>
+                    ) : null}
                 </div>
 
-                <Card className="border-0 shadow-xl shadow-primary/5">
-                    <CardHeader className="space-y-1 text-center">
-                        <CardTitle className="text-2xl font-bold">Create your account</CardTitle>
-                        <CardDescription>
-                            Start building with HivePoint APIs today
-                        </CardDescription>
-                    </CardHeader>
-                    <form onSubmit={handleSubmit}>
-                        <CardContent className="space-y-4">
-                            {/* Benefits */}
-                            <div className="rounded-lg bg-muted/50 p-3">
-                                <ul className="space-y-2">
-                                    {benefits.map((benefit, i) => (
-                                        <li key={i} className="flex items-center gap-2 text-sm">
-                                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
-                                                <Check className="h-3 w-3 text-primary" />
-                                            </div>
-                                            {benefit}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                        id="password"
+                        type="password"
+                        placeholder="********"
+                        autoComplete="new-password"
+                        value={password}
+                        onChange={(event) => {
+                            setPassword(event.target.value)
+                            if (errors.password) {
+                                setErrors((prev) => ({ ...prev, password: undefined }))
+                            }
+                        }}
+                        aria-invalid={Boolean(errors.password)}
+                        aria-describedby={errors.password ? "password-error" : undefined}
+                        className="h-12"
+                        required
+                    />
+                    {errors.password ? (
+                        <p id="password-error" className="text-xs text-destructive">
+                            {errors.password}
+                        </p>
+                    ) : null}
+                    <p className="text-xs text-muted-foreground">
+                        Use at least 8 characters. You can start as Buyer and upgrade later from the dashboard.
+                    </p>
+                </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="you@example.com"
-                                    autoComplete="email"
-                                    value={email}
-                                    onChange={(event) => {
-                                        setEmail(event.target.value)
-                                        if (errors.email) {
-                                            setErrors((prev) => ({ ...prev, email: undefined }))
-                                        }
-                                    }}
-                                    aria-invalid={Boolean(errors.email)}
-                                    aria-describedby={errors.email ? "email-error" : undefined}
-                                    className="h-11"
-                                    required
-                                />
-                                {errors.email ? (
-                                    <p id="email-error" className="text-xs text-destructive">
-                                        {errors.email}
-                                    </p>
-                                ) : null}
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="password">Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="********"
-                                    autoComplete="new-password"
-                                    value={password}
-                                    onChange={(event) => {
-                                        setPassword(event.target.value)
-                                        if (errors.password) {
-                                            setErrors((prev) => ({ ...prev, password: undefined }))
-                                        }
-                                    }}
-                                    aria-invalid={Boolean(errors.password)}
-                                    aria-describedby={errors.password ? "password-error" : undefined}
-                                    className="h-11"
-                                    required
-                                />
-                                {errors.password ? (
-                                    <p id="password-error" className="text-xs text-destructive">
-                                        {errors.password}
-                                    </p>
-                                ) : null}
-                                <p className="text-xs text-muted-foreground">
-                                    Must be at least 8 characters
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Account type</Label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Button
-                                        type="button"
-                                        variant={role === "BUYER" ? "default" : "outline"}
-                                        className="h-10"
-                                        onClick={() => setRole("BUYER")}
-                                    >
-                                        Buyer
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant={role === "SELLER" ? "default" : "outline"}
-                                        className="h-10"
-                                        onClick={() => setRole("SELLER")}
-                                    >
-                                        Dev
-                                    </Button>
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Buyer subscribes to APIs. Dev publishes APIs in Seller Studio.
-                                </p>
-                            </div>
-                        </CardContent>
-                        <CardFooter className="flex flex-col gap-4">
-                            <Button 
-                                type="submit" 
-                                className="w-full h-11 text-base shadow-glow hover:shadow-glow-lg" 
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Creating account...
-                                    </>
-                                ) : (
-                                    <>
-                                        Get Started
-                                        <ArrowRight className="ml-2 h-4 w-4" />
-                                    </>
+                <div className="space-y-3">
+                    <Label>Workspace intent</Label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        {roleOptions.map((option) => (
+                            <button
+                                key={option.value}
+                                type="button"
+                                className={cn(
+                                    "rounded-[1.25rem] border px-4 py-4 text-left transition-all",
+                                    role === option.value
+                                        ? "border-primary bg-primary/10 shadow-[0_18px_34px_-24px_hsl(var(--primary)/0.65)]"
+                                        : "border-border/70 bg-background/70 hover:border-primary/25 hover:bg-accent/40"
                                 )}
-                            </Button>
-                            <p className="text-center text-sm text-muted-foreground">
-                                Already have an account?{" "}
-                                <Link className="font-medium text-primary hover:underline" to="/login">
-                                    Sign in
-                                </Link>
-                            </p>
-                        </CardFooter>
-                    </form>
-                </Card>
-            </div>
-        </div>
+                                onClick={() => setRole(option.value)}
+                            >
+                                <div className="flex items-start gap-3">
+                                    <div
+                                        className={cn(
+                                            "flex h-11 w-11 items-center justify-center rounded-2xl",
+                                            role === option.value
+                                                ? "bg-primary text-primary-foreground"
+                                                : "bg-primary/10 text-primary"
+                                        )}
+                                    >
+                                        <option.icon className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <div className="text-sm font-semibold text-foreground">
+                                            {option.title}
+                                        </div>
+                                        <div className="mt-1 text-sm leading-6 text-muted-foreground">
+                                            {option.description}
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <Button type="submit" className="h-12 w-full text-base" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Creating account...
+                        </>
+                    ) : (
+                        <>
+                            Create account
+                            <ArrowRight className="ml-1 h-4 w-4" />
+                        </>
+                    )}
+                </Button>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                    <Button asChild variant="outline" className="h-11">
+                        <Link to="/login">Already have an account?</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="h-11">
+                        <Link to="/catalog">Explore catalog first</Link>
+                    </Button>
+                </div>
+            </form>
+        </AuthShell>
     )
 }

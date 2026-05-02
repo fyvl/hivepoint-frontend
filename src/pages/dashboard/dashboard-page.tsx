@@ -1,22 +1,54 @@
-import { ArrowRight, BarChart3, BriefcaseBusiness, CreditCard, Key, LayoutGrid, Loader2, Lock, Rocket, ShieldCheck } from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
+import {
+    ArrowRight,
+    BarChart3,
+    BriefcaseBusiness,
+    CreditCard,
+    Key,
+    LayoutGrid,
+    Loader2,
+    Lock,
+    Radar,
+    Rocket,
+    ShieldCheck,
+    Waypoints
+} from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 
 import { updateMyRole as updateMyRoleApi } from "@/api/users"
 import { useAuth } from "@/auth/auth-context"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle
+} from "@/components/ui/card"
 import { notifyError, notifySuccess } from "@/lib/notify"
 import { cn } from "@/lib/utils"
 
 type DashboardCard = {
     title: string
+    eyebrow: string
     description: string
     to: string
     icon: React.ComponentType<{ className?: string }>
     requiresAuth?: boolean
-    gradient?: string
+    accent: string
+}
+
+type WorkspaceStat = {
+    label: string
+    value: string
+    caption: string
+}
+
+type WorkspaceNote = {
+    title: string
+    description: string
+    icon: React.ComponentType<{ className?: string }>
 }
 
 type HeroConfig = {
@@ -26,89 +58,195 @@ type HeroConfig = {
     gradient: string
     ctaLabel: string
     ctaTo: string
+    secondaryCtaLabel: string
+    secondaryCtaTo: string
+    railTitle: string
+    railDescription: string
+    stats: WorkspaceStat[]
+    notes: WorkspaceNote[]
 }
 
 const guestCards: DashboardCard[] = [
     {
-        title: "API Catalog",
-        description: "Browse public APIs and compare products.",
+        title: "Explore the API Catalog",
+        eyebrow: "Public marketplace",
+        description: "Compare products, inspect versions, and open quickstarts before you commit.",
         to: "/catalog",
         icon: LayoutGrid,
-        gradient: "from-amber-500/20 via-orange-500/10 to-transparent"
+        accent: "from-amber-500 via-orange-400 to-yellow-300"
     },
     {
-        title: "Buyer Workspace",
-        description: "Subscriptions, keys, and usage analytics after sign-in.",
+        title: "Run buyer operations",
+        eyebrow: "Buyer workspace",
+        description: "Manage subscriptions, keys, and request quotas after sign-in.",
         to: "/billing",
         icon: CreditCard,
         requiresAuth: true,
-        gradient: "from-emerald-500/20 via-teal-500/10 to-transparent"
+        accent: "from-emerald-500 via-teal-400 to-cyan-400"
     },
     {
-        title: "Seller Studio",
-        description: "Publish APIs, manage versions, and create plans.",
+        title: "Ship through Seller Studio",
+        eyebrow: "Seller workflow",
+        description: "Publish products, release versions, and turn APIs into plans.",
         to: "/seller/studio",
         icon: BriefcaseBusiness,
         requiresAuth: true,
-        gradient: "from-cyan-500/20 via-blue-500/10 to-transparent"
+        accent: "from-sky-500 via-cyan-400 to-blue-500"
     }
 ]
 
 const buyerCards: DashboardCard[] = [
     {
-        title: "API Catalog",
-        description: "Discover and subscribe to API products.",
+        title: "Catalog",
+        eyebrow: "Discover",
+        description: "Browse public products and compare what to integrate next.",
         to: "/catalog",
         icon: LayoutGrid,
-        gradient: "from-amber-500/20 via-orange-500/10 to-transparent"
+        accent: "from-amber-500 via-orange-400 to-yellow-300"
     },
     {
         title: "Billing",
-        description: "Manage subscriptions and invoices.",
+        eyebrow: "Operate",
+        description: "Track subscriptions, renewals, and anything that needs attention.",
         to: "/billing",
         icon: CreditCard,
-        gradient: "from-emerald-500/20 via-teal-500/10 to-transparent"
+        accent: "from-emerald-500 via-teal-400 to-cyan-400"
     },
     {
         title: "API Keys",
-        description: "Generate and revoke access keys.",
+        eyebrow: "Access",
+        description: "Generate raw keys and keep your gateway credentials under control.",
         to: "/keys",
         icon: Key,
-        gradient: "from-violet-500/20 via-fuchsia-500/10 to-transparent"
+        accent: "from-violet-500 via-fuchsia-400 to-indigo-400"
     },
     {
-        title: "Usage Analytics",
-        description: "Track request volume against quotas.",
+        title: "Usage",
+        eyebrow: "Observe",
+        description: "Watch volume, remaining quota, and rate-limit pressure in one view.",
         to: "/usage",
         icon: BarChart3,
-        gradient: "from-sky-500/20 via-cyan-500/10 to-transparent"
+        accent: "from-sky-500 via-cyan-400 to-teal-400"
     }
 ]
 
 const sellerCards: DashboardCard[] = [
     {
         title: "Seller Studio",
-        description: "Create products, release versions, and set pricing plans.",
+        eyebrow: "Publish",
+        description: "Create products, connect schemas, and release versions with plans.",
         to: "/seller/studio",
         icon: BriefcaseBusiness,
-        gradient: "from-cyan-500/20 via-blue-500/10 to-transparent"
+        accent: "from-cyan-500 via-sky-400 to-blue-500"
     },
     {
-        title: "Public Catalog",
-        description: "Review how your APIs appear to buyers.",
+        title: "Catalog",
+        eyebrow: "Preview",
+        description: "See how your APIs appear to buyers in the public marketplace.",
         to: "/catalog",
         icon: LayoutGrid,
-        gradient: "from-amber-500/20 via-orange-500/10 to-transparent"
+        accent: "from-amber-500 via-orange-400 to-yellow-300"
     }
 ]
 
 const adminCards: DashboardCard[] = [
     {
         title: "Admin Ops",
-        description: "Operational alerts, audit log, and moderation tools.",
+        eyebrow: "Governance",
+        description: "Monitor alerts, audit activity, and moderation from one control room.",
         to: "/admin/ops",
         icon: ShieldCheck,
-        gradient: "from-sky-500/20 via-blue-500/10 to-transparent"
+        accent: "from-indigo-500 via-violet-400 to-fuchsia-400"
+    }
+]
+
+const guestFlow: WorkspaceNote[] = [
+    {
+        title: "Discover APIs before sign-in",
+        description: "Catalog pages stay public so evaluation starts without operational friction.",
+        icon: LayoutGrid
+    },
+    {
+        title: "Switch into buyer mode",
+        description: "Subscriptions, keys, and usage unlock once an account is active.",
+        icon: CreditCard
+    },
+    {
+        title: "Scale into seller mode",
+        description: "Move from consumer to publisher when you are ready to monetize.",
+        icon: Rocket
+    }
+]
+
+const buyerFlow: WorkspaceNote[] = [
+    {
+        title: "Keys route through HivePoint",
+        description: "Every request can be checked for entitlements, quota, and rate limits.",
+        icon: Key
+    },
+    {
+        title: "Usage stays visible",
+        description: "Request pressure and remaining capacity stay close to billing context.",
+        icon: Radar
+    },
+    {
+        title: "Seller mode is a click away",
+        description: "Upgrade when you want to start publishing instead of only consuming.",
+        icon: BriefcaseBusiness
+    }
+]
+
+const sellerFlow: WorkspaceNote[] = [
+    {
+        title: "Publish with OpenAPI-backed versions",
+        description: "Ship buyer-facing quickstarts from versioned schema snapshots.",
+        icon: Waypoints
+    },
+    {
+        title: "Package pricing cleanly",
+        description: "Plans, quotas, and rate limits define how buyers experience your product.",
+        icon: CreditCard
+    },
+    {
+        title: "Watch marketplace performance",
+        description: "Views, conversion, and active clients feed back into release decisions.",
+        icon: BarChart3
+    }
+]
+
+const adminFlow: WorkspaceNote[] = [
+    {
+        title: "Ops is role-aware",
+        description: "Admin tools sit above buyer and seller workflows without duplicating them.",
+        icon: ShieldCheck
+    },
+    {
+        title: "Alerting stays central",
+        description: "Billing, retries, and moderation issues surface in one operational layer.",
+        icon: Radar
+    },
+    {
+        title: "Catalog remains the front door",
+        description: "Governance stays connected to the same marketplace buyers and sellers use.",
+        icon: LayoutGrid
+    }
+]
+
+const platformLanes = [
+    {
+        title: "Discover",
+        description: "Catalog visibility, version snapshots, and product detail pages lead the first contact.",
+        icon: LayoutGrid
+    },
+    {
+        title: "Control",
+        description: "Subscriptions, keys, and pricing plans convert API access into an operable product.",
+        icon: Key
+    },
+    {
+        title: "Observe",
+        description: "Usage analytics, billing alerts, and seller metrics close the loop after launch.",
+        icon: BarChart3
     }
 ]
 
@@ -143,44 +281,140 @@ export const DashboardPage = () => {
     const hero = useMemo<HeroConfig>(() => {
         if (!accessToken) {
             return {
-                badge: "API Platform",
-                title: "Build and scale on HivePoint",
-                description: "Choose your workspace after sign in: buyer operations or seller publishing.",
-                gradient: "from-amber-500 via-orange-500 to-amber-600",
+                badge: "API marketplace + gateway",
+                title: "Turn APIs into products, not one-off integration docs.",
+                description:
+                    "HivePoint gives buyers a clean operational workspace and gives sellers a clear route from schema to monetization.",
+                gradient: "from-amber-500 via-orange-400 to-yellow-300",
                 ctaLabel: "Create account",
-                ctaTo: "/register"
+                ctaTo: "/register",
+                secondaryCtaLabel: "Explore catalog",
+                secondaryCtaTo: "/catalog",
+                railTitle: "Everything starts from one shared marketplace.",
+                railDescription:
+                    "Browse public APIs first, then move into buyer operations or seller publishing without switching products.",
+                stats: [
+                    {
+                        label: "Workspaces",
+                        value: "2",
+                        caption: "Buyer and seller flows share one shell."
+                    },
+                    {
+                        label: "Quickstart",
+                        value: "OpenAPI",
+                        caption: "Schemas feed product detail pages and testing."
+                    },
+                    {
+                        label: "Control plane",
+                        value: "1",
+                        caption: "Billing, keys, usage, and ops stay together."
+                    }
+                ],
+                notes: guestFlow
             }
         }
 
         if (role === "SELLER") {
             return {
-                badge: "Seller Workspace",
-                title: "Ship and monetize API products",
-                description: "Manage releases and pricing from Seller Studio.",
-                gradient: "from-cyan-600 via-blue-700 to-slate-900",
+                badge: "Seller workspace",
+                title: "Publish APIs with a sharper commercial surface.",
+                description:
+                    "Go from draft products to released versions and plans without losing sight of how buyers evaluate your APIs.",
+                gradient: "from-cyan-500 via-sky-400 to-blue-500",
                 ctaLabel: "Open Seller Studio",
-                ctaTo: "/seller/studio"
+                ctaTo: "/seller/studio",
+                secondaryCtaLabel: "Preview catalog",
+                secondaryCtaTo: "/catalog",
+                railTitle: "Seller mode keeps release, pricing, and traction in the same loop.",
+                railDescription:
+                    "Product creation, OpenAPI URLs, plan setup, and analytics all stay in one workflow.",
+                stats: [
+                    {
+                        label: "Workspace",
+                        value: "Seller",
+                        caption: "Publishing and packaging live side by side."
+                    },
+                    {
+                        label: "Core jobs",
+                        value: "3",
+                        caption: "Create products, ship versions, define plans."
+                    },
+                    {
+                        label: "North star",
+                        value: "Conversion",
+                        caption: "Traffic and subscriptions drive your next release."
+                    }
+                ],
+                notes: sellerFlow
             }
         }
 
         if (role === "ADMIN") {
             return {
-                badge: "Admin Workspace",
-                title: "Oversee buyer and seller flows",
-                description: "Access operational alerts, audit trail, and seller publishing surfaces.",
-                gradient: "from-indigo-600 via-violet-700 to-slate-900",
+                badge: "Admin workspace",
+                title: "See buyer and seller operations from the governance layer.",
+                description:
+                    "Operational alerts, moderation, and audit visibility stay anchored to the same catalog and billing surfaces everyone else uses.",
+                gradient: "from-indigo-500 via-violet-400 to-fuchsia-400",
                 ctaLabel: "Open Admin Ops",
-                ctaTo: "/admin/ops"
+                ctaTo: "/admin/ops",
+                secondaryCtaLabel: "Review catalog",
+                secondaryCtaTo: "/catalog",
+                railTitle: "Admin mode stays broad without becoming disconnected.",
+                railDescription:
+                    "Ops sits above marketplace activity, subscription health, and seller release hygiene.",
+                stats: [
+                    {
+                        label: "Visibility",
+                        value: "Ops-first",
+                        caption: "Alerts, audit trail, and moderation in one console."
+                    },
+                    {
+                        label: "Coverage",
+                        value: "Full stack",
+                        caption: "Buyer, seller, and admin actions stay correlated."
+                    },
+                    {
+                        label: "Focus",
+                        value: "Safety",
+                        caption: "Operational issues become visible before they spread."
+                    }
+                ],
+                notes: adminFlow
             }
         }
 
         return {
-            badge: "Buyer Workspace",
-            title: "Integrate APIs with confidence",
-            description: "Handle subscriptions, API keys, and usage in one place.",
-            gradient: "from-emerald-500 via-teal-600 to-cyan-700",
-            ctaLabel: "Go to Billing",
-            ctaTo: "/billing"
+            badge: "Buyer workspace",
+            title: "Operate subscriptions, keys, and usage from one place.",
+            description:
+                "HivePoint keeps the commercial side of API consumption close to the technical side, so buyers do not lose context between billing and traffic.",
+            gradient: "from-emerald-500 via-teal-400 to-cyan-400",
+            ctaLabel: "Open Billing",
+            ctaTo: "/billing",
+            secondaryCtaLabel: "Browse catalog",
+            secondaryCtaTo: "/catalog",
+            railTitle: "Buyer mode is built around operational confidence.",
+            railDescription:
+                "Subscriptions, raw keys, request pressure, and renewal status stay one click apart.",
+            stats: [
+                {
+                    label: "Workspace",
+                    value: "Buyer",
+                    caption: "Subscriptions and traffic share the same context."
+                },
+                {
+                    label: "Keys",
+                    value: "Raw + managed",
+                    caption: "Access stays explicit from creation through usage."
+                },
+                {
+                    label: "Signals",
+                    value: "Quota",
+                    caption: "Usage and billing warnings stay visible before they hurt."
+                }
+            ],
+            notes: buyerFlow
         }
     }, [accessToken, role])
 
@@ -198,40 +432,49 @@ export const DashboardPage = () => {
     }, [accessToken, role])
 
     return (
-        <div className="flex flex-col gap-12">
-            <section className={cn(
-                "relative overflow-hidden rounded-3xl bg-gradient-to-br p-8 text-white shadow-2xl md:p-12",
-                hero.gradient
-            )}>
-                <div className="absolute inset-0 opacity-10">
-                    <div className="hexagon-pattern h-full w-full" />
-                </div>
-                <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-                <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-black/10 blur-3xl" />
+        <div className="flex flex-col gap-10">
+            <section
+                className="surface-panel-strong relative overflow-hidden px-6 py-6 md:px-8 md:py-8"
+            >
+                <div
+                    className={cn(
+                        "absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r",
+                        hero.gradient
+                    )}
+                />
+                <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[34%] bg-[linear-gradient(180deg,rgba(15,23,42,0.035),transparent)] xl:block" />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)/0.09),_transparent_56%)]" />
 
-                <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                    <div className="max-w-2xl space-y-4">
-                        <Badge className="bg-white/20 text-white hover:bg-white/30">
-                            {hero.badge}
-                        </Badge>
-                        <h1 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
+                <div className="relative z-10 grid gap-8 xl:grid-cols-[minmax(0,1.12fr)_360px]">
+                    <div>
+                        <div className="section-kicker">{hero.badge}</div>
+                        <h1 className="display-title mt-5 max-w-4xl text-4xl text-foreground sm:text-5xl lg:text-6xl">
                             {hero.title}
                         </h1>
-                        <p className="text-lg text-white/90 md:text-xl">
+                        <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
                             {hero.description}
                         </p>
-                        <div className="flex flex-wrap gap-3 pt-2">
-                            <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
+
+                        <div className="mt-8 flex flex-wrap gap-3">
+                            <Button asChild size="lg" className="min-w-[11rem]">
                                 <Link to={hero.ctaTo}>
                                     {hero.ctaLabel}
-                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                    <ArrowRight className="ml-1 h-4 w-4" />
                                 </Link>
+                            </Button>
+                            <Button
+                                asChild
+                                size="lg"
+                                variant="outline"
+                                className="min-w-[11rem]"
+                            >
+                                <Link to={hero.secondaryCtaTo}>{hero.secondaryCtaLabel}</Link>
                             </Button>
                             {accessToken && role === "BUYER" ? (
                                 <Button
                                     size="lg"
                                     variant="outline"
-                                    className="border-white/30 bg-transparent text-white hover:bg-white/10"
+                                    className="min-w-[11rem]"
                                     onClick={handleBecomeSeller}
                                     disabled={isUpgradingRole}
                                 >
@@ -245,90 +488,184 @@ export const DashboardPage = () => {
                                     )}
                                 </Button>
                             ) : null}
-                            {!accessToken ? (
-                                <Button asChild size="lg" variant="outline" className="border-white/30 bg-transparent text-white hover:bg-white/10">
-                                    <Link to="/catalog">Explore APIs</Link>
-                                </Button>
-                            ) : null}
+                        </div>
+
+                        <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                            {hero.stats.map((stat) => (
+                                <div
+                                    key={stat.label}
+                                    className="rounded-[1.2rem] border border-border/70 bg-background/72 px-4 py-4"
+                                >
+                                    <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+                                        {stat.label}
+                                    </div>
+                                    <div className="mt-2 text-2xl font-semibold text-foreground">
+                                        {stat.value}
+                                    </div>
+                                    <div className="mt-2 text-sm leading-6 text-muted-foreground">
+                                        {stat.caption}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
-                    <div className="hidden flex-col gap-3 lg:flex">
-                        <FeaturePill icon={Rocket} text="Fast onboarding" />
-                        <FeaturePill icon={ShieldCheck} text="Role-aware workspace" />
-                        <FeaturePill icon={BarChart3} text="Operational visibility" />
+                    <div className="rounded-[1.6rem] border border-foreground/10 bg-foreground p-5 text-background shadow-[0_24px_56px_-42px_rgba(15,23,42,0.8)]">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/52">
+                            Workspace pulse
+                        </p>
+                        <div className="mt-4 rounded-[1.25rem] border border-white/12 bg-white/5 p-4">
+                            <div className="text-sm font-semibold text-white">
+                                {accessToken ? "Authenticated session" : "Guest session"}
+                            </div>
+                            <div className="mt-1 text-sm leading-6 text-white/68">
+                                {hero.railDescription}
+                            </div>
+                        </div>
+
+                        <div className="mt-5">
+                            <div className="text-lg font-semibold text-white">
+                                {hero.railTitle}
+                            </div>
+                            <div className="mt-4 grid gap-3">
+                                {hero.notes.map((note, index) => (
+                                    <div
+                                        key={note.title}
+                                        className="rounded-[1.2rem] border border-white/12 bg-white/6 px-4 py-4"
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/8 text-xs font-semibold text-white/78">
+                                                {String(index + 1).padStart(2, "0")}
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-semibold text-white">
+                                                    {note.title}
+                                                </div>
+                                                <div className="mt-1 text-sm leading-6 text-white/68">
+                                                    {note.description}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <section className="space-y-6">
-                <div>
-                    <h2 className="text-2xl font-semibold tracking-tight">Quick Access</h2>
-                    <p className="text-muted-foreground">
-                        {role === "SELLER" ? "Seller-first tools" : role === "BUYER" ? "Buyer operations" : "Choose your path"}
-                    </p>
+            <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_0.75fr]">
+                <div className="space-y-4">
+                    <div>
+                        <div className="section-kicker">Quick access</div>
+                        <h2 className="display-title mt-4 text-3xl text-foreground">
+                            Enter the right workspace without digging for routes.
+                        </h2>
+                        <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+                            The dashboard should feel like a launch surface, not a menu dump.
+                            These entry points keep the next high-value actions obvious.
+                        </p>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {cards.map((card) => (
+                            <WorkspaceTile
+                                key={`${card.title}-${card.to}`}
+                                card={card}
+                                isAuthenticated={Boolean(accessToken)}
+                            />
+                        ))}
+                    </div>
                 </div>
 
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    {cards.map((card) => {
-                        const isLocked = card.requiresAuth && !accessToken
-                        const actionTo = isLocked ? "/login" : card.to
-                        const Icon = card.icon
-
-                        return (
-                            <Link key={`${card.title}-${card.to}`} to={actionTo} className="group">
-                                <Card className={cn(
-                                    "relative h-full overflow-hidden transition-all duration-300",
-                                    "hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5",
-                                    isLocked && "opacity-75"
-                                )}>
-                                    <div className={cn(
-                                        "absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity group-hover:opacity-100",
-                                        card.gradient
-                                    )} />
-
-                                    <CardHeader className="relative">
-                                        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                                            <Icon className="h-6 w-6" />
+                <Card className="surface-panel">
+                    <CardHeader>
+                        <div className="section-kicker">Platform rhythm</div>
+                        <CardTitle className="mt-4">
+                            HivePoint works best when discovery and operations stay adjacent.
+                        </CardTitle>
+                        <CardDescription>
+                            Catalog visibility, gateway control, and operational signals are not
+                            separate products here. The UI should make that obvious.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-3">
+                        {platformLanes.map((lane) => (
+                            <div
+                                key={lane.title}
+                                className="rounded-[1.25rem] border border-border/70 bg-background/70 px-4 py-4"
+                            >
+                                <div className="flex items-start gap-3">
+                                    <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                                        <lane.icon className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <div className="text-sm font-semibold text-foreground">
+                                            {lane.title}
                                         </div>
-                                        <div className="flex items-start justify-between gap-2">
-                                            <CardTitle className="text-lg">{card.title}</CardTitle>
-                                            {isLocked ? <Lock className="h-4 w-4 text-muted-foreground" /> : null}
+                                        <div className="mt-1 text-sm leading-6 text-muted-foreground">
+                                            {lane.description}
                                         </div>
-                                        <CardDescription className="line-clamp-2">
-                                            {card.description}
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardFooter className="relative pt-0">
-                                        <span className={cn(
-                                            "flex items-center text-sm font-medium",
-                                            isLocked ? "text-muted-foreground" : "text-primary"
-                                        )}>
-                                            {isLocked ? "Sign in required" : "Open"}
-                                            <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                                        </span>
-                                    </CardFooter>
-                                </Card>
-                            </Link>
-                        )
-                    })}
-                </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
             </section>
         </div>
     )
 }
 
-const FeaturePill = ({
-    icon: Icon,
-    text
+const WorkspaceTile = ({
+    card,
+    isAuthenticated
 }: {
-    icon: React.ComponentType<{ className?: string }>
-    text: string
+    card: DashboardCard
+    isAuthenticated: boolean
 }) => {
+    const isLocked = card.requiresAuth && !isAuthenticated
+    const actionTo = isLocked ? "/login" : card.to
+    const Icon = card.icon
+
     return (
-        <div className="flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
-            <Icon className="h-5 w-5" />
-            <span className="text-sm font-medium">{text}</span>
-        </div>
+        <Link to={actionTo} className="group">
+            <Card className="group relative flex h-full flex-col overflow-hidden border-border/80 bg-card">
+                <div
+                    className={cn(
+                        "absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r",
+                        card.accent
+                    )}
+                />
+                <CardHeader className="relative">
+                    <div className="flex items-start justify-between gap-3">
+                        <Badge variant="secondary" className="bg-background/70 text-foreground">
+                            {card.eyebrow}
+                        </Badge>
+                        {isLocked ? (
+                            <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                                <Lock className="h-4 w-4" />
+                                Sign in
+                            </div>
+                        ) : null}
+                    </div>
+                    <div className="mt-5 flex items-start gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] border border-border/70 bg-background text-foreground">
+                            <Icon className="h-6 w-6" />
+                        </div>
+                        <div className="space-y-2">
+                            <CardTitle>{card.title}</CardTitle>
+                            <CardDescription>{card.description}</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="relative mt-auto pt-0">
+                    <div className="flex items-center justify-between border-t border-border/70 pt-4 text-sm font-medium text-foreground">
+                        <span>{isLocked ? "Unlock workspace" : "Open workspace"}</span>
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </div>
+                </CardContent>
+            </Card>
+        </Link>
     )
 }
