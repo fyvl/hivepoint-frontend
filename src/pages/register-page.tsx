@@ -1,27 +1,22 @@
-import { type FormEvent, useState } from "react"
-import {
-    ArrowRight,
-    BriefcaseBusiness,
-    CreditCard,
-    Loader2
-} from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
+import { type FormEvent, useState } from "react";
+import { ArrowRight, BriefcaseBusiness, CreditCard, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
-import { ApiError } from "@/api/http"
-import { type RegisterRole, useAuth } from "@/auth/auth-context"
-import { AuthShell } from "@/components/layout/auth-shell"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { notifyError, notifySuccess } from "@/lib/notify"
-import { cn } from "@/lib/utils"
+import { ApiError } from "@/api/http";
+import { type RegisterRole, useAuth } from "@/auth/auth-context";
+import { AuthShell } from "@/components/layout/auth-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { notifyError, notifySuccess } from "@/lib/notify";
+import { cn } from "@/lib/utils";
 
 type RoleOption = {
-    value: RegisterRole
-    title: string
-    description: string
-    icon: React.ComponentType<{ className?: string }>
-}
+    value: RegisterRole;
+    title: string;
+    description: string;
+    icon: React.ComponentType<{ className?: string }>;
+};
 
 const roleOptions: RoleOption[] = [
     {
@@ -36,51 +31,51 @@ const roleOptions: RoleOption[] = [
         description: "Publish APIs, connect schemas, and create pricing plans in Seller Studio.",
         icon: BriefcaseBusiness
     }
-]
+];
 
 export const RegisterPage = () => {
-    const { register } = useAuth()
-    const navigate = useNavigate()
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [role, setRole] = useState<RegisterRole>("BUYER")
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+    const { register } = useAuth();
+    const navigate = useNavigate();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [role, setRole] = useState<RegisterRole>("BUYER");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-        const nextErrors: { email?: string; password?: string } = {}
-        const trimmedEmail = email.trim()
+        event.preventDefault();
+        const nextErrors: { email?: string; password?: string } = {};
+        const trimmedEmail = email.trim();
 
         if (!trimmedEmail) {
-            nextErrors.email = "Email is required."
+            nextErrors.email = "Email is required.";
         } else if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
-            nextErrors.email = "Enter a valid email."
+            nextErrors.email = "Enter a valid email.";
         }
 
         if (!password) {
-            nextErrors.password = "Password is required."
+            nextErrors.password = "Password is required.";
         } else if (password.length < 8) {
-            nextErrors.password = "Password must be at least 8 characters."
+            nextErrors.password = "Password must be at least 8 characters.";
         }
 
-        setErrors(nextErrors)
+        setErrors(nextErrors);
         if (Object.keys(nextErrors).length > 0) {
-            return
+            return;
         }
 
-        setIsSubmitting(true)
+        setIsSubmitting(true);
         try {
-            await register({ email: trimmedEmail, password, role })
-            notifySuccess("Registration complete", "You can now sign in with your credentials.")
-            navigate("/login")
+            await register({ email: trimmedEmail, password, role });
+            notifySuccess("Registration complete", "You can now sign in with your credentials.");
+            navigate("/login");
         } catch (error) {
-            const apiError = error instanceof ApiError ? error : null
-            notifyError(apiError ?? error, apiError?.code ?? "Registration failed")
+            const apiError = error instanceof ApiError ? error : null;
+            notifyError(apiError ?? error, apiError?.code ?? "Registration failed");
         } finally {
-            setIsSubmitting(false)
+            setIsSubmitting(false);
         }
-    }
+    };
 
     return (
         <AuthShell
@@ -98,15 +93,18 @@ export const RegisterPage = () => {
             panelHighlights={[
                 {
                     title: "Buyer-first accounts stay operational",
-                    description: "Subscriptions, keys, usage, and billing remain the center of gravity after sign-up."
+                    description:
+                        "Subscriptions, keys, usage, and billing remain the center of gravity after sign-up."
                 },
                 {
                     title: "Seller-first accounts skip the awkward upgrade gap",
-                    description: "You can start from publishing instead of pretending you only consume APIs."
+                    description:
+                        "You can start from publishing instead of pretending you only consume APIs."
                 },
                 {
                     title: "Role boundaries remain visible",
-                    description: "The UI keeps buyer, seller, and admin contexts legible instead of blending them together."
+                    description:
+                        "The UI keeps buyer, seller, and admin contexts legible instead of blending them together."
                 }
             ]}
         >
@@ -120,9 +118,9 @@ export const RegisterPage = () => {
                         autoComplete="email"
                         value={email}
                         onChange={(event) => {
-                            setEmail(event.target.value)
+                            setEmail(event.target.value);
                             if (errors.email) {
-                                setErrors((prev) => ({ ...prev, email: undefined }))
+                                setErrors((prev) => ({ ...prev, email: undefined }));
                             }
                         }}
                         aria-invalid={Boolean(errors.email)}
@@ -146,9 +144,9 @@ export const RegisterPage = () => {
                         autoComplete="new-password"
                         value={password}
                         onChange={(event) => {
-                            setPassword(event.target.value)
+                            setPassword(event.target.value);
                             if (errors.password) {
-                                setErrors((prev) => ({ ...prev, password: undefined }))
+                                setErrors((prev) => ({ ...prev, password: undefined }));
                             }
                         }}
                         aria-invalid={Boolean(errors.password)}
@@ -162,7 +160,8 @@ export const RegisterPage = () => {
                         </p>
                     ) : null}
                     <p className="text-xs text-muted-foreground">
-                        Use at least 8 characters. You can start as Buyer and upgrade later from the dashboard.
+                        Use at least 8 characters. You can start as Buyer and upgrade later from the
+                        dashboard.
                     </p>
                 </div>
 
@@ -174,17 +173,17 @@ export const RegisterPage = () => {
                                 key={option.value}
                                 type="button"
                                 className={cn(
-                                    "rounded-[1.25rem] border px-4 py-4 text-left transition-all",
+                                    "min-h-[132px] rounded-lg border px-4 py-4 text-left transition-[background-color,border-color,box-shadow]",
                                     role === option.value
-                                        ? "border-primary bg-primary/10 shadow-[0_18px_34px_-24px_hsl(var(--primary)/0.65)]"
-                                        : "border-border/70 bg-background/70 hover:border-primary/25 hover:bg-accent/40"
+                                        ? "border-primary/70 bg-primary/8 shadow-[0_18px_34px_-28px_hsl(var(--primary)/0.58)]"
+                                        : "border-border/70 bg-background/70 hover:border-foreground/20 hover:bg-muted/50"
                                 )}
                                 onClick={() => setRole(option.value)}
                             >
-                                <div className="flex items-start gap-3">
+                                <div className="flex h-full items-start gap-3">
                                     <div
                                         className={cn(
-                                            "flex h-11 w-11 items-center justify-center rounded-2xl",
+                                            "flex h-10 w-10 shrink-0 items-center justify-center rounded-md",
                                             role === option.value
                                                 ? "bg-primary text-primary-foreground"
                                                 : "bg-primary/10 text-primary"
@@ -196,7 +195,7 @@ export const RegisterPage = () => {
                                         <div className="text-sm font-semibold text-foreground">
                                             {option.title}
                                         </div>
-                                        <div className="mt-1 text-sm leading-6 text-muted-foreground">
+                                        <div className="mt-2 text-sm leading-6 text-muted-foreground">
                                             {option.description}
                                         </div>
                                     </div>
@@ -230,5 +229,5 @@ export const RegisterPage = () => {
                 </div>
             </form>
         </AuthShell>
-    )
-}
+    );
+};

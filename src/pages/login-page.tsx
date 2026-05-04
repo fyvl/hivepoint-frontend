@@ -1,66 +1,65 @@
-import { type FormEvent, useState } from "react"
-import { ArrowRight, Loader2 } from "lucide-react"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { type FormEvent, useState } from "react";
+import { ArrowRight, Loader2 } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { ApiError } from "@/api/http"
-import { useAuth } from "@/auth/auth-context"
-import { AuthShell } from "@/components/layout/auth-shell"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { notifyError, notifySuccess } from "@/lib/notify"
+import { ApiError } from "@/api/http";
+import { useAuth } from "@/auth/auth-context";
+import { AuthShell } from "@/components/layout/auth-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { notifyError, notifySuccess } from "@/lib/notify";
 
 export const LoginPage = () => {
-    const { login } = useAuth()
-    const navigate = useNavigate()
-    const location = useLocation()
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+    const { login } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
-    const from = (location.state as { from?: string } | null)?.from ?? "/"
+    const from = (location.state as { from?: string } | null)?.from ?? "/";
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-        const nextErrors: { email?: string; password?: string } = {}
-        const trimmedEmail = email.trim()
+        event.preventDefault();
+        const nextErrors: { email?: string; password?: string } = {};
+        const trimmedEmail = email.trim();
 
         if (!trimmedEmail) {
-            nextErrors.email = "Email is required."
+            nextErrors.email = "Email is required.";
         } else if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
-            nextErrors.email = "Enter a valid email."
+            nextErrors.email = "Enter a valid email.";
         }
 
         if (!password) {
-            nextErrors.password = "Password is required."
+            nextErrors.password = "Password is required.";
         } else if (password.length < 8) {
-            nextErrors.password = "Password must be at least 8 characters."
+            nextErrors.password = "Password must be at least 8 characters.";
         }
 
-        setErrors(nextErrors)
+        setErrors(nextErrors);
         if (Object.keys(nextErrors).length > 0) {
-            return
+            return;
         }
 
-        setIsSubmitting(true)
+        setIsSubmitting(true);
         try {
-            await login({ email: trimmedEmail, password })
-            notifySuccess("Signed in", "Access token stored in memory.")
-            navigate(from, { replace: true })
+            await login({ email: trimmedEmail, password });
+            notifySuccess("Signed in", "Access token stored in memory.");
+            navigate(from, { replace: true });
         } catch (error) {
-            const apiError = error instanceof ApiError ? error : null
-            notifyError(apiError ?? error, apiError?.code ?? "Login failed")
+            const apiError = error instanceof ApiError ? error : null;
+            notifyError(apiError ?? error, apiError?.code ?? "Login failed");
         } finally {
-            setIsSubmitting(false)
+            setIsSubmitting(false);
         }
-    }
+    };
 
     return (
         <AuthShell
             eyebrow="Account access"
             title="Sign in and move from browsing to operations."
-            description="Once you are in, HivePoint shifts from marketplace view into billing, keys, usage, and role-aware publishing surfaces."
             panelBadge="Secure session"
             panelTitle="Operational access should feel calm and direct."
             panelDescription="The sign-in surface is intentionally light on ceremony: clear fields, direct routing back to the page that asked for auth, and no confusion about what unlocks next."
@@ -72,15 +71,18 @@ export const LoginPage = () => {
             panelHighlights={[
                 {
                     title: "Buyer flows unlock instantly",
-                    description: "Subscriptions, API keys, and usage analytics become available right after sign-in."
+                    description:
+                        "Subscriptions, API keys, and usage analytics become available right after sign-in."
                 },
                 {
                     title: "Seller work begins from the same shell",
-                    description: "No second product or hidden admin panel is required to start publishing APIs."
+                    description:
+                        "No second product or hidden admin panel is required to start publishing APIs."
                 },
                 {
                     title: "Gateway debugging stays close",
-                    description: "Auth context, cookies, and bearer flow can be checked from the same application shell."
+                    description:
+                        "Auth context, cookies, and bearer flow can be checked from the same application shell."
                 }
             ]}
         >
@@ -94,9 +96,9 @@ export const LoginPage = () => {
                         autoComplete="email"
                         value={email}
                         onChange={(event) => {
-                            setEmail(event.target.value)
+                            setEmail(event.target.value);
                             if (errors.email) {
-                                setErrors((prev) => ({ ...prev, email: undefined }))
+                                setErrors((prev) => ({ ...prev, email: undefined }));
                             }
                         }}
                         aria-invalid={Boolean(errors.email)}
@@ -120,9 +122,9 @@ export const LoginPage = () => {
                         autoComplete="current-password"
                         value={password}
                         onChange={(event) => {
-                            setPassword(event.target.value)
+                            setPassword(event.target.value);
                             if (errors.password) {
-                                setErrors((prev) => ({ ...prev, password: undefined }))
+                                setErrors((prev) => ({ ...prev, password: undefined }));
                             }
                         }}
                         aria-invalid={Boolean(errors.password)}
@@ -135,11 +137,6 @@ export const LoginPage = () => {
                             {errors.password}
                         </p>
                     ) : null}
-                </div>
-
-                <div className="rounded-[1.25rem] border border-border/70 bg-background/70 px-4 py-4 text-sm text-muted-foreground">
-                    Your access token stays in memory after sign-in. The app uses refresh flow to
-                    recover the session when possible.
                 </div>
 
                 <Button type="submit" className="h-12 w-full text-base" disabled={isSubmitting}>
@@ -166,5 +163,5 @@ export const LoginPage = () => {
                 </div>
             </form>
         </AuthShell>
-    )
-}
+    );
+};

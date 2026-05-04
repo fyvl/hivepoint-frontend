@@ -1,5 +1,5 @@
-import { type CSSProperties, useEffect, useMemo, useState } from "react"
-import { Link } from "react-router-dom"
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
     ArrowRight,
     ChevronLeft,
@@ -8,44 +8,34 @@ import {
     Search,
     Sparkles,
     Tag
-} from "lucide-react"
+} from "lucide-react";
 
-import {
-    createCatalogApi,
-    type CatalogProduct,
-    type ListProductsResponse
-} from "@/api/catalog"
-import { ApiError } from "@/api/http"
-import { useAuth } from "@/auth/auth-context"
-import { StatusBadge } from "@/components/status-badge"
-import { CatalogGridSkeleton } from "@/components/skeletons/catalog-grid-skeleton"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-    CardTitle
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { EmptyBlock } from "@/components/ui-states/empty-block"
-import { ErrorBlock } from "@/components/ui-states/error-block"
-import { useDebouncedValue } from "@/hooks/use-debounced-value"
-import { formatNumber } from "@/lib/format"
-import { notifyError } from "@/lib/notify"
-import { fetchWithCache } from "@/lib/request-cache"
-import { cn } from "@/lib/utils"
+import { createCatalogApi, type CatalogProduct, type ListProductsResponse } from "@/api/catalog";
+import { ApiError } from "@/api/http";
+import { useAuth } from "@/auth/auth-context";
+import { StatusBadge } from "@/components/status-badge";
+import { CatalogGridSkeleton } from "@/components/skeletons/catalog-grid-skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { EmptyBlock } from "@/components/ui-states/empty-block";
+import { ErrorBlock } from "@/components/ui-states/error-block";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { formatNumber } from "@/lib/format";
+import { notifyError } from "@/lib/notify";
+import { fetchWithCache } from "@/lib/request-cache";
+import { cn } from "@/lib/utils";
 
-const limitOptions = [6, 12, 24]
+const limitOptions = [6, 12, 24];
 
 const clampStyle: CSSProperties = {
     display: "-webkit-box",
     WebkitLineClamp: 3,
     WebkitBoxOrient: "vertical",
     overflow: "hidden"
-}
+};
 
 const accentPalettes = [
     {
@@ -64,215 +54,204 @@ const accentPalettes = [
         gradient: "from-violet-500 via-fuchsia-400 to-indigo-400",
         badge: "border-violet-500/20 bg-violet-500/10 text-violet-700 dark:text-violet-300"
     }
-]
+];
 
 type CatalogFetchState = {
-    items: CatalogProduct[]
-    total?: number
-}
+    items: CatalogProduct[];
+    total?: number;
+};
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
-    return typeof value === "object" && value !== null
-}
+    return typeof value === "object" && value !== null;
+};
 
 const getString = (record: Record<string, unknown> | null, key: string) => {
     if (!record) {
-        return undefined
+        return undefined;
     }
-    const value = record[key]
-    return typeof value === "string" ? value : undefined
-}
+    const value = record[key];
+    return typeof value === "string" ? value : undefined;
+};
 
 const getStringArray = (record: Record<string, unknown> | null, key: string) => {
     if (!record) {
-        return []
+        return [];
     }
-    const value = record[key]
+    const value = record[key];
     if (!Array.isArray(value)) {
-        return []
+        return [];
     }
-    return value.filter((item) => typeof item === "string")
-}
+    return value.filter((item) => typeof item === "string");
+};
 
 const extractListItems = (payload: ListProductsResponse): CatalogProduct[] => {
     if (Array.isArray(payload)) {
-        return payload
+        return payload;
     }
 
     if (!isRecord(payload)) {
-        return []
+        return [];
     }
 
-    const items = payload.items
-    return Array.isArray(items) ? items : []
-}
+    const items = payload.items;
+    return Array.isArray(items) ? items : [];
+};
 
 const extractListTotal = (payload: ListProductsResponse): number | undefined => {
     if (!isRecord(payload)) {
-        return undefined
+        return undefined;
     }
 
-    const total = payload.total
-    return typeof total === "number" ? total : undefined
-}
+    const total = payload.total;
+    return typeof total === "number" ? total : undefined;
+};
 
 const getCardKey = (product: CatalogProduct, index: number) => {
-    const record = isRecord(product) ? product : null
-    const id = getString(record, "id")
-    return id ?? `product-${index}`
-}
+    const record = isRecord(product) ? product : null;
+    const id = getString(record, "id");
+    return id ?? `product-${index}`;
+};
 
 const getPalette = (key: string) => {
-    const normalized = key.trim()
+    const normalized = key.trim();
     if (!normalized) {
-        return accentPalettes[0]
+        return accentPalettes[0];
     }
 
-    const score = Array.from(normalized).reduce(
-        (sum, char) => sum + char.charCodeAt(0),
-        0
-    )
-    return accentPalettes[score % accentPalettes.length]
-}
+    const score = Array.from(normalized).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return accentPalettes[score % accentPalettes.length];
+};
 
 export const CatalogPage = () => {
-    const { accessToken, refresh } = useAuth()
+    const { accessToken, refresh } = useAuth();
     const catalogApi = useMemo(
         () => createCatalogApi({ accessToken, refresh }),
         [accessToken, refresh]
-    )
+    );
 
-    const [search, setSearch] = useState("")
-    const [category, setCategory] = useState("")
-    const [limit, setLimit] = useState(12)
-    const [offset, setOffset] = useState(0)
-    const [state, setState] = useState<CatalogFetchState>({ items: [] })
-    const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState<ApiError | null>(null)
-    const [retryKey, setRetryKey] = useState(0)
+    const [search, setSearch] = useState("");
+    const [category, setCategory] = useState("");
+    const [limit, setLimit] = useState(12);
+    const [offset, setOffset] = useState(0);
+    const [state, setState] = useState<CatalogFetchState>({ items: [] });
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<ApiError | null>(null);
+    const [retryKey, setRetryKey] = useState(0);
 
-    const debouncedSearch = useDebouncedValue(search, 400)
-    const debouncedCategory = useDebouncedValue(category, 400)
-
-    useEffect(() => {
-        setOffset(0)
-    }, [debouncedSearch, debouncedCategory, limit])
+    const debouncedSearch = useDebouncedValue(search, 400);
+    const debouncedCategory = useDebouncedValue(category, 400);
 
     useEffect(() => {
-        let isActive = true
+        setOffset(0);
+    }, [debouncedSearch, debouncedCategory, limit]);
+
+    useEffect(() => {
+        let isActive = true;
 
         const load = async () => {
-            setIsLoading(true)
-            setError(null)
+            setIsLoading(true);
+            setError(null);
             try {
                 const query: Record<string, unknown> = {
                     limit,
                     offset
-                }
+                };
 
                 if (debouncedSearch) {
-                    query.search = debouncedSearch
+                    query.search = debouncedSearch;
                 }
 
                 if (debouncedCategory) {
-                    query.category = debouncedCategory
+                    query.category = debouncedCategory;
                 }
 
-                const cacheKey = `catalog:list:${accessToken ?? "public"}:${JSON.stringify(
-                    query
-                )}`
+                const cacheKey = `catalog:list:${accessToken ?? "public"}:${JSON.stringify(query)}`;
                 const result = await fetchWithCache(
                     cacheKey,
                     async () => await catalogApi.listProducts(query),
                     30000
-                )
+                );
 
                 if (!isActive) {
-                    return
+                    return;
                 }
 
                 setState({
                     items: extractListItems(result),
                     total: extractListTotal(result)
-                })
+                });
             } catch (err) {
                 if (!isActive) {
-                    return
+                    return;
                 }
 
-                const apiError = err instanceof ApiError ? err : null
-                setError(apiError)
-                setState({ items: [] })
-                notifyError(apiError ?? err, "Catalog error")
+                const apiError = err instanceof ApiError ? err : null;
+                setError(apiError);
+                setState({ items: [] });
+                notifyError(apiError ?? err, "Catalog error");
             } finally {
                 if (isActive) {
-                    setIsLoading(false)
+                    setIsLoading(false);
                 }
             }
-        }
+        };
 
-        load()
+        load();
 
         return () => {
-            isActive = false
-        }
-    }, [accessToken, catalogApi, debouncedSearch, debouncedCategory, limit, offset, retryKey])
+            isActive = false;
+        };
+    }, [accessToken, catalogApi, debouncedSearch, debouncedCategory, limit, offset, retryKey]);
 
-    const hasPrev = offset > 0
+    const hasPrev = offset > 0;
     const hasNext =
-        state.total !== undefined
-            ? offset + limit < state.total
-            : state.items.length === limit
+        state.total !== undefined ? offset + limit < state.total : state.items.length === limit;
 
     const showingText =
         state.total !== undefined
             ? state.total === 0
                 ? "0 of 0"
                 : `${offset + 1}-${Math.min(offset + limit, state.total)} of ${state.total}`
-            : `Showing ${state.items.length} items`
-    const hasFilters = Boolean(search) || Boolean(category)
+            : `Showing ${state.items.length} items`;
+    const hasFilters = Boolean(search) || Boolean(category);
 
     const categoriesInView = useMemo(() => {
-        const categories = new Set<string>()
+        const categories = new Set<string>();
         state.items.forEach((product) => {
-            const record = isRecord(product) ? product : null
-            const value = getString(record, "category")
+            const record = isRecord(product) ? product : null;
+            const value = getString(record, "category");
             if (value) {
-                categories.add(value)
+                categories.add(value);
             }
-        })
-        return Array.from(categories).slice(0, 6)
-    }, [state.items])
+        });
+        return Array.from(categories).slice(0, 6);
+    }, [state.items]);
 
     const featuredTags = useMemo(() => {
-        const counts = new Map<string, number>()
+        const counts = new Map<string, number>();
         state.items.forEach((product) => {
-            const record = isRecord(product) ? product : null
+            const record = isRecord(product) ? product : null;
             getStringArray(record, "tags").forEach((tag) => {
-                counts.set(tag, (counts.get(tag) ?? 0) + 1)
-            })
-        })
+                counts.set(tag, (counts.get(tag) ?? 0) + 1);
+            });
+        });
 
         return [...counts.entries()]
             .sort((left, right) => right[1] - left[1])
             .slice(0, 6)
-            .map(([tag]) => tag)
-    }, [state.items])
+            .map(([tag]) => tag);
+    }, [state.items]);
 
     const totalProductsLabel =
-        state.total !== undefined
-            ? formatNumber(state.total)
-            : formatNumber(state.items.length)
-    const pageLabel = formatNumber(Math.floor(offset / limit) + 1)
+        state.total !== undefined ? formatNumber(state.total) : formatNumber(state.items.length);
+    const pageLabel = formatNumber(Math.floor(offset / limit) + 1);
 
     return (
         <div className="flex flex-col gap-8">
             <section className="surface-panel-strong relative overflow-hidden px-6 py-6 md:px-8 md:py-8">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-primary/85 via-amber-400/70 to-transparent" />
-                <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[34%] bg-[linear-gradient(180deg,rgba(15,23,42,0.03),transparent)] xl:block" />
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)/0.1),_transparent_56%)]" />
+                <div className="catalog-hero-accent" />
 
-                <div className="grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_400px]">
+                <div className="relative z-10 grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_400px]">
                     <div>
                         <div className="section-kicker">
                             <Sparkles className="h-3.5 w-3.5" />
@@ -282,8 +261,8 @@ export const CatalogPage = () => {
                             Find API products that are already shaped for real traffic.
                         </h1>
                         <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-                            Search the catalog, move from product metadata into versions, then
-                            step into billing and gateway workflows without context switching.
+                            Search the catalog, move from product metadata into versions, then step
+                            into billing and gateway workflows without context switching.
                         </p>
 
                         <div className="mt-7 grid gap-3 sm:grid-cols-3">
@@ -305,7 +284,7 @@ export const CatalogPage = () => {
                         </div>
                     </div>
 
-                    <div className="surface-panel border-border/80 bg-background/78 px-5 py-5">
+                    <div className="surface-panel border-border/80 bg-background/86 px-5 py-5">
                         <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
                             Refine discovery
                         </div>
@@ -371,8 +350,8 @@ export const CatalogPage = () => {
                                 variant="outline"
                                 className="justify-between"
                                 onClick={() => {
-                                    setSearch("")
-                                    setCategory("")
+                                    setSearch("");
+                                    setCategory("");
                                 }}
                                 disabled={!hasFilters}
                             >
@@ -384,7 +363,7 @@ export const CatalogPage = () => {
                 </div>
 
                 {categoriesInView.length > 0 || featuredTags.length > 0 ? (
-                    <div className="mt-8 grid gap-4 lg:grid-cols-2">
+                    <div className="relative z-10 mt-8 grid gap-4 lg:grid-cols-2">
                         {categoriesInView.length > 0 ? (
                             <div className="rounded-[1.2rem] border border-border/70 bg-background/72 px-4 py-4">
                                 <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
@@ -435,9 +414,7 @@ export const CatalogPage = () => {
                 {hasFilters ? (
                     <div className="flex flex-wrap gap-2">
                         {search ? <Badge variant="secondary">Search: {search}</Badge> : null}
-                        {category ? (
-                            <Badge variant="secondary">Category: {category}</Badge>
-                        ) : null}
+                        {category ? <Badge variant="secondary">Category: {category}</Badge> : null}
                     </div>
                 ) : null}
             </div>
@@ -461,8 +438,8 @@ export const CatalogPage = () => {
                     onAction={
                         hasFilters
                             ? () => {
-                                  setSearch("")
-                                  setCategory("")
+                                  setSearch("");
+                                  setCategory("");
                               }
                             : undefined
                     }
@@ -505,17 +482,17 @@ export const CatalogPage = () => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 const StatPanel = ({
     label,
     value,
     caption
 }: {
-    label: string
-    value: string
-    caption: string
+    label: string;
+    value: string;
+    caption: string;
 }) => {
     return (
         <div className="rounded-[1.2rem] border border-border/70 bg-background/72 px-4 py-4">
@@ -525,40 +502,36 @@ const StatPanel = ({
             <div className="mt-2 text-2xl font-semibold text-foreground">{value}</div>
             <div className="mt-2 text-sm leading-6 text-muted-foreground">{caption}</div>
         </div>
-    )
-}
+    );
+};
 
 const CatalogCard = ({ product }: { product: CatalogProduct }) => {
-    const record = isRecord(product) ? product : null
-    const title = getString(record, "title") ?? "Untitled product"
-    const description =
-        getString(record, "description") ?? "No description available yet."
-    const category = getString(record, "category") ?? "Uncategorized"
-    const status = getString(record, "status") ?? ""
-    const tags = getStringArray(record, "tags")
-    const productId = getString(record, "id")
-    const palette = getPalette(category)
+    const record = isRecord(product) ? product : null;
+    const title = getString(record, "title") ?? "Untitled product";
+    const description = getString(record, "description") ?? "No description available yet.";
+    const category = getString(record, "category") ?? "Uncategorized";
+    const status = getString(record, "status") ?? "";
+    const tags = getStringArray(record, "tags");
+    const productId = getString(record, "id");
+    const palette = getPalette(category);
 
-    return (
-        <Card className="group relative flex h-full flex-col overflow-hidden border-border/80 bg-card">
+    const content = (
+        <Card className="relative flex h-full min-h-[270px] flex-col overflow-hidden border-border/80 bg-card/95 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md">
             <div
-                className={cn(
-                    "absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r",
-                    palette.gradient
-                )}
+                className={cn("absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r", palette.gradient)}
             />
 
-            <CardHeader className="relative pb-4">
+            <CardHeader className="relative p-5 pb-4">
                 <div className="flex items-start justify-between gap-3">
                     <Badge variant="outline" className={cn("font-medium", palette.badge)}>
                         {category}
                     </Badge>
                     {status ? <StatusBadge kind="product" value={status} /> : null}
                 </div>
-                <CardTitle className="mt-5 text-[1.6rem] leading-tight">{title}</CardTitle>
+                <CardTitle className="mt-5 text-xl leading-tight">{title}</CardTitle>
             </CardHeader>
 
-            <CardContent className="relative flex-1 pb-4">
+            <CardContent className="relative flex-1 p-5 pt-0">
                 <p className="text-sm leading-7 text-muted-foreground" style={clampStyle}>
                     {description}
                 </p>
@@ -577,24 +550,24 @@ const CatalogCard = ({ product }: { product: CatalogProduct }) => {
                 ) : null}
             </CardContent>
 
-            <CardFooter className="relative mt-auto border-t border-border/70 bg-background/45 pt-4">
-                {productId ? (
-                    <Link
-                        to={`/products/${productId}`}
-                        className="flex w-full items-center justify-between text-sm font-medium text-foreground transition-colors hover:text-primary"
-                    >
-                        <span>Open product</span>
-                        <span className="flex items-center gap-1">
-                            Details
-                            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </span>
-                    </Link>
-                ) : (
-                    <div className="text-sm font-medium text-muted-foreground">
-                        Open product
-                    </div>
-                )}
+            <CardFooter className="relative mt-auto border-t border-border/70 p-5 pt-4">
+                <div className="flex w-full items-center justify-between text-sm font-medium text-foreground">
+                    <span>{productId ? "Open product" : "Product unavailable"}</span>
+                    {productId ? (
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    ) : null}
+                </div>
             </CardFooter>
         </Card>
-    )
-}
+    );
+
+    if (!productId) {
+        return <div className="h-full">{content}</div>;
+    }
+
+    return (
+        <Link to={`/products/${productId}`} className="group block h-full min-w-0">
+            {content}
+        </Link>
+    );
+};

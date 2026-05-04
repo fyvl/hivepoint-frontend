@@ -1,23 +1,23 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 type LogoProps = {
-    size?: "sm" | "md" | "lg"
-    showText?: boolean
-    className?: string
-}
+    size?: "sm" | "md" | "lg";
+    showText?: boolean;
+    className?: string;
+};
 
 export const Logo = ({ size = "md", showText = true, className }: LogoProps) => {
     const sizeClasses = {
         sm: "h-6 w-6",
         md: "h-8 w-8",
         lg: "h-12 w-12"
-    }
+    };
 
     const textSizeClasses = {
         sm: "text-base",
         md: "text-xl",
         lg: "text-2xl"
-    }
+    };
 
     return (
         <div className={cn("flex items-center gap-2", className)}>
@@ -65,18 +65,15 @@ export const Logo = ({ size = "md", showText = true, className }: LogoProps) => 
                 </svg>
             </div>
             {showText && (
-                <span className={cn(
-                    "font-bold tracking-tight",
-                    textSizeClasses[size]
-                )}>
+                <span className={cn("font-bold", textSizeClasses[size])}>
                     <span className="text-foreground">Hive</span>
                     <span className="text-primary">Point</span>
                 </span>
             )}
         </div>
-    )
-}
+    );
+};
 
 export const LogoMark = ({ size = "md", className }: Omit<LogoProps, "showText">) => {
-    return <Logo size={size} showText={false} className={className} />
-}
+    return <Logo size={size} showText={false} className={className} />;
+};

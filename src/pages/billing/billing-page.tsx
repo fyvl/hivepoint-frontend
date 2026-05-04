@@ -258,19 +258,19 @@ export const BillingPage = () => {
 
                     <div className="grid gap-4 md:grid-cols-3">
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader>
                                 <CardDescription>Active</CardDescription>
                                 <CardTitle>{subscriptionStats.active}</CardTitle>
                             </CardHeader>
                         </Card>
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader>
                                 <CardDescription>Past due</CardDescription>
                                 <CardTitle>{subscriptionStats.pastDue}</CardTitle>
                             </CardHeader>
                         </Card>
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader>
                                 <CardDescription>Canceling at period end</CardDescription>
                                 <CardTitle>{subscriptionStats.canceling}</CardTitle>
                             </CardHeader>

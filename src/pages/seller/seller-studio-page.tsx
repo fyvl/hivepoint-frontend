@@ -1,5 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, CircleDashed, Rocket } from "lucide-react";
+import { CheckCircle2, CircleDashed, Plus, Rocket } from "lucide-react";
 
 import {
     createCatalogApi,
@@ -15,8 +15,17 @@ import { CopyButton } from "@/components/copy-button";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyBlock } from "@/components/ui-states/empty-block";
 import { ErrorBlock } from "@/components/ui-states/error-block";
 import { LoadingBlock } from "@/components/ui-states/loading-block";
@@ -122,6 +131,7 @@ export const SellerStudioPage = () => {
     const [detailsError, setDetailsError] = useState<ApiError | null>(null);
     const [analyticsError, setAnalyticsError] = useState<ApiError | null>(null);
     const [retryKey, setRetryKey] = useState(0);
+    const [isCreateProductOpen, setIsCreateProductOpen] = useState(false);
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -287,6 +297,7 @@ export const SellerStudioPage = () => {
             setDescription("");
             setCategory("");
             setTags("");
+            setIsCreateProductOpen(false);
             await loadAnalytics();
             notifySuccess("Product created", "Your API product has been added to the workspace.");
         } catch (err) {
@@ -494,25 +505,129 @@ export const SellerStudioPage = () => {
 
     return (
         <div className="flex flex-col gap-8">
-            <section className="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-slate-900 via-teal-900 to-emerald-900 p-8 text-white shadow-2xl">
-                <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-emerald-300/20 blur-3xl" />
-                <div className="absolute -bottom-20 left-8 h-48 w-48 rounded-full bg-cyan-300/20 blur-3xl" />
-                <div className="relative z-10 space-y-4">
-                    <p className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider">
-                        <Rocket className="h-3.5 w-3.5" />
-                        Seller Studio
-                    </p>
-                    <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-                        Build, release, and monetize your APIs
-                    </h1>
-                    <p className="max-w-2xl text-sm text-white/85 md:text-base">
-                        This workspace is tailored for sellers: publish products, release versions,
-                        and create pricing plans.
-                    </p>
-                    <div className="grid gap-3 sm:grid-cols-3">
-                        <StatChip label="Visible products" value={String(products.length)} />
-                        <StatChip label="Published" value={String(publishedCount)} />
-                        <StatChip label="Plans (selected product)" value={String(plans.length)} />
+            <section className="surface-panel-strong p-6">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="max-w-2xl">
+                        <div className="section-kicker">
+                            <Rocket className="h-3.5 w-3.5" />
+                            Seller Studio
+                        </div>
+                        <h1 className="mt-3 text-3xl font-semibold text-foreground">
+                            Products, releases, and plans
+                        </h1>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                            Select a product, check what is missing, then publish versions and
+                            pricing from the same workspace.
+                        </p>
+                    </div>
+                    <div className="flex flex-col gap-3 lg:min-w-[520px] lg:items-end">
+                        <Dialog open={isCreateProductOpen} onOpenChange={setIsCreateProductOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="w-full sm:w-auto">
+                                    <Plus className="h-4 w-4" />
+                                    New product
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+                                <DialogHeader>
+                                    <DialogTitle>Create new product</DialogTitle>
+                                    <DialogDescription>
+                                        Create a separate catalog listing. This does not edit the
+                                        currently selected product.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form className="space-y-4" onSubmit={handleCreateProduct}>
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div className="space-y-2 sm:col-span-2">
+                                            <Label htmlFor="seller-title">Title</Label>
+                                            <Input
+                                                id="seller-title"
+                                                placeholder="Payments API"
+                                                value={title}
+                                                onChange={(event) => setTitle(event.target.value)}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="seller-category">Category</Label>
+                                            <Input
+                                                id="seller-category"
+                                                placeholder="fintech"
+                                                value={category}
+                                                onChange={(event) =>
+                                                    setCategory(event.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="seller-tags">
+                                                Tags (comma separated)
+                                            </Label>
+                                            <Input
+                                                id="seller-tags"
+                                                placeholder="payments, cards, invoices"
+                                                value={tags}
+                                                onChange={(event) => setTags(event.target.value)}
+                                            />
+                                        </div>
+                                        <div className="space-y-2 sm:col-span-2">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <Label htmlFor="seller-description">
+                                                    Description
+                                                </Label>
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="outline"
+                                                    disabled={
+                                                        isGeneratingDescription ||
+                                                        isCreatingProduct ||
+                                                        !title.trim() ||
+                                                        !category.trim()
+                                                    }
+                                                    onClick={handleGenerateDescription}
+                                                >
+                                                    {isGeneratingDescription
+                                                        ? "Generating..."
+                                                        : "Generate with AI"}
+                                                </Button>
+                                            </div>
+                                            <textarea
+                                                id="seller-description"
+                                                className={cn(
+                                                    "flex min-h-[120px] w-full rounded-md border border-border/80 bg-background px-3 py-2 text-sm shadow-sm transition-[border-color,box-shadow,background-color] duration-150",
+                                                    "placeholder:text-muted-foreground focus-visible:border-foreground/20 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
+                                                )}
+                                                placeholder="Accept payments with a single endpoint."
+                                                value={description}
+                                                onChange={(event) =>
+                                                    setDescription(event.target.value)
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end gap-2 border-t border-border/70 pt-4">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setIsCreateProductOpen(false)}
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button type="submit" disabled={isCreatingProduct}>
+                                            {isCreatingProduct ? "Creating..." : "Create product"}
+                                        </Button>
+                                    </div>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
+                        <div className="grid w-full gap-3 sm:grid-cols-3">
+                            <StatChip label="Visible products" value={String(products.length)} />
+                            <StatChip label="Published" value={String(publishedCount)} />
+                            <StatChip
+                                label="Plans (selected product)"
+                                value={String(plans.length)}
+                            />
+                        </div>
                     </div>
                 </div>
             </section>
@@ -528,215 +643,106 @@ export const SellerStudioPage = () => {
                 />
             ) : analytics ? (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Active clients</CardDescription>
-                            <CardTitle>{formatNumber(analytics.totals.activeClients)}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Past due clients</CardDescription>
-                            <CardTitle>{formatNumber(analytics.totals.pastDueClients)}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Requests ({analytics.windowDays}d)</CardDescription>
-                            <CardTitle>{formatNumber(analytics.totals.requests30d)}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Active MRR</CardDescription>
-                            <CardTitle>
-                                {formatCurrency(analytics.totals.mrrCents, "EUR")}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
+                    <OverviewMetric
+                        label="Active clients"
+                        value={formatNumber(analytics.totals.activeClients)}
+                    />
+                    <OverviewMetric
+                        label="Past due clients"
+                        value={formatNumber(analytics.totals.pastDueClients)}
+                    />
+                    <OverviewMetric
+                        label={`Requests (${analytics.windowDays}d)`}
+                        value={formatNumber(analytics.totals.requests30d)}
+                    />
+                    <OverviewMetric
+                        label="Active MRR"
+                        value={formatCurrency(analytics.totals.mrrCents, "EUR")}
+                    />
                 </div>
             ) : null}
 
-            <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+            <StudioSectionHeader
+                eyebrow="Existing products"
+                title="Manage a selected product"
+                description="Choose a product from the list. Status, versions, plans, and analytics in the workspace below all apply to that selected product."
+            />
+
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
                 <Card>
                     <CardHeader>
-                        <CardTitle>How to connect your API</CardTitle>
+                        <CardTitle>Selected product</CardTitle>
                         <CardDescription>
-                            Use this flow to onboard one API product in Seller Studio.
+                            Current status, release readiness, and product controls.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-2">
-                        {setupSteps.map((step, index) => (
-                            <div
-                                key={step.label}
-                                className={cn(
-                                    "flex items-center justify-between rounded-lg border px-3 py-2",
-                                    step.done
-                                        ? "border-emerald-500/40 bg-emerald-500/5"
-                                        : "border-border"
-                                )}
-                            >
-                                <span className="text-sm">
-                                    {index + 1}. {step.label}
-                                </span>
-                                {step.done ? (
-                                    <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
-                                        <CheckCircle2 className="h-3.5 w-3.5" />
-                                        Done
-                                    </span>
-                                ) : (
-                                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                                        <CircleDashed className="h-3.5 w-3.5" />
-                                        Pending
-                                    </span>
-                                )}
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-
-                <Card className="border-amber-500/30 bg-amber-500/[0.06]">
-                    <CardHeader>
-                        <CardTitle>Runtime integration note</CardTitle>
-                        <CardDescription>
-                            Where to provide schema and how clients call your service.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm text-muted-foreground">
-                        <p>
-                            HivePoint stores your metadata and OpenAPI snapshot, while buyers send
-                            traffic through the HivePoint gateway.
-                        </p>
-                        <p>
-                            You still host the upstream API. Provide a publicly reachable OpenAPI
-                            URL and stable server URLs so the gateway can resolve your runtime
-                            target.
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-                <Card className="border-emerald-500/20">
-                    <CardHeader>
-                        <CardTitle>Create Product</CardTitle>
-                        <CardDescription>Start a new API listing for your catalog.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form className="space-y-4" onSubmit={handleCreateProduct}>
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="space-y-2 sm:col-span-2">
-                                    <Label htmlFor="seller-title">Title</Label>
-                                    <Input
-                                        id="seller-title"
-                                        placeholder="Payments API"
-                                        value={title}
-                                        onChange={(event) => setTitle(event.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="seller-category">Category</Label>
-                                    <Input
-                                        id="seller-category"
-                                        placeholder="fintech"
-                                        value={category}
-                                        onChange={(event) => setCategory(event.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="seller-tags">Tags (comma separated)</Label>
-                                    <Input
-                                        id="seller-tags"
-                                        placeholder="payments, cards, invoices"
-                                        value={tags}
-                                        onChange={(event) => setTags(event.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2 sm:col-span-2">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <Label htmlFor="seller-description">Description</Label>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="outline"
-                                            disabled={
-                                                isGeneratingDescription ||
-                                                isCreatingProduct ||
-                                                !title.trim() ||
-                                                !category.trim()
-                                            }
-                                            onClick={handleGenerateDescription}
-                                        >
-                                            {isGeneratingDescription
-                                                ? "Generating..."
-                                                : "Generate with AI"}
-                                        </Button>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Uses the current title, category, and tags to draft catalog
-                                        copy.
-                                    </p>
-                                    <textarea
-                                        id="seller-description"
-                                        className={cn(
-                                            "flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
-                                            "ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none",
-                                            "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                        )}
-                                        placeholder="Accept payments with a single endpoint."
-                                        value={description}
-                                        onChange={(event) => setDescription(event.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <Button type="submit" disabled={isCreatingProduct}>
-                                {isCreatingProduct ? "Creating..." : "Create product"}
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Selected Product</CardTitle>
-                        <CardDescription>
-                            Choose a product below to configure versions and plans.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="space-y-5">
                         {selectedProductRecord ? (
                             <>
-                                <div className="space-y-1">
-                                    <p className="text-sm font-semibold">
-                                        {getString(selectedProductRecord, "title") ??
-                                            "Untitled product"}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {getString(selectedProductRecord, "category") ??
-                                            "Uncategorized"}
-                                    </p>
-                                </div>
-                                <div className="flex flex-wrap items-center gap-2">
-                                    {selectedStatus ? (
-                                        <StatusBadge kind="product" value={selectedStatus} />
+                                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                    <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {selectedStatus ? (
+                                                <StatusBadge
+                                                    kind="product"
+                                                    value={selectedStatus}
+                                                />
+                                            ) : null}
+                                            <span className="text-sm text-muted-foreground">
+                                                {getString(selectedProductRecord, "category") ??
+                                                    "Uncategorized"}
+                                            </span>
+                                        </div>
+                                        <h2 className="mt-2 text-2xl font-semibold text-foreground">
+                                            {getString(selectedProductRecord, "title") ??
+                                                "Untitled product"}
+                                        </h2>
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {selectedTags.slice(0, 5).map((tag) => (
+                                                <span
+                                                    key={tag}
+                                                    className="rounded-md border px-2 py-1 text-xs text-muted-foreground"
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    {selectedProductId ? (
+                                        <CopyButton
+                                            value={selectedProductId}
+                                            label="Copy product ID"
+                                            size="sm"
+                                        />
                                     ) : null}
-                                    {selectedTags.slice(0, 4).map((tag) => (
-                                        <span
-                                            key={tag}
-                                            className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground"
+                                </div>
+
+                                <div className="grid gap-2 sm:grid-cols-4">
+                                    {setupSteps.map((step) => (
+                                        <div
+                                            key={step.label}
+                                            className={cn(
+                                                "rounded-lg border px-3 py-3",
+                                                step.done
+                                                    ? "border-emerald-500/35 bg-emerald-500/5"
+                                                    : "border-border bg-muted/20"
+                                            )}
                                         >
-                                            {tag}
-                                        </span>
+                                            <div className="flex items-center gap-2">
+                                                {step.done ? (
+                                                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                                                ) : (
+                                                    <CircleDashed className="h-4 w-4 text-muted-foreground" />
+                                                )}
+                                                <span className="text-sm font-medium">
+                                                    {step.label}
+                                                </span>
+                                            </div>
+                                        </div>
                                     ))}
                                 </div>
-                                {selectedProductId ? (
-                                    <CopyButton
-                                        value={selectedProductId}
-                                        label="Copy product ID"
-                                        size="sm"
-                                    />
-                                ) : null}
-                                <div className="flex flex-wrap gap-2 pt-2">
+
+                                <div className="flex flex-wrap gap-2 border-t border-border/70 pt-4">
                                     <Button
                                         type="button"
                                         size="sm"
@@ -776,110 +782,192 @@ export const SellerStudioPage = () => {
                         )}
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Product Analytics</CardTitle>
-                        <CardDescription>
-                            Views, subscriptions, conversion, billing issues, and top endpoints.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {selectedProductAnalytics ? (
-                            <>
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    <AnalyticsStat
-                                        label="Views (30d)"
-                                        value={formatNumber(selectedProductAnalytics.views30d)}
-                                    />
-                                    <AnalyticsStat
-                                        label="Subscriptions (30d)"
-                                        value={formatNumber(
-                                            selectedProductAnalytics.subscriptions30d
-                                        )}
-                                    />
-                                    <AnalyticsStat
-                                        label="Conversion"
-                                        value={`${selectedProductAnalytics.conversionRate30d}%`}
-                                    />
-                                    <AnalyticsStat
-                                        label="Active clients"
-                                        value={formatNumber(selectedProductAnalytics.activeClients)}
-                                    />
-                                    <AnalyticsStat
-                                        label="Failed payments"
-                                        value={formatNumber(
-                                            selectedProductAnalytics.failedPayments30d
-                                        )}
-                                    />
-                                    <AnalyticsStat
-                                        label="Requests (30d)"
-                                        value={formatNumber(selectedProductAnalytics.requests30d)}
-                                    />
-                                </div>
 
-                                <div className="rounded-lg border p-3">
-                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                        Latest published version
-                                    </p>
-                                    <p className="mt-1 text-sm font-medium">
-                                        {selectedProductAnalytics.latestPublishedVersion
-                                            ? selectedProductAnalytics.latestPublishedVersion
-                                                  .version
-                                            : "No published version yet"}
-                                    </p>
-                                    {selectedProductAnalytics.latestPublishedVersion ? (
-                                        <p className="text-xs text-muted-foreground">
-                                            Published{" "}
-                                            {new Date(
-                                                selectedProductAnalytics.latestPublishedVersion
-                                                    .createdAt
-                                            ).toLocaleDateString()}
-                                        </p>
-                                    ) : null}
-                                </div>
+                <ProductListPanel
+                    products={products}
+                    isLoading={isProductsLoading}
+                    error={productsError}
+                    selectedProductId={selectedProductId}
+                    onSelect={setSelectedProductId}
+                    onRetry={() => setRetryKey((prev) => prev + 1)}
+                />
+            </div>
 
-                                <div className="space-y-2">
-                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                        Top endpoints
-                                    </p>
-                                    {selectedProductAnalytics.topEndpoints.length > 0 ? (
-                                        <div className="grid gap-2">
-                                            {selectedProductAnalytics.topEndpoints.map(
-                                                (endpoint) => (
-                                                    <div
-                                                        key={endpoint.endpoint}
-                                                        className="flex items-center justify-between rounded-lg border px-3 py-2"
-                                                    >
-                                                        <span className="font-mono text-xs text-foreground">
-                                                            {endpoint.endpoint}
-                                                        </span>
-                                                        <span className="text-sm text-muted-foreground">
-                                                            {formatNumber(endpoint.requestCount)}
-                                                        </span>
-                                                    </div>
-                                                )
+            <Tabs defaultValue="overview" className="space-y-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                    <StudioSectionHeader
+                        eyebrow="Selected product workspace"
+                        title="Work on one product at a time"
+                        description="Use the tabs to switch between readiness, releases, plans, and performance for the selected product."
+                    />
+                    <TabsList className="h-10 w-full justify-start lg:w-auto">
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="releases">Releases</TabsTrigger>
+                        <TabsTrigger value="plans">Plans</TabsTrigger>
+                    </TabsList>
+                </div>
+
+                <TabsContent value="overview" className="mt-0">
+                    <div className="grid gap-6 lg:grid-cols-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Release snapshot</CardTitle>
+                                <CardDescription>
+                                    Quick read on the selected product before editing versions and
+                                    plans.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {selectedProductRecord ? (
+                                    <>
+                                        <div className="grid gap-3 sm:grid-cols-2">
+                                            <AnalyticsStat
+                                                label="Versions"
+                                                value={formatNumber(versions.length)}
+                                            />
+                                            <AnalyticsStat
+                                                label="Plans"
+                                                value={formatNumber(plans.length)}
+                                            />
+                                            <AnalyticsStat
+                                                label="Published version"
+                                                value={hasPublishedVersion ? "Ready" : "Missing"}
+                                            />
+                                            <AnalyticsStat
+                                                label="Schema"
+                                                value={hasSchemaConnected ? "Connected" : "Missing"}
+                                            />
+                                        </div>
+                                        <div className="rounded-lg border bg-muted/20 px-4 py-3 text-sm leading-6 text-muted-foreground">
+                                            Buyers can evaluate this product once it has a published
+                                            version and at least one active plan.
+                                        </div>
+                                    </>
+                                ) : (
+                                    <EmptyBlock
+                                        title="No release snapshot"
+                                        description="Select a product to see version and plan readiness."
+                                        variant="question"
+                                    />
+                                )}
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Analytics for selected product</CardTitle>
+                                <CardDescription>
+                                    Views, subscriptions, conversion, billing issues, and top
+                                    endpoints.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {selectedProductAnalytics ? (
+                                    <>
+                                        <div className="grid gap-3 sm:grid-cols-2">
+                                            <AnalyticsStat
+                                                label="Views (30d)"
+                                                value={formatNumber(
+                                                    selectedProductAnalytics.views30d
+                                                )}
+                                            />
+                                            <AnalyticsStat
+                                                label="Subscriptions (30d)"
+                                                value={formatNumber(
+                                                    selectedProductAnalytics.subscriptions30d
+                                                )}
+                                            />
+                                            <AnalyticsStat
+                                                label="Conversion"
+                                                value={`${selectedProductAnalytics.conversionRate30d}%`}
+                                            />
+                                            <AnalyticsStat
+                                                label="Active clients"
+                                                value={formatNumber(
+                                                    selectedProductAnalytics.activeClients
+                                                )}
+                                            />
+                                            <AnalyticsStat
+                                                label="Failed payments"
+                                                value={formatNumber(
+                                                    selectedProductAnalytics.failedPayments30d
+                                                )}
+                                            />
+                                            <AnalyticsStat
+                                                label="Requests (30d)"
+                                                value={formatNumber(
+                                                    selectedProductAnalytics.requests30d
+                                                )}
+                                            />
+                                        </div>
+
+                                        <div className="rounded-lg border p-3">
+                                            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                                Latest published version
+                                            </p>
+                                            <p className="mt-1 text-sm font-medium">
+                                                {selectedProductAnalytics.latestPublishedVersion
+                                                    ? selectedProductAnalytics
+                                                          .latestPublishedVersion.version
+                                                    : "No published version yet"}
+                                            </p>
+                                            {selectedProductAnalytics.latestPublishedVersion ? (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Published{" "}
+                                                    {new Date(
+                                                        selectedProductAnalytics
+                                                            .latestPublishedVersion.createdAt
+                                                    ).toLocaleDateString()}
+                                                </p>
+                                            ) : null}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                                Top endpoints
+                                            </p>
+                                            {selectedProductAnalytics.topEndpoints.length > 0 ? (
+                                                <div className="grid gap-2">
+                                                    {selectedProductAnalytics.topEndpoints.map(
+                                                        (endpoint) => (
+                                                            <div
+                                                                key={endpoint.endpoint}
+                                                                className="flex items-center justify-between rounded-lg border px-3 py-2"
+                                                            >
+                                                                <span className="font-mono text-xs text-foreground">
+                                                                    {endpoint.endpoint}
+                                                                </span>
+                                                                <span className="text-sm text-muted-foreground">
+                                                                    {formatNumber(
+                                                                        endpoint.requestCount
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <EmptyBlock
+                                                    title="No endpoint traffic yet"
+                                                    description="Analytics will populate once buyers send gateway traffic."
+                                                />
                                             )}
                                         </div>
-                                    ) : (
-                                        <EmptyBlock
-                                            title="No endpoint traffic yet"
-                                            description="Analytics will populate once buyers send gateway traffic."
-                                        />
-                                    )}
-                                </div>
-                            </>
-                        ) : (
-                            <EmptyBlock
-                                title="No analytics yet"
-                                description="Views, subscriptions, and usage will appear here once the selected product is visited and used."
-                            />
-                        )}
-                    </CardContent>
-                </Card>
-                <div className="flex flex-col gap-6">
+                                    </>
+                                ) : (
+                                    <EmptyBlock
+                                        title="No analytics yet"
+                                        description="Views, subscriptions, and usage will appear here once the selected product is visited and used."
+                                    />
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="releases" className="mt-0">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Step 2: Connect API Schema</CardTitle>
+                            <CardTitle>Versions for selected product</CardTitle>
                             <CardDescription>
                                 Add a version and OpenAPI URL. New versions start as DRAFT, then
                                 publish below.
@@ -1011,10 +1099,12 @@ export const SellerStudioPage = () => {
                             ) : null}
                         </CardContent>
                     </Card>
+                </TabsContent>
 
+                <TabsContent value="plans" className="mt-0">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Create Pricing Plan</CardTitle>
+                            <CardTitle>Plans for selected product</CardTitle>
                             <CardDescription>
                                 Set monthly pricing, quota, and an optional per-minute rate limit.
                             </CardDescription>
@@ -1127,86 +1217,133 @@ export const SellerStudioPage = () => {
                             ) : null}
                         </CardContent>
                     </Card>
-                </div>
-            </div>
+                </TabsContent>
+            </Tabs>
+        </div>
+    );
+};
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Your Product List</CardTitle>
-                    <CardDescription>Select the API you want to configure.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {isProductsLoading ? (
-                        <LoadingBlock title="Loading products..." count={3} />
-                    ) : null}
+const ProductListPanel = ({
+    products,
+    isLoading,
+    error,
+    selectedProductId,
+    onSelect,
+    onRetry
+}: {
+    products: CatalogProduct[];
+    isLoading: boolean;
+    error: ApiError | null;
+    selectedProductId: string | null;
+    onSelect: (productId: string | null) => void;
+    onRetry: () => void;
+}) => {
+    return (
+        <Card className="h-full">
+            <CardHeader>
+                <CardTitle>Existing products</CardTitle>
+                <CardDescription>Select the listing you want to configure.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {isLoading ? <LoadingBlock title="Loading products..." count={3} /> : null}
 
-                    {productsError && !isProductsLoading ? (
-                        <ErrorBlock
-                            title="Could not load products"
-                            description={productsError.message || "Please retry."}
-                            code={productsError.code}
-                            onRetry={() => setRetryKey((prev) => prev + 1)}
-                        />
-                    ) : null}
+                {error && !isLoading ? (
+                    <ErrorBlock
+                        title="Could not load products"
+                        description={error.message || "Please retry."}
+                        code={error.code}
+                        onRetry={onRetry}
+                    />
+                ) : null}
 
-                    {!isProductsLoading && !productsError && products.length === 0 ? (
-                        <EmptyBlock
-                            title="No products yet"
-                            description="Create your first product to start building your seller catalog."
-                            variant="default"
-                        />
-                    ) : null}
+                {!isLoading && !error && products.length === 0 ? (
+                    <EmptyBlock
+                        title="No products yet"
+                        description="Create your first product to start building your seller catalog."
+                        variant="default"
+                    />
+                ) : null}
 
-                    {!isProductsLoading && !productsError && products.length > 0 ? (
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            {products.map((product, index) => {
-                                const record = isRecord(product) ? product : null;
-                                const productId = getProductId(product);
-                                const isSelected =
-                                    productId !== null && productId === selectedProductId;
-                                const titleValue =
-                                    getString(record, "title") ?? `Product ${index + 1}`;
-                                const descriptionValue =
-                                    getString(record, "description") ?? "No description";
-                                const statusValue = getString(record, "status");
+                {!isLoading && !error && products.length > 0 ? (
+                    <div className="grid max-h-[420px] gap-2 overflow-y-auto pr-1">
+                        {products.map((product, index) => {
+                            const record = isRecord(product) ? product : null;
+                            const productId = getProductId(product);
+                            const isSelected =
+                                productId !== null && productId === selectedProductId;
+                            const titleValue = getString(record, "title") ?? `Product ${index + 1}`;
+                            const categoryValue = getString(record, "category") ?? "Uncategorized";
+                            const statusValue = getString(record, "status");
 
-                                return (
-                                    <button
-                                        key={productId ?? `product-${index}`}
-                                        type="button"
-                                        className={cn(
-                                            "rounded-xl border p-4 text-left transition-all",
-                                            "hover:border-primary/40 hover:bg-muted/30",
-                                            isSelected && "border-primary bg-primary/5"
-                                        )}
-                                        onClick={() => setSelectedProductId(productId)}
-                                    >
-                                        <div className="mb-2 flex items-start justify-between gap-3">
-                                            <p className="font-semibold">{titleValue}</p>
-                                            {statusValue ? (
-                                                <StatusBadge kind="product" value={statusValue} />
-                                            ) : null}
+                            return (
+                                <button
+                                    key={productId ?? `product-${index}`}
+                                    type="button"
+                                    className={cn(
+                                        "rounded-lg border px-3 py-3 text-left transition-[background-color,border-color]",
+                                        "hover:border-foreground/20 hover:bg-muted/40",
+                                        isSelected && "border-primary/70 bg-primary/10"
+                                    )}
+                                    onClick={() => onSelect(productId)}
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p className="truncate text-sm font-semibold">
+                                                {titleValue}
+                                            </p>
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                {categoryValue}
+                                            </p>
                                         </div>
-                                        <p className="line-clamp-2 text-sm text-muted-foreground">
-                                            {descriptionValue}
-                                        </p>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    ) : null}
-                </CardContent>
-            </Card>
+                                        {statusValue ? (
+                                            <StatusBadge kind="product" value={statusValue} />
+                                        ) : null}
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                ) : null}
+            </CardContent>
+        </Card>
+    );
+};
+
+const StudioSectionHeader = ({
+    eyebrow,
+    title,
+    description
+}: {
+    eyebrow: string;
+    title: string;
+    description: string;
+}) => {
+    return (
+        <div className="flex flex-col gap-1 border-l-2 border-primary/70 pl-4">
+            <p className="text-xs font-semibold uppercase text-primary">{eyebrow}</p>
+            <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+            <p className="max-w-3xl text-sm leading-6 text-muted-foreground">{description}</p>
         </div>
     );
 };
 
 const StatChip = ({ label, value }: { label: string; value: string }) => {
     return (
-        <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm">
-            <p className="text-[11px] uppercase tracking-wide text-white/70">{label}</p>
-            <p className="text-xl font-semibold text-white">{value}</p>
+        <div className="rounded-lg border border-border/80 bg-background/70 px-4 py-3">
+            <p className="text-xs uppercase text-muted-foreground">{label}</p>
+            <p className="mt-1 text-xl font-semibold text-foreground">{value}</p>
         </div>
+    );
+};
+
+const OverviewMetric = ({ label, value }: { label: string; value: string }) => {
+    return (
+        <Card>
+            <CardHeader className="flex min-h-[84px] justify-center py-4">
+                <CardDescription>{label}</CardDescription>
+                <CardTitle>{value}</CardTitle>
+            </CardHeader>
+        </Card>
     );
 };
 
