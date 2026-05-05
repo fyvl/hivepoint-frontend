@@ -54,7 +54,9 @@ export type CatalogVersion =
 
 type AsRecord<T> = T extends Record<string, unknown> ? T : Record<string, unknown>;
 
-export type ListProductsQueryInput = Partial<AsRecord<ListProductsQuery>>;
+export type ListProductsQueryInput = Partial<AsRecord<ListProductsQuery>> & {
+    tag?: string;
+};
 
 type CatalogClient = {
     accessToken?: string | null;

@@ -5,9 +5,10 @@ import {
     ChevronLeft,
     ChevronRight,
     FilterX,
+    LayoutGrid,
     Search,
     Sparkles,
-    Tag
+    Tags
 } from "lucide-react";
 
 import { createCatalogApi, type CatalogProduct, type ListProductsResponse } from "@/api/catalog";
@@ -59,6 +60,11 @@ const accentPalettes = [
 type CatalogFetchState = {
     items: CatalogProduct[];
     total?: number;
+};
+
+type FilterOption = {
+    value: string;
+    count: number;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
@@ -131,6 +137,7 @@ export const CatalogPage = () => {
 
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("");
+    const [tag, setTag] = useState("");
     const [limit, setLimit] = useState(12);
     const [offset, setOffset] = useState(0);
     const [state, setState] = useState<CatalogFetchState>({ items: [] });
@@ -140,10 +147,11 @@ export const CatalogPage = () => {
 
     const debouncedSearch = useDebouncedValue(search, 400);
     const debouncedCategory = useDebouncedValue(category, 400);
+    const debouncedTag = useDebouncedValue(tag, 250);
 
     useEffect(() => {
         setOffset(0);
-    }, [debouncedSearch, debouncedCategory, limit]);
+    }, [debouncedSearch, debouncedCategory, debouncedTag, limit]);
 
     useEffect(() => {
         let isActive = true;
@@ -163,6 +171,10 @@ export const CatalogPage = () => {
 
                 if (debouncedCategory) {
                     query.category = debouncedCategory;
+                }
+
+                if (debouncedTag) {
+                    query.tag = debouncedTag;
                 }
 
                 const cacheKey = `catalog:list:${accessToken ?? "public"}:${JSON.stringify(query)}`;
@@ -201,7 +213,16 @@ export const CatalogPage = () => {
         return () => {
             isActive = false;
         };
-    }, [accessToken, catalogApi, debouncedSearch, debouncedCategory, limit, offset, retryKey]);
+    }, [
+        accessToken,
+        catalogApi,
+        debouncedSearch,
+        debouncedCategory,
+        debouncedTag,
+        limit,
+        offset,
+        retryKey
+    ]);
 
     const hasPrev = offset > 0;
     const hasNext =
@@ -213,7 +234,7 @@ export const CatalogPage = () => {
                 ? "0 of 0"
                 : `${offset + 1}-${Math.min(offset + limit, state.total)} of ${state.total}`
             : `Showing ${state.items.length} items`;
-    const hasFilters = Boolean(search) || Boolean(category);
+    const hasFilters = Boolean(search) || Boolean(category) || Boolean(tag);
 
     const categoriesInView = useMemo(() => {
         const categories = new Set<string>();
@@ -227,20 +248,48 @@ export const CatalogPage = () => {
         return Array.from(categories).slice(0, 6);
     }, [state.items]);
 
-    const featuredTags = useMemo(() => {
+    const categoryFilters = useMemo<FilterOption[]>(() => {
         const counts = new Map<string, number>();
         state.items.forEach((product) => {
             const record = isRecord(product) ? product : null;
-            getStringArray(record, "tags").forEach((tag) => {
-                counts.set(tag, (counts.get(tag) ?? 0) + 1);
+            const value = getString(record, "category");
+            if (value) {
+                counts.set(value, (counts.get(value) ?? 0) + 1);
+            }
+        });
+
+        const options = [...counts.entries()]
+            .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+            .slice(0, 6)
+            .map(([value, count]) => ({ value, count }));
+
+        if (category && !options.some((option) => option.value === category)) {
+            return [{ value: category, count: 0 }, ...options].slice(0, 6);
+        }
+
+        return options;
+    }, [category, state.items]);
+
+    const tagFilters = useMemo<FilterOption[]>(() => {
+        const counts = new Map<string, number>();
+        state.items.forEach((product) => {
+            const record = isRecord(product) ? product : null;
+            getStringArray(record, "tags").forEach((value) => {
+                counts.set(value, (counts.get(value) ?? 0) + 1);
             });
         });
 
-        return [...counts.entries()]
-            .sort((left, right) => right[1] - left[1])
-            .slice(0, 6)
-            .map(([tag]) => tag);
-    }, [state.items]);
+        const options = [...counts.entries()]
+            .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+            .slice(0, 10)
+            .map(([value, count]) => ({ value, count }));
+
+        if (tag && !options.some((option) => option.value === tag)) {
+            return [{ value: tag, count: 0 }, ...options].slice(0, 10);
+        }
+
+        return options;
+    }, [state.items, tag]);
 
     const totalProductsLabel =
         state.total !== undefined ? formatNumber(state.total) : formatNumber(state.items.length);
@@ -301,28 +350,9 @@ export const CatalogPage = () => {
                                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         id="catalog-search"
-                                        placeholder="Payments, embeddings, routing..."
+                                        placeholder="Name, category, tag..."
                                         value={search}
                                         onChange={(event) => setSearch(event.target.value)}
-                                        className="h-12 pl-10"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <Label
-                                    htmlFor="catalog-category"
-                                    className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground"
-                                >
-                                    Category
-                                </Label>
-                                <div className="relative">
-                                    <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input
-                                        id="catalog-category"
-                                        placeholder="payments"
-                                        value={category}
-                                        onChange={(event) => setCategory(event.target.value)}
                                         className="h-12 pl-10"
                                     />
                                 </div>
@@ -352,6 +382,7 @@ export const CatalogPage = () => {
                                 onClick={() => {
                                     setSearch("");
                                     setCategory("");
+                                    setTag("");
                                 }}
                                 disabled={!hasFilters}
                             >
@@ -362,39 +393,140 @@ export const CatalogPage = () => {
                     </div>
                 </div>
 
-                {categoriesInView.length > 0 || featuredTags.length > 0 ? (
-                    <div className="relative z-10 mt-8 grid gap-4 lg:grid-cols-2">
-                        {categoriesInView.length > 0 ? (
-                            <div className="rounded-[1.2rem] border border-border/70 bg-background/72 px-4 py-4">
-                                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                                    Browse by category
-                                </div>
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    {categoriesInView.map((value) => (
+                {categoryFilters.length > 0 || tagFilters.length > 0 ? (
+                    <div className="relative z-10 mt-8 grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                        {categoryFilters.length > 0 ? (
+                            <div className="rounded-[1.2rem] border border-border/70 bg-background/76 px-4 py-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                                            <LayoutGrid className="h-3.5 w-3.5" />
+                                            Categories
+                                        </div>
+                                        <p className="mt-2 text-sm text-muted-foreground">
+                                            Main marketplace sections.
+                                        </p>
+                                    </div>
+                                    {category ? (
                                         <Button
-                                            key={value}
-                                            variant={category === value ? "default" : "outline"}
+                                            variant="ghost"
                                             size="sm"
-                                            onClick={() => setCategory(value)}
+                                            onClick={() => setCategory("")}
                                         >
-                                            {value}
+                                            Reset
                                         </Button>
-                                    ))}
+                                    ) : null}
+                                </div>
+
+                                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                                    {categoryFilters.map(({ value, count }) => {
+                                        const isActive = category === value;
+
+                                        return (
+                                            <button
+                                                key={value}
+                                                type="button"
+                                                onClick={() =>
+                                                    setCategory((current) =>
+                                                        current === value ? "" : value
+                                                    )
+                                                }
+                                                className={cn(
+                                                    "group flex min-h-[68px] items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition",
+                                                    isActive
+                                                        ? "border-primary bg-primary text-primary-foreground shadow-soft"
+                                                        : "border-border/80 bg-card/78 text-foreground hover:-translate-y-0.5 hover:border-foreground/20 hover:bg-accent/55"
+                                                )}
+                                            >
+                                                <span className="min-w-0">
+                                                    <span className="block truncate text-sm font-semibold">
+                                                        {value}
+                                                    </span>
+                                                    <span
+                                                        className={cn(
+                                                            "mt-1 block text-xs",
+                                                            isActive
+                                                                ? "text-primary-foreground/72"
+                                                                : "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        {count > 0
+                                                            ? `${formatNumber(count)} visible`
+                                                            : "active"}
+                                                    </span>
+                                                </span>
+                                                <ArrowRight
+                                                    className={cn(
+                                                        "h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5",
+                                                        isActive
+                                                            ? "text-primary-foreground/80"
+                                                            : "text-muted-foreground"
+                                                    )}
+                                                />
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ) : null}
 
-                        {featuredTags.length > 0 ? (
-                            <div className="rounded-[1.2rem] border border-border/70 bg-background/72 px-4 py-4">
-                                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                                    Tags showing up now
+                        {tagFilters.length > 0 ? (
+                            <div className="rounded-[1.2rem] border border-border/70 bg-background/76 px-4 py-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                                            <Tags className="h-3.5 w-3.5" />
+                                            Tags
+                                        </div>
+                                        <p className="mt-2 text-sm text-muted-foreground">
+                                            Smaller signals for stack, protocol, or use case.
+                                        </p>
+                                    </div>
+                                    {tag ? (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setTag("")}
+                                        >
+                                            Reset
+                                        </Button>
+                                    ) : null}
                                 </div>
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    {featuredTags.map((value) => (
-                                        <Badge key={value} variant="outline">
-                                            {value}
-                                        </Badge>
-                                    ))}
+
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    {tagFilters.map(({ value, count }) => {
+                                        const isActive = tag === value;
+
+                                        return (
+                                            <button
+                                                key={value}
+                                                type="button"
+                                                onClick={() =>
+                                                    setTag((current) =>
+                                                        current === value ? "" : value
+                                                    )
+                                                }
+                                                className={cn(
+                                                    "inline-flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-medium transition",
+                                                    isActive
+                                                        ? "border-foreground bg-foreground text-background shadow-soft"
+                                                        : "border-border/80 bg-card/82 text-muted-foreground hover:-translate-y-0.5 hover:border-foreground/20 hover:text-foreground"
+                                                )}
+                                            >
+                                                <span>{value}</span>
+                                                <span
+                                                    className={cn(
+                                                        "rounded-full px-1.5 py-0.5 text-[11px]",
+                                                        isActive
+                                                            ? "bg-background/18 text-background"
+                                                            : "bg-muted text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {count > 0 ? formatNumber(count) : "on"}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ) : null}
@@ -415,6 +547,7 @@ export const CatalogPage = () => {
                     <div className="flex flex-wrap gap-2">
                         {search ? <Badge variant="secondary">Search: {search}</Badge> : null}
                         {category ? <Badge variant="secondary">Category: {category}</Badge> : null}
+                        {tag ? <Badge variant="secondary">Tag: {tag}</Badge> : null}
                     </div>
                 ) : null}
             </div>
@@ -440,6 +573,7 @@ export const CatalogPage = () => {
                             ? () => {
                                   setSearch("");
                                   setCategory("");
+                                  setTag("");
                               }
                             : undefined
                     }

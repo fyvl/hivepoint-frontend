@@ -1667,6 +1667,7 @@ export interface operations {
                 offset?: number;
                 limit?: number;
                 category?: string;
+                tag?: string;
                 search?: string;
             };
             header?: never;
@@ -1728,6 +1729,7 @@ export interface operations {
                 offset?: number;
                 limit?: number;
                 category?: string;
+                tag?: string;
                 search?: string;
             };
             header?: never;
