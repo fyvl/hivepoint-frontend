@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["MetricsController_getMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -237,6 +253,40 @@ export interface paths {
         put?: never;
         /** Create product version */
         post: operations["ProductsController_createVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/catalog/ai/product-description": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate product description draft with LLM */
+        post: operations["ProductsController_generateProductDescription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/catalog/ai/category-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suggest product category and tags with ML */
+        post: operations["ProductsController_suggestProductCategory"];
         delete?: never;
         options?: never;
         head?: never;
@@ -614,6 +664,57 @@ export interface paths {
         patch: operations["GatewayController_proxy_patch"];
         trace?: never;
     };
+    "/admin/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List recent admin audit logs */
+        get: operations["AdminController_listAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/ops/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get operational dashboard summary */
+        get: operations["AdminController_getOperationalDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/ops/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List current operational alerts */
+        get: operations["AdminController_listOperationalAlerts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/products/{id}/hide": {
         parameters: {
             query?: never;
@@ -819,6 +920,49 @@ export interface components {
              */
             tags: string[];
         };
+        GenerateProductDescriptionDto: {
+            /** @example Payments API */
+            title: string;
+            /** @example payments */
+            category: string;
+            /**
+             * @example [
+             *       "payments",
+             *       "cards",
+             *       "invoices"
+             *     ]
+             */
+            tags: string[];
+        };
+        GenerateProductDescriptionResponseDto: {
+            /** @example Accept card payments, invoices, and payout workflows through a developer-friendly API built for modern commerce teams. */
+            description: string;
+        };
+        SuggestProductCategoryDto: {
+            /** @example Email validation API */
+            title: string;
+            /** @example Checks email domains, MX records, and disposable mailboxes before signup. */
+            description: string;
+            /** @example 3 */
+            topKTags?: number;
+        };
+        TagSuggestionDto: {
+            /** @example email-validation */
+            tag: string;
+            /** @example 0.82 */
+            score: number;
+        };
+        SuggestProductCategoryResponseDto: {
+            /** @example data_validation */
+            category: string;
+            /** @example 0.74 */
+            categoryScore: number;
+            tags: components["schemas"]["TagSuggestionDto"][];
+            /** @example embeddings */
+            method: string;
+            /** @example paraphrase-multilingual-MiniLM-L12-v2 */
+            model: string;
+        };
         UpdateProductDto: {
             /** @example Payments API */
             title?: string;
@@ -879,6 +1023,12 @@ export interface components {
             quotaRequests: number;
             /** @example 120 */
             rateLimitRpm: number | null;
+            /** @example false */
+            allowOverage: boolean;
+            /** @example 1000 */
+            overageUnitRequests: number | null;
+            /** @example 250 */
+            overagePriceCents: number | null;
             /** @example true */
             isActive: boolean;
             /** Format: date-time */
@@ -903,6 +1053,12 @@ export interface components {
             /** @example 120 */
             rateLimitRpm?: number;
             /** @example true */
+            allowOverage?: boolean;
+            /** @example 1000 */
+            overageUnitRequests?: number;
+            /** @example 250 */
+            overagePriceCents?: number;
+            /** @example true */
             isActive?: boolean;
         };
         SubscriptionPlanDto: {
@@ -918,6 +1074,12 @@ export interface components {
             quotaRequests: number;
             /** @example 120 */
             rateLimitRpm: number | null;
+            /** @example false */
+            allowOverage: boolean;
+            /** @example 1000 */
+            overageUnitRequests: number | null;
+            /** @example 250 */
+            overagePriceCents: number | null;
             /** @example uuid */
             productId: string;
         };
@@ -931,6 +1093,8 @@ export interface components {
             /** @example uuid */
             id: string;
             /** @enum {string} */
+            kind: "SUBSCRIPTION" | "OVERAGE";
+            /** @enum {string} */
             status: "DRAFT" | "PAID" | "PAST_DUE" | "VOID";
             /** @example 9900 */
             amountCents: number;
@@ -940,6 +1104,22 @@ export interface components {
             attemptCount: number;
             /** Format: date-time */
             nextPaymentAttemptAt: string | null;
+            /** @example 1 */
+            managedRetryCount: number;
+            /** Format: date-time */
+            managedNextRetryAt: string | null;
+            /** Format: date-time */
+            managedLastRetryAt: string | null;
+            /** Format: date-time */
+            managedRetryExhaustedAt: string | null;
+            /** @example 1200 */
+            overageRequests: number | null;
+            /** @example 2 */
+            overageUnits: number | null;
+            /** Format: date-time */
+            periodStart: string;
+            /** Format: date-time */
+            periodEnd: string;
             /** Format: date-time */
             createdAt: string;
         };
@@ -974,7 +1154,7 @@ export interface components {
         };
         BillingAlertDto: {
             /** @enum {string} */
-            kind: "QUOTA_NEAR_LIMIT" | "QUOTA_EXCEEDED" | "UPCOMING_RENEWAL" | "PAYMENT_PAST_DUE" | "PAYMENT_RETRY_SCHEDULED" | "NEW_VERSION_AVAILABLE";
+            kind: "QUOTA_NEAR_LIMIT" | "QUOTA_EXCEEDED" | "OVERAGE_ACTIVE" | "UPCOMING_RENEWAL" | "PAYMENT_PAST_DUE" | "PAYMENT_RETRY_SCHEDULED" | "NEW_VERSION_AVAILABLE";
             /** @enum {string} */
             severity: "INFO" | "WARNING" | "DANGER";
             /** @example uuid */
@@ -1079,6 +1259,12 @@ export interface components {
             quotaRequests: number;
             /** @example 120 */
             rateLimitRpm: number | null;
+            /** @example false */
+            allowOverage: boolean;
+            /** @example 1000 */
+            overageUnitRequests: number | null;
+            /** @example 250 */
+            overagePriceCents: number | null;
         };
         UsageAuthorizationProductDto: {
             /** @example uuid */
@@ -1114,6 +1300,16 @@ export interface components {
             /** @example 52 */
             remainingRateLimitRequests?: number | null;
             /** @example false */
+            overageEnabled?: boolean;
+            /** @example 1000 */
+            overageUnitRequests?: number | null;
+            /** @example 250 */
+            overagePriceCents?: number | null;
+            /** @example 200 */
+            projectedOverageRequests?: number;
+            /** @example 250 */
+            projectedOverageAmountCents?: number;
+            /** @example false */
             usageRecorded?: boolean;
             plan?: components["schemas"]["UsageAuthorizationPlanDto"];
             product?: components["schemas"]["UsageAuthorizationProductDto"];
@@ -1141,12 +1337,24 @@ export interface components {
             quotaRequests: number;
             /** @example 120 */
             rateLimitRpm: number | null;
+            /** @example false */
+            allowOverage: boolean;
+            /** @example 1000 */
+            overageUnitRequests: number | null;
+            /** @example 250 */
+            overagePriceCents: number | null;
         };
         UsageSummaryProductDto: {
             /** @example uuid */
             id: string;
             /** @example Payments API */
             title: string;
+        };
+        UsageSummaryEndpointDto: {
+            /** @example /v1/search */
+            endpoint: string;
+            /** @example 120 */
+            requestCount: number;
         };
         UsageSummaryItemDto: {
             /** @example uuid */
@@ -1165,8 +1373,19 @@ export interface components {
             quotaRequests: number;
             /** @example 12 */
             percent: number;
+            /** @example false */
+            overageEnabled: boolean;
+            /** @example 1000 */
+            overageUnitRequests: number | null;
+            /** @example 250 */
+            overagePriceCents: number | null;
+            /** @example 0 */
+            overageRequests: number;
+            /** @example 0 */
+            projectedOverageAmountCents: number;
             plan: components["schemas"]["UsageSummaryPlanDto"];
             product: components["schemas"]["UsageSummaryProductDto"];
+            topEndpoints: components["schemas"]["UsageSummaryEndpointDto"][];
         };
         UsageSummaryResponseDto: {
             items: components["schemas"]["UsageSummaryItemDto"][];
@@ -1257,6 +1476,12 @@ export interface components {
             rateLimitRpm: Record<string, never> | null;
             /** @example 52 */
             remainingRateLimitRequests: Record<string, never> | null;
+            /** @example 20 */
+            burstLimit: Record<string, never> | null;
+            /** @example 14 */
+            remainingBurstRequests: Record<string, never> | null;
+            /** @example 10 */
+            burstWindowSeconds: Record<string, never> | null;
             /** @example true */
             usageRecorded: boolean;
             /** Format: date-time */
@@ -1282,13 +1507,190 @@ export interface components {
                 [key: string]: string;
             };
             /**
-             * @description Parsed JSON body when upstream returns JSON, otherwise plain text or null.
+             * @description Parsed JSON body when upstream returns JSON, plain text for textual responses, base64 string for binary responses, or null when upstream returns no body.
              * @example {
              *       "status": "ok"
              *     }
              */
             body: Record<string, never> | null;
+            /**
+             * @example json
+             * @enum {string|null}
+             */
+            bodyEncoding: "json" | "text" | "base64" | null;
             usage: components["schemas"]["GatewayUsageMetaDto"];
+        };
+        AuditLogItemDto: {
+            /** @example uuid */
+            id: string;
+            /** @example req_123 */
+            requestId: Record<string, never> | null;
+            /** @example uuid */
+            actorUserId: Record<string, never> | null;
+            /** @example admin@example.com */
+            actorEmail: Record<string, never> | null;
+            /** @enum {string|null} */
+            actorRole: "BUYER" | "SELLER" | "ADMIN" | null;
+            /** @example ADMIN_HIDE_PRODUCT */
+            action: string;
+            /** @example API_PRODUCT */
+            resourceType: string;
+            /** @example uuid */
+            resourceId: string;
+            details: Record<string, never> | null;
+            /**
+             * Format: date-time
+             * @example 2026-03-19T18:00:00.000Z
+             */
+            createdAt: string;
+        };
+        ListAuditLogsResponseDto: {
+            items: components["schemas"]["AuditLogItemDto"][];
+        };
+        OperationalMetricsSnapshotDto: {
+            /** @example 12 */
+            usageIngestPendingJobs: number;
+            /** @example 2 */
+            usageIngestFailedJobs: number;
+            /** @example 300 */
+            usageIngestOldestPendingAgeSeconds: number;
+            /** @example true */
+            usageIngestLeasePresent: boolean;
+            /** @example 45 */
+            usageIngestLeaseSecondsUntilExpiry: number;
+            /** @example true */
+            billingReconciliationLeasePresent: boolean;
+            /** @example 180 */
+            billingReconciliationLeaseSecondsUntilExpiry: number;
+            /** @example true */
+            billingOverageCollectionLeasePresent: boolean;
+            /** @example 180 */
+            billingOverageCollectionLeaseSecondsUntilExpiry: number;
+            /** @example 4 */
+            subscriptionsPastDue: number;
+            /** @example 9 */
+            auditLogsLast24h: number;
+        };
+        OperationalAlertDto: {
+            /** @example USAGE_INGEST_FAILED_JOBS */
+            kind: string;
+            /** @enum {string} */
+            severity: "WARNING" | "DANGER";
+            /** @example Usage ingest has failed jobs */
+            title: string;
+            /** @example 3 usage ingest job(s) are currently in FAILED state. */
+            message: string;
+            details?: Record<string, never>;
+        };
+        OperationalAlertDeliveryTargetDto: {
+            /** @example webhook */
+            key: string;
+            /** @example alerts.example.com */
+            host: string;
+        };
+        OperationalAlertDeliveryStateDto: {
+            /** @example USAGE_INGEST_FAILED_JOBS */
+            kind: string;
+            /** @example DANGER */
+            severity: string;
+            /** @example Usage ingest has failed jobs */
+            title: string;
+            /** @example 3 usage ingest job(s) are currently in FAILED state. */
+            message: string;
+            details?: Record<string, never> | null;
+            /** Format: date-time */
+            firstObservedAt: string;
+            /** Format: date-time */
+            lastObservedAt: string;
+            /** Format: date-time */
+            resolvedAt: string | null;
+            /** Format: date-time */
+            lastDeliveredAt: string | null;
+            /** Format: date-time */
+            lastDeliveryAttemptAt: string | null;
+            /** @example 2 */
+            deliveryCount: number;
+            /** @example 1 */
+            deliveryFailures: number;
+            /** @example Webhook responded with 500 */
+            lastDeliveryError: Record<string, never> | null;
+        };
+        OperationalAlertDeliveryTargetStateDto: {
+            /** @example USAGE_INGEST_FAILED_JOBS */
+            alertKind: string;
+            /** @example webhook */
+            targetKey: string;
+            /** Format: date-time */
+            resolvedAt: string | null;
+            /** Format: date-time */
+            lastDeliveredAt: string | null;
+            /** Format: date-time */
+            lastDeliveryAttemptAt: string | null;
+            /** @example 2 */
+            deliveryCount: number;
+            /** @example 1 */
+            deliveryFailures: number;
+            /** @example Webhook responded with 500 */
+            lastDeliveryError: Record<string, never> | null;
+        };
+        OperationalAlertDeliveryStatusDto: {
+            /** @example true */
+            enabled: boolean;
+            /** @example true */
+            webhookConfigured: boolean;
+            /** @example 2 */
+            configuredTargetCount: number;
+            targets: components["schemas"]["OperationalAlertDeliveryTargetDto"][];
+            /** @example 60 */
+            intervalSeconds: number;
+            /** @example 900 */
+            cooldownSeconds: number;
+            items: components["schemas"]["OperationalAlertDeliveryStateDto"][];
+            targetItems: components["schemas"]["OperationalAlertDeliveryTargetStateDto"][];
+        };
+        OperationalMetricsHistoryPointDto: {
+            /** @example 12 */
+            usageIngestPendingJobs: number;
+            /** @example 2 */
+            usageIngestFailedJobs: number;
+            /** @example 300 */
+            usageIngestOldestPendingAgeSeconds: number;
+            /** @example true */
+            usageIngestLeasePresent: boolean;
+            /** @example 45 */
+            usageIngestLeaseSecondsUntilExpiry: number;
+            /** @example true */
+            billingReconciliationLeasePresent: boolean;
+            /** @example 180 */
+            billingReconciliationLeaseSecondsUntilExpiry: number;
+            /** @example true */
+            billingOverageCollectionLeasePresent: boolean;
+            /** @example 180 */
+            billingOverageCollectionLeaseSecondsUntilExpiry: number;
+            /** @example 4 */
+            subscriptionsPastDue: number;
+            /** @example 9 */
+            auditLogsLast24h: number;
+            /** Format: date-time */
+            capturedAt: string;
+        };
+        OperationalMetricsHistoryStatusDto: {
+            /** @example true */
+            enabled: boolean;
+            /** @example 300 */
+            intervalSeconds: number;
+            /** @example 30 */
+            retentionDays: number;
+            items: components["schemas"]["OperationalMetricsHistoryPointDto"][];
+        };
+        OperationalDashboardResponseDto: {
+            snapshot: components["schemas"]["OperationalMetricsSnapshotDto"];
+            alerts: components["schemas"]["OperationalAlertDto"][];
+            alertDelivery: components["schemas"]["OperationalAlertDeliveryStatusDto"];
+            metricsHistory: components["schemas"]["OperationalMetricsHistoryStatusDto"];
+        };
+        OperationalAlertsResponseDto: {
+            items: components["schemas"]["OperationalAlertDto"][];
         };
         HideProductResponseDto: {
             /** @example true */
@@ -1375,6 +1777,23 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    MetricsController_getMetrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     HealthController_getHealth: {
         parameters: {
             query?: never;
@@ -1666,8 +2085,8 @@ export interface operations {
             query?: {
                 offset?: number;
                 limit?: number;
-                category?: string;
                 tag?: string;
+                category?: string;
                 search?: string;
             };
             header?: never;
@@ -1728,8 +2147,8 @@ export interface operations {
             query?: {
                 offset?: number;
                 limit?: number;
-                category?: string;
                 tag?: string;
+                category?: string;
                 search?: string;
             };
             header?: never;
@@ -1931,6 +2350,108 @@ export interface operations {
             };
             /** @description PRODUCT_NOT_FOUND */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductsController_generateProductDescription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateProductDescriptionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerateProductDescriptionResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description FORBIDDEN */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description LLM_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description LLM_NOT_CONFIGURED */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductsController_suggestProductCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestProductCategoryDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestProductCategoryResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description FORBIDDEN */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description ML_UPSTREAM_UNAVAILABLE */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description ML_SUGGESTIONS_DISABLED */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2677,6 +3198,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -2684,7 +3212,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -2736,6 +3264,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -2743,7 +3278,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -2795,6 +3330,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -2802,7 +3344,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -2854,6 +3396,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -2861,7 +3410,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -2913,6 +3462,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -2920,7 +3476,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -2972,6 +3528,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -2979,7 +3542,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -3031,6 +3594,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -3038,7 +3608,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -3090,6 +3660,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -3097,7 +3674,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -3149,6 +3726,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -3156,7 +3740,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -3208,6 +3792,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -3215,7 +3806,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -3267,6 +3858,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -3274,7 +3872,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -3326,6 +3924,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -3333,7 +3938,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -3385,6 +3990,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -3392,7 +4004,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -3444,6 +4056,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -3451,7 +4070,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -3503,6 +4122,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description GATEWAY_REQUEST_BODY_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description QUOTA_EXCEEDED or RATE_LIMIT_EXCEEDED */
             429: {
                 headers: {
@@ -3510,8 +4136,110 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description GATEWAY_TARGET_NOT_CONFIGURED or GATEWAY_UPSTREAM_UNAVAILABLE */
+            /** @description GATEWAY_TARGET_NOT_CONFIGURED, GATEWAY_UPSTREAM_UNAVAILABLE, or GATEWAY_RESPONSE_BODY_TOO_LARGE */
             502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminController_listAuditLogs: {
+        parameters: {
+            query?: {
+                /** @description Maximum number of recent audit log entries to return */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListAuditLogsResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description FORBIDDEN */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminController_getOperationalDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationalDashboardResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description FORBIDDEN */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminController_listOperationalAlerts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationalAlertsResponseDto"];
+                };
+            };
+            /** @description UNAUTHORIZED */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description FORBIDDEN */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

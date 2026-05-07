@@ -30,6 +30,18 @@ export type GenerateProductDescriptionBody = {
 export type GenerateProductDescriptionResponse = {
     description: string;
 };
+export type SuggestCategoryAndTagsBody = {
+    title: string;
+    description: string;
+    topKTags?: number;
+};
+export type SuggestCategoryAndTagsResponse = {
+    category: string;
+    categoryScore: number;
+    tags: Array<{ tag: string; score: number }>;
+    method: string;
+    model: string;
+};
 export type VersionSchemaResponse = {
     versionId: string;
     productId: string;
@@ -170,6 +182,19 @@ export const createCatalogApi = (client?: CatalogClient) => {
         ): Promise<GenerateProductDescriptionResponse> => {
             return await request<GenerateProductDescriptionResponse>(
                 "/catalog/ai/product-description",
+                {
+                    ...options,
+                    method: "POST",
+                    body: payload
+                }
+            );
+        },
+        suggestCategoryAndTags: async (
+            payload: SuggestCategoryAndTagsBody,
+            options: HttpOptions = {}
+        ): Promise<SuggestCategoryAndTagsResponse> => {
+            return await request<SuggestCategoryAndTagsResponse>(
+                "/catalog/ai/category-suggestions",
                 {
                     ...options,
                     method: "POST",

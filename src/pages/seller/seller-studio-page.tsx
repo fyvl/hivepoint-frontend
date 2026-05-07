@@ -1,5 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, CircleDashed, Plus, Rocket } from "lucide-react";
+import { CheckCircle2, CircleDashed, Plus, Rocket, WandSparkles } from "lucide-react";
 
 import {
     createCatalogApi,
@@ -138,6 +138,7 @@ export const SellerStudioPage = () => {
     const [category, setCategory] = useState("");
     const [tags, setTags] = useState("");
     const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+    const [isSuggestingClassification, setIsSuggestingClassification] = useState(false);
     const [isCreatingProduct, setIsCreatingProduct] = useState(false);
 
     const [versionLabel, setVersionLabel] = useState("");
@@ -335,6 +336,38 @@ export const SellerStudioPage = () => {
             notifyError(err, "Description generation failed");
         } finally {
             setIsGeneratingDescription(false);
+        }
+    };
+
+    const handleSuggestClassification = async () => {
+        const trimmedTitle = title.trim();
+        const trimmedDescription = description.trim();
+
+        if (!trimmedTitle || !trimmedDescription) {
+            notifyInfo(
+                "Missing fields",
+                "Add a title and description before suggesting category and tags."
+            );
+            return;
+        }
+
+        setIsSuggestingClassification(true);
+        try {
+            const response = await catalogApi.suggestCategoryAndTags({
+                title: trimmedTitle,
+                description: trimmedDescription,
+                topKTags: 3
+            });
+            setCategory(response.category);
+            setTags(response.tags.map((item) => item.tag).join(", "));
+            notifySuccess(
+                "Suggestions applied",
+                "Review the category and tags before creating the product."
+            );
+        } catch (err) {
+            notifyError(err, "Category suggestion failed");
+        } finally {
+            setIsSuggestingClassification(false);
         }
     };
 
@@ -574,22 +607,41 @@ export const SellerStudioPage = () => {
                                                 <Label htmlFor="seller-description">
                                                     Description
                                                 </Label>
-                                                <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    variant="outline"
-                                                    disabled={
-                                                        isGeneratingDescription ||
-                                                        isCreatingProduct ||
-                                                        !title.trim() ||
-                                                        !category.trim()
-                                                    }
-                                                    onClick={handleGenerateDescription}
-                                                >
-                                                    {isGeneratingDescription
-                                                        ? "Generating..."
-                                                        : "Generate with AI"}
-                                                </Button>
+                                                <div className="flex flex-wrap justify-end gap-2">
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="outline"
+                                                        disabled={
+                                                            isSuggestingClassification ||
+                                                            isCreatingProduct ||
+                                                            !title.trim() ||
+                                                            !description.trim()
+                                                        }
+                                                        onClick={handleSuggestClassification}
+                                                    >
+                                                        <WandSparkles className="h-4 w-4" />
+                                                        {isSuggestingClassification
+                                                            ? "Suggesting..."
+                                                            : "Suggest category"}
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="outline"
+                                                        disabled={
+                                                            isGeneratingDescription ||
+                                                            isCreatingProduct ||
+                                                            !title.trim() ||
+                                                            !category.trim()
+                                                        }
+                                                        onClick={handleGenerateDescription}
+                                                    >
+                                                        {isGeneratingDescription
+                                                            ? "Generating..."
+                                                            : "Generate with AI"}
+                                                    </Button>
+                                                </div>
                                             </div>
                                             <textarea
                                                 id="seller-description"
