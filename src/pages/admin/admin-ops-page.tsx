@@ -36,6 +36,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { LoadingBlock } from "@/components/ui-states/loading-block"
+import { formatCategoryLabel } from "@/lib/categories"
 import { formatDate, formatNumber } from "@/lib/format"
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
 import { cn } from "@/lib/utils"
@@ -377,7 +378,9 @@ export const AdminOpsPage = () => {
     const selectedProductOwnerId = getString(selectedProductRecord, "ownerId") ?? "-"
     const selectedProductTitle = getString(selectedProductRecord, "title") ?? "Selected product"
     const selectedProductDescription = getString(selectedProductRecord, "description") ?? "No description"
-    const selectedProductCategory = getString(selectedProductRecord, "category") ?? "-"
+    const selectedProductCategory = selectedProductRecord
+        ? formatCategoryLabel(getString(selectedProductRecord, "category"))
+        : "-"
     const selectedProductTags = getStringArray(selectedProductRecord, "tags")
 
     const productStatusCounts = useMemo(() => {

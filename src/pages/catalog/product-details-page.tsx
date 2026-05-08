@@ -45,6 +45,7 @@ import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { LoadingBlock } from "@/components/ui-states/loading-block"
 import { apiBaseUrl } from "@/config/env"
+import { formatCategoryLabel } from "@/lib/categories"
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
 import {
     formatCurrency,
@@ -580,7 +581,7 @@ export const ProductDetailsPage = () => {
     const tags = getStringArray(productRecord, "tags")
     const productStatus = getString(productRecord, "status")
     const productTitle = getString(productRecord, "title") ?? "Untitled product"
-    const productCategory = getString(productRecord, "category") ?? "Uncategorized"
+    const productCategory = formatCategoryLabel(getString(productRecord, "category"))
     const preferredEndpoint = endpointOptions[0] ?? {
         method: gatewayMethod,
         path: gatewayPath

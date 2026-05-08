@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { EmptyBlock } from "@/components/ui-states/empty-block";
 import { ErrorBlock } from "@/components/ui-states/error-block";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { formatCategoryLabel } from "@/lib/categories";
 import { formatNumber } from "@/lib/format";
 import { notifyError } from "@/lib/notify";
 import { fetchWithCache } from "@/lib/request-cache";
@@ -440,7 +441,7 @@ export const CatalogPage = () => {
                                             >
                                                 <span className="min-w-0">
                                                     <span className="block truncate text-sm font-semibold">
-                                                        {value}
+                                                        {formatCategoryLabel(value)}
                                                     </span>
                                                     <span
                                                         className={cn(
@@ -546,7 +547,11 @@ export const CatalogPage = () => {
                 {hasFilters ? (
                     <div className="flex flex-wrap gap-2">
                         {search ? <Badge variant="secondary">Search: {search}</Badge> : null}
-                        {category ? <Badge variant="secondary">Category: {category}</Badge> : null}
+                        {category ? (
+                            <Badge variant="secondary">
+                                Category: {formatCategoryLabel(category)}
+                            </Badge>
+                        ) : null}
                         {tag ? <Badge variant="secondary">Tag: {tag}</Badge> : null}
                     </div>
                 ) : null}
@@ -644,6 +649,7 @@ const CatalogCard = ({ product }: { product: CatalogProduct }) => {
     const title = getString(record, "title") ?? "Untitled product";
     const description = getString(record, "description") ?? "No description available yet.";
     const category = getString(record, "category") ?? "Uncategorized";
+    const categoryLabel = formatCategoryLabel(category);
     const status = getString(record, "status") ?? "";
     const tags = getStringArray(record, "tags");
     const productId = getString(record, "id");
@@ -658,7 +664,7 @@ const CatalogCard = ({ product }: { product: CatalogProduct }) => {
             <CardHeader className="relative p-5 pb-4">
                 <div className="flex items-start justify-between gap-3">
                     <Badge variant="outline" className={cn("font-medium", palette.badge)}>
-                        {category}
+                        {categoryLabel}
                     </Badge>
                     {status ? <StatusBadge kind="product" value={status} /> : null}
                 </div>

@@ -29,6 +29,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyBlock } from "@/components/ui-states/empty-block";
 import { ErrorBlock } from "@/components/ui-states/error-block";
 import { LoadingBlock } from "@/components/ui-states/loading-block";
+import {
+    API_CATEGORY_OPTIONS,
+    formatCategoryLabel,
+    toStoredCategoryValue
+} from "@/lib/categories";
 import { formatCurrency, formatNumber, formatRequestsPerMinute } from "@/lib/format";
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify";
 import { cn } from "@/lib/utils";
@@ -102,6 +107,8 @@ const splitTags = (raw: string) => {
 const getPlanRateLimitLine = (rateLimitRpm: number | null | undefined) => {
     return `Rate limit: ${formatRequestsPerMinute(rateLimitRpm)}`;
 };
+
+const CATEGORY_REVIEW_SCORE_THRESHOLD = 0.35;
 
 export const SellerStudioPage = () => {
     const { accessToken, refresh } = useAuth();
@@ -283,7 +290,7 @@ export const SellerStudioPage = () => {
             const created = await catalogApi.createProduct({
                 title: trimmedTitle,
                 description: trimmedDescription,
-                category: trimmedCategory,
+                category: toStoredCategoryValue(trimmedCategory),
                 tags: splitTags(tags)
             });
             const createdProduct = created as CatalogProduct;
@@ -324,7 +331,7 @@ export const SellerStudioPage = () => {
         try {
             const response = await catalogApi.generateProductDescription({
                 title: trimmedTitle,
-                category: trimmedCategory,
+                category: formatCategoryLabel(trimmedCategory),
                 tags: splitTags(tags)
             });
             setDescription(response.description);
@@ -358,12 +365,19 @@ export const SellerStudioPage = () => {
                 description: trimmedDescription,
                 topKTags: 3
             });
-            setCategory(response.category);
+            setCategory(formatCategoryLabel(response.category));
             setTags(response.tags.map((item) => item.tag).join(", "));
-            notifySuccess(
-                "Suggestions applied",
-                "Review the category and tags before creating the product."
-            );
+            if (response.categoryScore < CATEGORY_REVIEW_SCORE_THRESHOLD) {
+                notifyInfo(
+                    "Low-confidence category",
+                    "Review the suggestion or enter a custom category before creating the product."
+                );
+            } else {
+                notifySuccess(
+                    "Suggestions applied",
+                    "Review the category and tags before creating the product."
+                );
+            }
         } catch (err) {
             notifyError(err, "Category suggestion failed");
         } finally {
@@ -584,12 +598,18 @@ export const SellerStudioPage = () => {
                                             <Label htmlFor="seller-category">Category</Label>
                                             <Input
                                                 id="seller-category"
-                                                placeholder="fintech"
+                                                list="seller-category-options"
+                                                placeholder="Payments"
                                                 value={category}
                                                 onChange={(event) =>
                                                     setCategory(event.target.value)
                                                 }
                                             />
+                                            <datalist id="seller-category-options">
+                                                {API_CATEGORY_OPTIONS.map((option) => (
+                                                    <option key={option.key} value={option.label} />
+                                                ))}
+                                            </datalist>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="seller-tags">
@@ -741,8 +761,9 @@ export const SellerStudioPage = () => {
                                                 />
                                             ) : null}
                                             <span className="text-sm text-muted-foreground">
-                                                {getString(selectedProductRecord, "category") ??
-                                                    "Uncategorized"}
+                                                {formatCategoryLabel(
+                                                    getString(selectedProductRecord, "category")
+                                                )}
                                             </span>
                                         </div>
                                         <h2 className="mt-2 text-2xl font-semibold text-foreground">
@@ -1324,7 +1345,9 @@ const ProductListPanel = ({
                             const isSelected =
                                 productId !== null && productId === selectedProductId;
                             const titleValue = getString(record, "title") ?? `Product ${index + 1}`;
-                            const categoryValue = getString(record, "category") ?? "Uncategorized";
+                            const categoryValue = formatCategoryLabel(
+                                getString(record, "category")
+                            );
                             const statusValue = getString(record, "status");
 
                             return (
