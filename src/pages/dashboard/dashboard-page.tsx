@@ -22,6 +22,7 @@ import { useAuth } from "@/auth/auth-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useI18n } from "@/i18n/i18n";
 import { notifyError, notifySuccess } from "@/lib/notify";
 import { cn } from "@/lib/utils";
 
@@ -271,6 +272,7 @@ const adminFlow: WorkspaceNote[] = [
 
 export const DashboardPage = () => {
     const { accessToken, role, refresh } = useAuth();
+    const { t } = useI18n();
     const navigate = useNavigate();
     const [isUpgradingRole, setIsUpgradingRole] = useState(false);
 
@@ -461,6 +463,9 @@ export const DashboardPage = () => {
               ? "Seller"
               : "Buyer"
         : "Public";
+    const workspaceRouteSummary = t(
+        `Showing the most useful routes for ${workspaceName.toLowerCase()} mode.`
+    );
 
     return (
         <div className="space-y-8">
@@ -498,7 +503,7 @@ export const DashboardPage = () => {
                                     {isUpgradingRole ? (
                                         <>
                                             <Loader2 className="h-4 w-4 animate-spin" />
-                                            Switching
+                                            Switching...
                                         </>
                                     ) : (
                                         "Become seller"
@@ -572,7 +577,7 @@ export const DashboardPage = () => {
                         </h2>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                        Showing the most useful routes for {workspaceName.toLowerCase()} mode.
+                        {workspaceRouteSummary}
                     </p>
                 </div>
 

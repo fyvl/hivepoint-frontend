@@ -6,6 +6,7 @@ import {
     Key,
     Laptop,
     LayoutGrid,
+    Languages,
     LogOut,
     Menu,
     Moon,
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { type Locale, useI18n } from "@/i18n/i18n";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/theme/theme-context";
 
@@ -60,27 +62,34 @@ type AppShellProps = {
     children: React.ReactNode;
 };
 
-const getRoleLabel = (role: string | null) => {
+const getRoleLabel = (role: string | null, locale: Locale) => {
     if (role === "BUYER") {
-        return "Buyer";
+        return locale === "ru" ? "Покупатель" : "Buyer";
     }
     if (role === "SELLER") {
-        return "Seller";
+        return locale === "ru" ? "Продавец" : "Seller";
     }
     if (role === "ADMIN") {
-        return "Admin";
+        return locale === "ru" ? "Администратор" : "Admin";
     }
     return null;
 };
 
 export const AppShell = ({ children }: AppShellProps) => {
     const { accessToken, email, role, logout } = useAuth();
+    const { locale, setLocale } = useI18n();
     const { theme, setTheme } = useTheme();
     const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
-    const accountLabel = email || "Account";
-    const accountRole = getRoleLabel(role);
-    const workspaceLabel = accountRole ? `${accountRole} workspace` : "Public workspace";
+    const accountLabel = email || (locale === "ru" ? "Аккаунт" : "Account");
+    const accountRole = getRoleLabel(role, locale);
+    const workspaceLabel = accountRole
+        ? locale === "ru"
+            ? `Режим: ${accountRole}`
+            : `${accountRole} workspace`
+        : locale === "ru"
+          ? "Гостевой режим"
+          : "Public workspace";
 
     const protectedNav = useMemo(() => {
         if (!accessToken || !role) {
@@ -98,6 +107,7 @@ export const AppShell = ({ children }: AppShellProps) => {
         return [...adminNav, ...sellerNav, ...buyerNav, ...accountNav];
     }, [accessToken, role]);
     const shellNav = accessToken ? [...publicNav, ...protectedNav] : publicNav;
+    const headerNav = shellNav.filter((item) => item.to !== "/profile");
 
     return (
         <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-background text-foreground">
@@ -130,7 +140,7 @@ export const AppShell = ({ children }: AppShellProps) => {
                                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
                                             {accessToken
                                                 ? "Session tools are available for your role."
-                                                : "Explore the catalog or sign in to operate."}
+                                                : "Explore the catalog or sign in to work with the service."}
                                         </p>
                                     </div>
 
@@ -173,14 +183,11 @@ export const AppShell = ({ children }: AppShellProps) => {
 
                         <Link to="/" className="flex min-w-0 items-center gap-3">
                             <Logo size="md" />
-                            <span className="hidden text-sm font-medium text-muted-foreground xl:inline">
-                                API Marketplace
-                            </span>
                         </Link>
                     </div>
 
-                    <nav className="hidden min-w-0 items-center gap-1 rounded-lg border border-border/70 bg-card/75 p-1 shadow-sm lg:flex">
-                        {shellNav.map((item) => (
+                    <nav className="hidden min-w-0 items-center gap-1 rounded-lg border border-border/70 bg-card/75 p-1 shadow-sm xl:flex">
+                        {headerNav.map((item) => (
                             <HeaderNavLink
                                 key={item.to}
                                 to={item.to}
@@ -191,6 +198,37 @@ export const AppShell = ({ children }: AppShellProps) => {
                     </nav>
 
                     <div className="flex shrink-0 items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className="h-12 min-w-12 gap-2 px-3"
+                                    aria-label="Language"
+                                >
+                                    <Languages className="h-4 w-4" />
+                                    <span className="text-xs font-semibold uppercase">
+                                        {locale}
+                                    </span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuLabel>Language</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    className={cn("gap-2", locale === "en" && "bg-accent")}
+                                    onClick={() => setLocale("en")}
+                                >
+                                    English
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className={cn("gap-2", locale === "ru" && "bg-accent")}
+                                    onClick={() => setLocale("ru")}
+                                >
+                                    Russian
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
@@ -320,15 +358,15 @@ const HeaderNavLink = ({ to, label, icon: Icon }: HeaderNavLinkProps) => {
             to={to}
             className={({ isActive }) =>
                 cn(
-                    "flex h-10 items-center gap-2 rounded-md px-3.5 text-sm font-medium transition-[background-color,color,box-shadow]",
+                    "flex h-10 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium transition-[background-color,color,box-shadow] 2xl:gap-2 2xl:px-3.5 2xl:text-sm",
                     isActive
                         ? "bg-foreground text-background shadow-sm"
                         : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                 )
             }
         >
-            <Icon className="h-4 w-4" />
-            <span>{label}</span>
+            <Icon className="h-4 w-4 shrink-0" />
+            <span className="whitespace-nowrap">{label}</span>
         </NavLink>
     );
 };

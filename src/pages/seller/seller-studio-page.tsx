@@ -30,10 +30,11 @@ import { EmptyBlock } from "@/components/ui-states/empty-block";
 import { ErrorBlock } from "@/components/ui-states/error-block";
 import { LoadingBlock } from "@/components/ui-states/loading-block";
 import {
-    API_CATEGORY_OPTIONS,
     formatCategoryLabel,
+    getApiCategoryOptions,
     toStoredCategoryValue
 } from "@/lib/categories";
+import { useI18n } from "@/i18n/i18n";
 import { formatCurrency, formatNumber, formatRequestsPerMinute } from "@/lib/format";
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify";
 import { cn } from "@/lib/utils";
@@ -112,6 +113,7 @@ const CATEGORY_REVIEW_SCORE_THRESHOLD = 0.35;
 
 export const SellerStudioPage = () => {
     const { accessToken, refresh } = useAuth();
+    const { locale, t } = useI18n();
     const catalogApi = useMemo(
         () => createCatalogApi({ accessToken, refresh }),
         [accessToken, refresh]
@@ -533,22 +535,26 @@ export const SellerStudioPage = () => {
     }, [versions]);
     const setupSteps = [
         {
-            label: "Create product",
+            label: t("Create product"),
             done: products.length > 0
         },
         {
-            label: "Connect schema (OpenAPI URL)",
+            label: t("Connect schema (OpenAPI URL)"),
             done: hasSchemaConnected
         },
         {
-            label: "Publish at least one version",
+            label: t("Publish at least one version"),
             done: hasPublishedVersion
         },
         {
-            label: "Create pricing plan",
+            label: t("Create pricing plan"),
             done: plans.length > 0
         }
     ];
+    const formatPlanQuotaLine = (quotaRequests: number) =>
+        locale === "ru"
+            ? `${formatNumber(quotaRequests)} запросов / месяц`
+            : `${formatNumber(quotaRequests)} requests / month`;
 
     return (
         <div className="flex flex-col gap-8">
@@ -606,7 +612,7 @@ export const SellerStudioPage = () => {
                                                 }
                                             />
                                             <datalist id="seller-category-options">
-                                                {API_CATEGORY_OPTIONS.map((option) => (
+                                                {getApiCategoryOptions(locale).map((option) => (
                                                     <option key={option.key} value={option.label} />
                                                 ))}
                                             </datalist>
@@ -716,19 +722,19 @@ export const SellerStudioPage = () => {
             ) : analytics ? (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <OverviewMetric
-                        label="Active clients"
+                        label={t("Active clients")}
                         value={formatNumber(analytics.totals.activeClients)}
                     />
                     <OverviewMetric
-                        label="Past due clients"
+                        label={t("Past due clients")}
                         value={formatNumber(analytics.totals.pastDueClients)}
                     />
                     <OverviewMetric
-                        label={`Requests (${analytics.windowDays}d)`}
+                        label={t(`Requests (${analytics.windowDays}d)`)}
                         value={formatNumber(analytics.totals.requests30d)}
                     />
                     <OverviewMetric
-                        label="Active MRR"
+                        label={t("Active MRR")}
                         value={formatCurrency(analytics.totals.mrrCents, "EUR")}
                     />
                 </div>
@@ -869,9 +875,9 @@ export const SellerStudioPage = () => {
             <Tabs defaultValue="overview" className="space-y-4">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                     <StudioSectionHeader
-                        eyebrow="Selected product workspace"
-                        title="Work on one product at a time"
-                        description="Use the tabs to switch between readiness, releases, plans, and performance for the selected product."
+                        eyebrow={t("Selected product workspace")}
+                        title={t("Work on one product at a time")}
+                        description={t("Use the tabs to switch between readiness, releases, plans, and performance for the selected product.")}
                     />
                     <TabsList className="h-10 w-full justify-start lg:w-auto">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -903,17 +909,16 @@ export const SellerStudioPage = () => {
                                                 value={formatNumber(plans.length)}
                                             />
                                             <AnalyticsStat
-                                                label="Published version"
-                                                value={hasPublishedVersion ? "Ready" : "Missing"}
+                                                label={t("Published version")}
+                                                value={hasPublishedVersion ? t("Ready") : t("Missing")}
                                             />
                                             <AnalyticsStat
-                                                label="Schema"
-                                                value={hasSchemaConnected ? "Connected" : "Missing"}
+                                                label={t("Schema")}
+                                                value={hasSchemaConnected ? t("Connected") : t("Missing")}
                                             />
                                         </div>
                                         <div className="rounded-lg border bg-muted/20 px-4 py-3 text-sm leading-6 text-muted-foreground">
-                                            Buyers can evaluate this product once it has a published
-                                            version and at least one active plan.
+                                            {t("Buyers can evaluate this product once it has a published version and at least one active plan.")}
                                         </div>
                                     </>
                                 ) : (
@@ -954,7 +959,7 @@ export const SellerStudioPage = () => {
                                                 value={`${selectedProductAnalytics.conversionRate30d}%`}
                                             />
                                             <AnalyticsStat
-                                                label="Active clients"
+                                                label={t("Active clients")}
                                                 value={formatNumber(
                                                     selectedProductAnalytics.activeClients
                                                 )}
@@ -966,7 +971,7 @@ export const SellerStudioPage = () => {
                                                 )}
                                             />
                                             <AnalyticsStat
-                                                label="Requests (30d)"
+                                                label={t("Requests (30d)")}
                                                 value={formatNumber(
                                                     selectedProductAnalytics.requests30d
                                                 )}
@@ -1020,8 +1025,8 @@ export const SellerStudioPage = () => {
                                                 </div>
                                             ) : (
                                                 <EmptyBlock
-                                                    title="No endpoint traffic yet"
-                                                    description="Analytics will populate once buyers send gateway traffic."
+                                                    title={t("No endpoint traffic yet")}
+                                                    description={t("Analytics will populate once buyers send gateway traffic.")}
                                                 />
                                             )}
                                         </div>
@@ -1040,10 +1045,9 @@ export const SellerStudioPage = () => {
                 <TabsContent value="releases" className="mt-0">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Versions for selected product</CardTitle>
+                            <CardTitle>{t("Versions for selected product")}</CardTitle>
                             <CardDescription>
-                                Add a version and OpenAPI URL. New versions start as DRAFT, then
-                                publish below.
+                                {t("Add a version and OpenAPI URL. New versions start as DRAFT, then publish below.")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -1071,7 +1075,7 @@ export const SellerStudioPage = () => {
                                     size="sm"
                                     disabled={isCreatingVersion || !selectedProductId}
                                 >
-                                    {isCreatingVersion ? "Creating..." : "Create version"}
+                                    {isCreatingVersion ? t("Creating...") : t("Create version")}
                                 </Button>
                             </form>
 
@@ -1177,9 +1181,9 @@ export const SellerStudioPage = () => {
                 <TabsContent value="plans" className="mt-0">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Plans for selected product</CardTitle>
+                            <CardTitle>{t("Plans for selected product")}</CardTitle>
                             <CardDescription>
-                                Set monthly pricing, quota, and an optional per-minute rate limit.
+                                {t("Set monthly pricing, quota, and an optional per-minute rate limit.")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -1246,8 +1250,7 @@ export const SellerStudioPage = () => {
                                             }
                                         />
                                         <p className="text-xs text-muted-foreground">
-                                            Leave blank to allow unrestricted burst traffic inside
-                                            the monthly quota.
+                                            {t("Leave blank to allow unrestricted burst traffic inside the monthly quota.")}
                                         </p>
                                     </div>
                                 </div>
@@ -1269,17 +1272,17 @@ export const SellerStudioPage = () => {
                                                 {plan.isActive ? (
                                                     <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
                                                         <CheckCircle2 className="h-3.5 w-3.5" />
-                                                        Active
+                                                        {t("Active")}
                                                     </span>
                                                 ) : (
                                                     <span className="text-xs text-muted-foreground">
-                                                        Inactive
+                                                        {t("Inactive")}
                                                     </span>
                                                 )}
                                             </div>
                                             <p className="text-xs text-muted-foreground">
                                                 {formatCurrency(plan.priceCents, plan.currency)} -{" "}
-                                                {formatNumber(plan.quotaRequests)} requests / month
+                                                {formatPlanQuotaLine(plan.quotaRequests)}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
                                                 {getPlanRateLimitLine(plan.rateLimitRpm)}
@@ -1311,11 +1314,13 @@ const ProductListPanel = ({
     onSelect: (productId: string | null) => void;
     onRetry: () => void;
 }) => {
+    const { t } = useI18n();
+
     return (
         <Card className="h-full">
             <CardHeader>
-                <CardTitle>Existing products</CardTitle>
-                <CardDescription>Select the listing you want to configure.</CardDescription>
+                <CardTitle>{t("Existing products")}</CardTitle>
+                <CardDescription>{t("Select the listing you want to configure.")}</CardDescription>
             </CardHeader>
             <CardContent>
                 {isLoading ? <LoadingBlock title="Loading products..." count={3} /> : null}

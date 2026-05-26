@@ -45,6 +45,7 @@ import { EmptyBlock } from "@/components/ui-states/empty-block"
 import { ErrorBlock } from "@/components/ui-states/error-block"
 import { LoadingBlock } from "@/components/ui-states/loading-block"
 import { apiBaseUrl } from "@/config/env"
+import { useI18n, type Locale } from "@/i18n/i18n"
 import { formatCategoryLabel } from "@/lib/categories"
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notify"
 import {
@@ -191,9 +192,25 @@ const getPlanRateLimitLine = (rateLimitRpm: number | null | undefined) => {
     return `Rate limit: ${formatRequestsPerMinute(rateLimitRpm)}`
 }
 
+const getVersionSelectStatus = (status: string, locale: Locale) => {
+    if (locale !== "ru") {
+        return status
+    }
+
+    const statusLabels: Record<string, string> = {
+        PUBLISHED: "ОПУБЛИКОВАНА",
+        DRAFT: "ЧЕРНОВИК",
+        HIDDEN: "СКРЫТА",
+        ARCHIVED: "В АРХИВЕ"
+    }
+
+    return statusLabels[status] ?? status
+}
+
 export const ProductDetailsPage = () => {
     const { id } = useParams<{ id: string }>()
     const { accessToken, refresh, userId, isHydrating } = useAuth()
+    const { locale, t } = useI18n()
     const catalogApi = useMemo(
         () => createCatalogApi({ accessToken, refresh }),
         [accessToken, refresh]
@@ -729,10 +746,11 @@ export const ProductDetailsPage = () => {
                                                 const versionId = getString(versionRecord, "id")
                                                 const versionLabel = getString(versionRecord, "version") ?? `Version ${index + 1}`
                                                 const status = getString(versionRecord, "status") ?? "UNKNOWN"
+                                                const statusLabel = getVersionSelectStatus(status, locale)
 
                                                 return versionId ? (
                                                     <SelectItem key={versionId} value={versionId}>
-                                                        {versionLabel} · {status}
+                                                        {versionLabel} · {statusLabel}
                                                     </SelectItem>
                                                 ) : null
                                             })}
@@ -760,11 +778,10 @@ export const ProductDetailsPage = () => {
                             {schemaState.status === "unavailable" ? (
                                 <div className="rounded-lg border border-border/60 bg-muted/10 p-4">
                                     <div className="text-sm font-medium text-foreground">
-                                        Schema snapshot not stored yet
+                                        {t("Schema snapshot not stored yet")}
                                     </div>
                                     <div className="mt-1 text-sm text-muted-foreground">
-                                        This version has a source OpenAPI document, but HivePoint does not have a stored schema snapshot yet.
-                                        Use the source OpenAPI or refresh the version in Seller Studio.
+                                        {t("This version has a source OpenAPI document, but HivePoint does not have a stored schema snapshot yet. Use the source OpenAPI or refresh the version in Seller Studio.")}
                                     </div>
                                 </div>
                             ) : null}

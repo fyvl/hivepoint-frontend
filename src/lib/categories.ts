@@ -1,76 +1,100 @@
+import { getCurrentLocale, type Locale } from "@/i18n/i18n"
+
 export type ApiCategoryOption = {
-    key: string;
-    label: string;
-};
+    key: string
+    label: string
+}
 
-export const API_CATEGORY_OPTIONS: ApiCategoryOption[] = [
-    { key: "payments", label: "Payments" },
-    { key: "communications", label: "Communications" },
-    { key: "auth_identity", label: "Auth & Identity" },
-    { key: "data_validation", label: "Data Validation" },
-    { key: "ai_ml", label: "AI & ML" },
-    { key: "geo_maps", label: "Geo & Maps" },
-    { key: "finance_data", label: "Finance Data" },
-    { key: "ecommerce_logistics", label: "E-commerce & Logistics" },
-    { key: "media_content", label: "Media & Content" },
-    { key: "analytics_monitoring", label: "Analytics & Monitoring" }
-];
+type LocalizedCategoryOption = {
+    key: string
+    labels: Record<Locale, string>
+}
 
-const LEGACY_CATEGORY_OPTIONS: ApiCategoryOption[] = [
-    { key: "developer-tools", label: "Developer Tools" },
-    { key: "ai", label: "AI" },
-    { key: "samples", label: "Samples" },
-    { key: "security", label: "Security" },
-    { key: "analytics", label: "Analytics" },
-    { key: "testing", label: "Testing" }
-];
+const API_CATEGORY_DEFINITIONS: LocalizedCategoryOption[] = [
+    { key: "payments", labels: { en: "Payments", ru: "Платежи" } },
+    { key: "communications", labels: { en: "Communications", ru: "Коммуникации" } },
+    { key: "auth_identity", labels: { en: "Auth & Identity", ru: "Авторизация и идентификация" } },
+    { key: "data_validation", labels: { en: "Data Validation", ru: "Проверка данных" } },
+    { key: "ai_ml", labels: { en: "AI & ML", ru: "ИИ и ML" } },
+    { key: "geo_maps", labels: { en: "Geo & Maps", ru: "Гео и карты" } },
+    { key: "finance_data", labels: { en: "Finance Data", ru: "Финансовые данные" } },
+    { key: "ecommerce_logistics", labels: { en: "E-commerce & Logistics", ru: "E-commerce и логистика" } },
+    { key: "media_content", labels: { en: "Media & Content", ru: "Медиа и контент" } },
+    { key: "analytics_monitoring", labels: { en: "Analytics & Monitoring", ru: "Аналитика и мониторинг" } }
+]
 
-const ALL_CATEGORY_OPTIONS = [...API_CATEGORY_OPTIONS, ...LEGACY_CATEGORY_OPTIONS];
+const LEGACY_CATEGORY_DEFINITIONS: LocalizedCategoryOption[] = [
+    { key: "developer-tools", labels: { en: "Developer Tools", ru: "Инструменты разработчика" } },
+    { key: "ai", labels: { en: "AI", ru: "ИИ" } },
+    { key: "samples", labels: { en: "Samples", ru: "Примеры" } },
+    { key: "security", labels: { en: "Security", ru: "Безопасность" } },
+    { key: "analytics", labels: { en: "Analytics", ru: "Аналитика" } },
+    { key: "testing", labels: { en: "Testing", ru: "Тестирование" } }
+]
+
+const ALL_CATEGORY_DEFINITIONS = [...API_CATEGORY_DEFINITIONS, ...LEGACY_CATEGORY_DEFINITIONS]
+
+export const API_CATEGORY_OPTIONS: ApiCategoryOption[] = API_CATEGORY_DEFINITIONS.map((option) => ({
+    key: option.key,
+    label: option.labels.en
+}))
+
+export const getApiCategoryOptions = (locale: Locale = getCurrentLocale()): ApiCategoryOption[] =>
+    API_CATEGORY_DEFINITIONS.map((option) => ({
+        key: option.key,
+        label: option.labels[locale]
+    }))
 
 const normalizeCategoryToken = (value: string) => {
     return value
         .trim()
         .toLowerCase()
         .replace(/&/g, "and")
-        .replace(/[^a-z0-9]+/g, "_")
-        .replace(/^_+|_+$/g, "");
-};
+        .replace(/[^\p{L}\p{N}]+/gu, "_")
+        .replace(/^_+|_+$/g, "")
+}
 
-const categoryByKey = new Map(ALL_CATEGORY_OPTIONS.map((option) => [option.key, option]));
-const categoryKeyByToken = new Map<string, string>();
+const categoryByKey = new Map(ALL_CATEGORY_DEFINITIONS.map((option) => [option.key, option]))
+const categoryKeyByToken = new Map<string, string>()
 
-ALL_CATEGORY_OPTIONS.forEach((option) => {
-    categoryKeyByToken.set(normalizeCategoryToken(option.key), option.key);
-    categoryKeyByToken.set(normalizeCategoryToken(option.label), option.key);
-});
+ALL_CATEGORY_DEFINITIONS.forEach((option) => {
+    categoryKeyByToken.set(normalizeCategoryToken(option.key), option.key)
+    Object.values(option.labels).forEach((label) => {
+        categoryKeyByToken.set(normalizeCategoryToken(label), option.key)
+    })
+})
 
 export const resolveKnownCategoryKey = (value: string | null | undefined) => {
     if (!value) {
-        return undefined;
+        return undefined
     }
 
-    const trimmed = value.trim();
+    const trimmed = value.trim()
     if (!trimmed) {
-        return undefined;
+        return undefined
     }
 
     if (categoryByKey.has(trimmed)) {
-        return trimmed;
+        return trimmed
     }
 
-    return categoryKeyByToken.get(normalizeCategoryToken(trimmed));
-};
+    return categoryKeyByToken.get(normalizeCategoryToken(trimmed))
+}
 
 export const formatCategoryLabel = (value: string | null | undefined) => {
-    const knownKey = resolveKnownCategoryKey(value);
+    const knownKey = resolveKnownCategoryKey(value)
     if (knownKey) {
-        return categoryByKey.get(knownKey)?.label ?? knownKey;
+        return categoryByKey.get(knownKey)?.labels[getCurrentLocale()] ?? knownKey
     }
 
-    const trimmed = value?.trim();
-    return trimmed && trimmed.length > 0 ? trimmed : "Uncategorized";
-};
+    const trimmed = value?.trim()
+    return trimmed && trimmed.length > 0
+        ? trimmed
+        : getCurrentLocale() === "ru"
+          ? "Без категории"
+          : "Uncategorized"
+}
 
 export const toStoredCategoryValue = (value: string) => {
-    return resolveKnownCategoryKey(value) ?? value.trim();
-};
+    return resolveKnownCategoryKey(value) ?? value.trim()
+}

@@ -5,6 +5,7 @@ import { RequireAuth } from "@/auth/require-auth"
 import { RequireRole } from "@/auth/require-role"
 import { AppShell } from "@/components/layout/app-shell"
 import { LoadingBlock } from "@/components/ui-states/loading-block"
+import { useI18n } from "@/i18n/i18n"
 
 const BillingPage = lazy(() =>
     import("@/pages/billing/billing-page").then((module) => ({ default: module.BillingPage }))
@@ -71,8 +72,10 @@ const PageFallback = () => (
 )
 
 export default function App() {
+    const { locale } = useI18n()
+
     return (
-        <AppShell>
+        <AppShell key={locale}>
             <Suspense fallback={<PageFallback />}>
                 <Routes>
                     <Route path="/" element={<DashboardPage />} />
