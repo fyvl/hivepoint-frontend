@@ -23,11 +23,11 @@ export const PageHeader = ({
 }: PageHeaderProps) => {
     return (
         <section className={cn("motion-section surface-panel-strong relative overflow-hidden px-5 py-5 sm:px-6", className)}>
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-amber-400 to-stone-700" />
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-amber-400 to-stone-700 dark:from-primary/70 dark:via-amber-400/45 dark:to-stone-700/55" />
             <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                 <div className="flex min-w-0 gap-4">
                     {icon ? (
-                        <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/80 bg-background/80 text-primary shadow-sm">
+                        <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/80 bg-background/80 text-primary shadow-sm dark:border-border/90 dark:bg-background/60 dark:text-amber-300">
                             {icon}
                         </div>
                     ) : null}
@@ -46,7 +46,7 @@ export const PageHeader = ({
             </div>
 
             {children ? (
-                <div className="relative z-10 mt-5 border-t border-border/70 pt-4">{children}</div>
+                <div className="relative z-10 mt-5 border-t border-border/70 pt-4 dark:border-border/85">{children}</div>
             ) : null}
         </section>
     )

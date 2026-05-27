@@ -9,16 +9,16 @@ const badgeVariants = cva(
         variants: {
             variant: {
                 default:
-                    "border-primary/20 bg-primary/10 text-primary shadow-sm hover:bg-primary/20",
+                    "border-primary/20 bg-primary/10 text-primary shadow-sm hover:bg-primary/20 dark:border-primary/[0.18] dark:bg-primary/[0.08] dark:text-amber-300 dark:hover:bg-primary/[0.12]",
                 secondary:
-                    "border-border/60 bg-secondary/70 text-secondary-foreground hover:bg-secondary",
+                    "border-border/60 bg-secondary/70 text-secondary-foreground hover:bg-secondary dark:border-border/80 dark:bg-secondary/85",
                 destructive:
-                    "border-destructive/20 bg-destructive/10 text-destructive shadow-sm hover:bg-destructive/20",
-                outline: "border-border/75 bg-transparent text-muted-foreground hover:border-foreground/20 hover:text-foreground",
+                    "border-destructive/20 bg-destructive/10 text-destructive shadow-sm hover:bg-destructive/20 dark:border-destructive/30 dark:bg-destructive/10",
+                outline: "border-border/75 bg-transparent text-muted-foreground hover:border-foreground/20 hover:text-foreground dark:border-border/80",
                 success:
-                    "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+                    "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-500/[0.08] dark:text-emerald-300",
                 warning:
-                    "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                    "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:border-amber-400/25 dark:bg-amber-500/[0.08] dark:text-amber-300"
             }
         },
         defaultVariants: {

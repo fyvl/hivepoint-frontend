@@ -22,8 +22,8 @@ export const ErrorBlock = ({
     const Icon = variant === "network" ? WifiOff : AlertTriangle
     
     return (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-destructive/20 bg-destructive/5 px-6 py-16 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-destructive/20 bg-destructive/5 px-6 py-16 text-center dark:border-destructive/35 dark:bg-destructive/10">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 dark:bg-destructive/15 dark:ring-1 dark:ring-destructive/25">
                 <Icon className="h-8 w-8 text-destructive" />
             </div>
             <h3 className="mb-1 text-lg font-semibold">{title}</h3>

@@ -30,7 +30,7 @@ export const LoadingBlock = ({
             <p className="text-sm text-muted-foreground">{title}</p>
             <div className="grid gap-4">
                 {Array.from({ length: count }).map((_, index) => (
-                    <Card key={`loading-card-${index}`} className="motion-metric animate-pulse">
+                    <Card key={`loading-card-${index}`} className="motion-metric animate-pulse dark:border-border/85">
                         <CardHeader className="space-y-2">
                             <Skeleton className="h-4 w-1/3" />
                             <Skeleton className="h-3 w-1/2" />

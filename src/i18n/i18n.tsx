@@ -50,6 +50,20 @@ const translateRoleList = (value: string) =>
         .map((role) => translateText(role.trim(), "ru"))
         .join(" / ")
 
+const formatRuPlural = (countText: string, forms: [string, string, string]) => {
+    const count = Math.abs(Number.parseInt(countText.replace(/\s/g, ""), 10))
+    const mod10 = count % 10
+    const mod100 = count % 100
+    const form =
+        mod10 === 1 && mod100 !== 11
+            ? forms[0]
+            : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)
+                ? forms[1]
+                : forms[2]
+
+    return `${countText} ${form}`
+}
+
 const workspaceModeTranslations: Record<string, string> = {
     admin: "администратора",
     seller: "продавца",
@@ -99,7 +113,7 @@ const patternTranslations: PatternTranslation[] = [
         from: "en",
         to: "ru",
         pattern: /^([\d\s.,]+) products$/,
-        replace: ([, count]) => `${count} продуктов`
+        replace: ([, count]) => formatRuPlural(count, ["продукт", "продукта", "продуктов"])
     },
     {
         from: "en",
@@ -207,7 +221,7 @@ const patternTranslations: PatternTranslation[] = [
         from: "en",
         to: "ru",
         pattern: /^(\d+) cards$/,
-        replace: ([, count]) => `${count} карточек`
+        replace: ([, count]) => formatRuPlural(count, ["карточка", "карточки", "карточек"])
     },
     {
         from: "ru",

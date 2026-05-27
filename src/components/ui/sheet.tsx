@@ -25,7 +25,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 const sheetVariants =
-    "motion-menu fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-300"
+    "motion-menu fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-out dark:border-border/90 dark:bg-popover dark:shadow-[0_28px_80px_-42px_hsl(var(--shadow-color)/1),inset_0_1px_0_hsl(var(--foreground)/0.06)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-300"
 
 const SheetContent = React.forwardRef<
     React.ElementRef<typeof DialogPrimitive.Content>,

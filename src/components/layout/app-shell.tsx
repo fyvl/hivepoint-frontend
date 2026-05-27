@@ -111,7 +111,7 @@ export const AppShell = ({ children }: AppShellProps) => {
 
     return (
         <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-background text-foreground">
-            <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
+            <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl dark:border-border/80 dark:bg-background/90">
                 <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
                     <div className="flex min-w-0 items-center gap-3">
                         <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
@@ -125,7 +125,7 @@ export const AppShell = ({ children }: AppShellProps) => {
                                     <Menu className="h-5 w-5" />
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent className="w-80 bg-background">
+                            <SheetContent className="w-80 bg-background dark:bg-popover">
                                 <SheetHeader className="text-left">
                                     <SheetTitle>
                                         <Logo size="sm" />
@@ -133,7 +133,7 @@ export const AppShell = ({ children }: AppShellProps) => {
                                 </SheetHeader>
 
                                 <div className="mt-8 flex flex-col gap-5">
-                                    <div className="rounded-lg border border-border/80 bg-card/75 px-4 py-4">
+                                    <div className="rounded-lg border border-border/80 bg-card/75 px-4 py-4 dark:border-border/90 dark:bg-card">
                                         <p className="text-xs font-semibold text-muted-foreground">
                                             {workspaceLabel}
                                         </p>
@@ -186,7 +186,7 @@ export const AppShell = ({ children }: AppShellProps) => {
                         </Link>
                     </div>
 
-                    <nav className="hidden min-w-0 items-center gap-1 rounded-lg border border-border/70 bg-card/75 p-1 shadow-sm xl:flex">
+                    <nav className="hidden min-w-0 items-center gap-1 rounded-lg border border-border/70 bg-card/75 p-1 shadow-sm dark:border-border/85 dark:bg-card/90 dark:shadow-[0_16px_42px_-34px_hsl(var(--shadow-color)/0.9),inset_0_1px_0_hsl(var(--foreground)/0.045)] xl:flex">
                         {headerNav.map((item) => (
                             <HeaderNavLink
                                 key={item.to}
@@ -278,7 +278,7 @@ export const AppShell = ({ children }: AppShellProps) => {
                                         variant="outline"
                                         className="h-12 max-w-[280px] px-3.5 sm:px-4"
                                     >
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/20 text-primary">
+                                        <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/20 text-primary dark:bg-primary/[0.14] dark:text-amber-300">
                                             <User className="h-4 w-4" />
                                         </span>
                                         <span className="hidden min-w-0 flex-col items-start pr-1 text-left sm:flex">
@@ -360,8 +360,8 @@ const HeaderNavLink = ({ to, label, icon: Icon }: HeaderNavLinkProps) => {
                 cn(
                     "flex h-10 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium transition-[background-color,color,box-shadow] 2xl:gap-2 2xl:px-3.5 2xl:text-sm",
                     isActive
-                        ? "bg-foreground text-background shadow-sm"
-                        : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                        ? "bg-foreground text-background shadow-sm dark:bg-accent dark:text-foreground dark:shadow-[inset_0_1px_0_hsl(var(--foreground)/0.05)]"
+                        : "text-muted-foreground hover:bg-muted/80 hover:text-foreground dark:hover:bg-accent/70"
                 )
             }
         >
@@ -386,8 +386,8 @@ const MobileNavLink = ({ to, label, icon: Icon, onNavigate }: MobileNavLinkProps
                 cn(
                     "flex items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-sm font-medium transition-[background-color,border-color,color]",
                     isActive
-                        ? "border-border bg-foreground text-background"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        ? "border-border bg-foreground text-background dark:border-border/85 dark:bg-accent dark:text-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-accent/70"
                 )
             }
             onClick={onNavigate}

@@ -32,8 +32,8 @@ export const EmptyBlock = ({
     const Icon = icon || iconMap[variant]
 
     return (
-        <div className="motion-empty flex flex-col items-center justify-center rounded-xl border border-dashed bg-muted/30 px-6 py-16 text-center">
-            <div className="motion-empty-icon mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+        <div className="motion-empty flex flex-col items-center justify-center rounded-xl border border-dashed bg-muted/30 px-6 py-16 text-center dark:border-border/80 dark:bg-card/70">
+            <div className="motion-empty-icon mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted dark:bg-background/70 dark:ring-1 dark:ring-border/80">
                 <Icon className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="mb-1 text-lg font-semibold">{title}</h3>

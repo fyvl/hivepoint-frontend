@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { EmptyBlock } from "@/components/ui-states/empty-block";
 import { ErrorBlock } from "@/components/ui-states/error-block";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { useI18n } from "@/i18n/i18n";
 import { formatCategoryLabel } from "@/lib/categories";
 import { formatNumber } from "@/lib/format";
 import { notifyError } from "@/lib/notify";
@@ -130,6 +131,7 @@ const getPalette = (key: string) => {
 
 export const CatalogPage = () => {
     const { accessToken, refresh } = useAuth();
+    const { t } = useI18n();
     const catalogApi = useMemo(
         () => createCatalogApi({ accessToken, refresh }),
         [accessToken, refresh]
@@ -301,8 +303,8 @@ export const CatalogPage = () => {
                         </p>
 
                         <div className="motion-stagger mt-5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                            <Badge variant="secondary">{totalProductsLabel} products</Badge>
-                            <Badge variant="outline">Page {pageLabel}</Badge>
+                            <Badge variant="secondary">{t(`${totalProductsLabel} products`)}</Badge>
+                            <Badge variant="outline">{t(`Page ${pageLabel}`)}</Badge>
                             <span>{showingText}</span>
                         </div>
                     </div>
@@ -364,7 +366,7 @@ export const CatalogPage = () => {
                                             size="sm"
                                             onClick={() => setLimit(value)}
                                         >
-                                            {value} cards
+                                            {t(`${formatNumber(value)} cards`)}
                                         </Button>
                                     ))}
                                 </div>
