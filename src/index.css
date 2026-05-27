@@ -4,86 +4,121 @@
 
 @layer base {
     :root {
-        --background: 210 24% 98%;
-        --foreground: 222 42% 11%;
+        --background: 214 24% 98%;
+        --foreground: 222 35% 10%;
         --card: 0 0% 100%;
-        --card-foreground: 222 42% 11%;
+        --card-foreground: 222 35% 10%;
         --popover: 0 0% 100%;
-        --popover-foreground: 222 42% 11%;
-        --primary: 33 92% 50%;
-        --primary-foreground: 222 42% 11%;
-        --secondary: 193 48% 94%;
-        --secondary-foreground: 215 36% 16%;
-        --muted: 214 24% 94%;
-        --muted-foreground: 217 12% 42%;
-        --accent: 220 24% 92%;
-        --accent-foreground: 222 42% 11%;
+        --popover-foreground: 222 35% 10%;
+        --primary: 36 79% 47%;
+        --primary-foreground: 222 35% 10%;
+        --secondary: 216 25% 93%;
+        --secondary-foreground: 218 28% 16%;
+        --muted: 216 22% 93%;
+        --muted-foreground: 217 12% 40%;
+        --accent: 216 18% 90%;
+        --accent-foreground: 222 35% 10%;
         --destructive: 0 74% 54%;
         --destructive-foreground: 0 0% 98%;
         --border: 215 20% 86%;
         --input: 215 20% 86%;
-        --ring: 33 92% 50%;
-        --radius: 0.5rem;
-        --chart-1: 33 92% 50%;
-        --chart-2: 189 70% 38%;
-        --chart-3: 222 72% 54%;
-        --chart-4: 268 58% 58%;
-        --chart-5: 345 72% 52%;
-        --honey: 33 92% 50%;
-        --honey-light: 40 92% 62%;
-        --honey-dark: 24 82% 42%;
-        --amber-glow: 33 92% 50%;
+        --ring: 36 79% 47%;
+        --radius: 0.625rem;
+        --chart-1: 36 79% 47%;
+        --chart-2: 158 47% 37%;
+        --chart-3: 216 24% 38%;
+        --chart-4: 30 72% 44%;
+        --chart-5: 0 68% 47%;
+        --honey: 36 79% 47%;
+        --honey-light: 39 86% 60%;
+        --honey-dark: 28 73% 39%;
+        --shadow-color: 218 32% 28%;
+        --amber-glow: 36 79% 47%;
+        --motion-fast: 160ms;
+        --motion-base: 220ms;
+        --motion-slow: 360ms;
+        --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .dark {
-        --background: 222 34% 7%;
+        --background: 222 31% 7%;
         --foreground: 210 32% 96%;
-        --card: 222 27% 10%;
+        --card: 222 24% 10%;
         --card-foreground: 210 32% 96%;
-        --popover: 222 27% 10%;
+        --popover: 222 24% 10%;
         --popover-foreground: 210 32% 96%;
-        --primary: 36 94% 58%;
-        --primary-foreground: 222 34% 7%;
-        --secondary: 202 30% 16%;
+        --primary: 39 86% 57%;
+        --primary-foreground: 222 31% 7%;
+        --secondary: 217 24% 16%;
         --secondary-foreground: 210 28% 92%;
-        --muted: 220 22% 15%;
+        --muted: 220 19% 15%;
         --muted-foreground: 216 16% 68%;
-        --accent: 218 22% 18%;
+        --accent: 216 18% 18%;
         --accent-foreground: 210 28% 94%;
         --destructive: 0 62% 42%;
         --destructive-foreground: 0 0% 98%;
         --border: 218 20% 22%;
         --input: 218 20% 22%;
-        --ring: 36 94% 58%;
-        --chart-1: 36 94% 58%;
-        --chart-2: 188 68% 48%;
-        --chart-3: 220 78% 64%;
-        --chart-4: 268 62% 66%;
-        --chart-5: 345 74% 62%;
-        --honey: 36 94% 58%;
-        --honey-light: 42 96% 70%;
-        --honey-dark: 29 80% 48%;
-        --amber-glow: 36 94% 58%;
+        --ring: 39 86% 57%;
+        --chart-1: 39 86% 57%;
+        --chart-2: 158 45% 48%;
+        --chart-3: 215 22% 68%;
+        --chart-4: 30 74% 56%;
+        --chart-5: 0 62% 58%;
+        --honey: 39 86% 57%;
+        --honey-light: 42 88% 68%;
+        --honey-dark: 30 72% 46%;
+        --shadow-color: 222 42% 2%;
+        --amber-glow: 39 86% 57%;
+        --motion-fast: 160ms;
+        --motion-base: 220ms;
+        --motion-slow: 360ms;
+        --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
     }
 }
 
 @layer base {
+    html {
+        scroll-behavior: smooth;
+        text-rendering: optimizeLegibility;
+    }
+
     * {
         @apply border-border;
     }
 
     body {
         @apply bg-background text-foreground antialiased;
-        font-family: "Inter", "Segoe UI Variable Text", "Aptos", "Segoe UI", sans-serif;
+        min-height: 100dvh;
+        font-family: "Geist", "Segoe UI Variable Text", "Aptos", "Segoe UI", sans-serif;
+        font-feature-settings:
+            "liga" 1,
+            "calt" 1;
+        font-variant-numeric: tabular-nums;
         background-image:
+            radial-gradient(ellipse at 18% -10%, hsl(var(--primary) / 0.1), transparent 34%),
+            radial-gradient(ellipse at 90% 0%, hsl(var(--foreground) / 0.04), transparent 28%),
             linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.34) 100%),
             linear-gradient(90deg, hsl(var(--border) / 0.22) 1px, transparent 1px),
             linear-gradient(180deg, hsl(var(--border) / 0.18) 1px, transparent 1px);
-        background-repeat: no-repeat, repeat, repeat;
+        background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat;
         background-size:
+            auto,
+            auto,
             auto,
             48px 48px,
             48px 48px;
+    }
+
+    h1,
+    h2,
+    h3 {
+        text-wrap: balance;
+    }
+
+    p,
+    li {
+        text-wrap: pretty;
     }
 
     ::-webkit-scrollbar {
@@ -110,24 +145,25 @@
 
 @layer utilities {
     .display-title {
-        font-family: "Inter", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+        font-family: "Geist", "Segoe UI Variable Display", "Segoe UI", sans-serif;
         letter-spacing: 0;
+        line-height: 1.02;
     }
 
     .text-gradient {
-        @apply bg-gradient-to-r from-primary via-cyan-500 to-blue-500 bg-clip-text text-transparent;
+        @apply bg-gradient-to-r from-primary via-amber-500 to-stone-700 bg-clip-text text-transparent;
     }
 
     .bg-honey-gradient {
-        @apply bg-gradient-to-br from-primary via-cyan-500 to-blue-500;
+        @apply bg-gradient-to-br from-primary via-amber-500 to-stone-800;
     }
 
     .bg-honey-gradient-light {
-        @apply bg-gradient-to-br from-amber-50 via-cyan-50 to-blue-50;
+        @apply bg-gradient-to-br from-amber-50 via-slate-50 to-stone-100;
     }
 
     .dark .bg-honey-gradient-light {
-        @apply bg-gradient-to-br from-amber-950/30 via-cyan-950/20 to-blue-950/30;
+        @apply bg-gradient-to-br from-amber-950/30 via-slate-950/20 to-stone-950/30;
     }
 
     .glow-amber {
@@ -146,25 +182,25 @@
     }
 
     .surface-panel {
-        @apply rounded-lg border border-border/80 bg-card shadow-soft;
+        @apply rounded-lg border border-border/70 bg-card shadow-soft;
         background-color: hsl(var(--card) / 0.92);
         box-shadow:
-            0 18px 48px -42px rgba(15, 23, 42, 0.32),
+            0 18px 48px -42px hsl(var(--shadow-color) / 0.32),
             inset 0 1px 0 rgba(255, 255, 255, 0.12);
     }
 
     .surface-panel-strong {
-        @apply rounded-lg border border-border/80 bg-card;
+        @apply rounded-lg border border-border/70 bg-card;
         background-color: hsl(var(--card) / 0.96);
         box-shadow:
-            0 22px 64px -48px rgba(15, 23, 42, 0.38),
+            0 22px 64px -48px hsl(var(--shadow-color) / 0.38),
             inset 0 1px 0 rgba(255, 255, 255, 0.12);
     }
 
     .dashboard-hero {
         @apply relative overflow-hidden rounded-lg border border-border/80 bg-card;
         box-shadow:
-            0 24px 70px -52px rgba(15, 23, 42, 0.42),
+            0 24px 70px -52px hsl(var(--shadow-color) / 0.42),
             inset 0 1px 0 rgba(255, 255, 255, 0.12);
     }
 
@@ -189,7 +225,7 @@
             linear-gradient(
                 135deg,
                 hsl(var(--primary) / 0.12) 0%,
-                hsl(var(--chart-2) / 0.06) 46%,
+                hsl(var(--foreground) / 0.04) 46%,
                 transparent 78%
             );
         mask-image: linear-gradient(
@@ -206,7 +242,7 @@
         inset: 0;
         background:
             radial-gradient(ellipse at 100% 0%, hsl(var(--primary) / 0.16), transparent 48%),
-            radial-gradient(ellipse at 72% 100%, hsl(var(--chart-2) / 0.1), transparent 58%),
+            radial-gradient(ellipse at 72% 100%, hsl(var(--foreground) / 0.05), transparent 58%),
             linear-gradient(135deg, transparent 0%, hsl(var(--primary) / 0.08) 48%, transparent 86%);
         mask-image: linear-gradient(
             135deg,
@@ -230,8 +266,126 @@
     }
 
     .section-kicker {
-        @apply inline-flex items-center gap-2 text-xs font-semibold uppercase text-primary;
+        @apply inline-flex items-center gap-2 text-[0.8125rem] font-semibold text-primary;
         letter-spacing: 0;
+    }
+
+    .motion-section {
+        animation: hp-fade-up var(--motion-slow) var(--motion-ease) both;
+    }
+
+    .motion-metric {
+        animation: hp-metric-in var(--motion-slow) var(--motion-ease) both;
+    }
+
+    .motion-pop {
+        animation: hp-pop-in var(--motion-base) var(--motion-ease) both;
+    }
+
+    .motion-interactive {
+        transition:
+            transform var(--motion-base) var(--motion-ease),
+            border-color var(--motion-base) var(--motion-ease),
+            background-color var(--motion-base) var(--motion-ease),
+            box-shadow var(--motion-base) var(--motion-ease),
+            color var(--motion-fast) ease-out,
+            opacity var(--motion-fast) ease-out;
+    }
+
+    .motion-interactive:hover {
+        transform: translateY(-2px);
+    }
+
+    .motion-interactive:active {
+        transform: translateY(0) scale(0.99);
+    }
+
+    .motion-field {
+        transition:
+            transform var(--motion-base) var(--motion-ease),
+            border-color var(--motion-base) var(--motion-ease),
+            background-color var(--motion-base) var(--motion-ease),
+            box-shadow var(--motion-base) var(--motion-ease);
+    }
+
+    .motion-field:focus,
+    .motion-field:focus-visible,
+    .motion-field[data-state="open"] {
+        transform: translateY(-1px);
+    }
+
+    .motion-menu {
+        transition:
+            opacity var(--motion-fast) ease-out,
+            transform var(--motion-fast) var(--motion-ease);
+    }
+
+    .motion-empty {
+        animation: hp-fade-up var(--motion-slow) var(--motion-ease) both;
+    }
+
+    .motion-empty-icon {
+        animation: hp-pop-in var(--motion-slow) var(--motion-ease) both;
+    }
+
+    .motion-stagger > * {
+        animation: hp-fade-up var(--motion-slow) var(--motion-ease) both;
+    }
+
+    .motion-stagger > *:nth-child(2) {
+        animation-delay: 45ms;
+    }
+
+    .motion-stagger > *:nth-child(3) {
+        animation-delay: 90ms;
+    }
+
+    .motion-stagger > *:nth-child(4) {
+        animation-delay: 135ms;
+    }
+
+    .motion-stagger > *:nth-child(5) {
+        animation-delay: 180ms;
+    }
+
+    .motion-stagger > *:nth-child(6) {
+        animation-delay: 225ms;
+    }
+
+    @keyframes hp-fade-up {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes hp-metric-in {
+        from {
+            opacity: 0;
+            transform: translateY(8px) scale(0.985);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes hp-pop-in {
+        from {
+            opacity: 0;
+            transform: scale(0.96);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -242,6 +396,25 @@
             animation-iteration-count: 1 !important;
             scroll-behavior: auto !important;
             transition-duration: 0.01ms !important;
+        }
+
+        .motion-section,
+        .motion-metric,
+        .motion-pop,
+        .motion-empty,
+        .motion-empty-icon,
+        .motion-stagger > * {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+        }
+
+        .motion-interactive:hover,
+        .motion-interactive:active,
+        .motion-field:focus,
+        .motion-field:focus-visible,
+        .motion-field[data-state="open"] {
+            transform: none !important;
         }
     }
 }

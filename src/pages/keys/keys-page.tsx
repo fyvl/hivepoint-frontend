@@ -1,9 +1,11 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react"
+import { KeyRound } from "lucide-react"
 
 import { ApiError } from "@/api/http"
 import { createKeysApi, type CreateKeyResponse, type KeyItem } from "@/api/keys"
 import { useAuth } from "@/auth/auth-context"
 import { CopyButton } from "@/components/copy-button"
+import { PageHeader } from "@/components/layout/page-header"
 import { KeysTableSkeleton } from "@/components/skeletons/keys-table-skeleton"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
@@ -135,12 +137,12 @@ export const KeysPage = () => {
 
     return (
         <div className="flex flex-col gap-8">
-            <div className="space-y-1">
-                <h1 className="text-3xl font-bold tracking-tight">API Keys</h1>
-                <p className="text-muted-foreground">
-                    Create and manage keys for accessing your subscriptions
-                </p>
-            </div>
+            <PageHeader
+                eyebrow="Gateway access"
+                title="API keys"
+                description="Create, rotate, and revoke credentials used by the gateway for subscription access."
+                icon={<KeyRound className="h-5 w-5" />}
+            />
 
             <Card>
                 <CardHeader>

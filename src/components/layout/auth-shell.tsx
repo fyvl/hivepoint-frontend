@@ -58,16 +58,16 @@ export const AuthShell = ({
                             </p>
                         ) : null}
 
-                        <div className="mt-8 rounded-lg border border-border/80 bg-background/88 p-6 shadow-soft sm:p-8">
+                        <div className="mt-8 rounded-lg border border-border/80 bg-background/90 p-6 shadow-soft sm:p-8">
                             {children}
                         </div>
                     </div>
                 </section>
 
-                <aside className="relative overflow-hidden border-t border-border/80 bg-background/45 p-6 lg:border-l lg:border-t-0 lg:p-10">
+                <aside className="relative overflow-hidden border-t border-border/80 bg-background/50 p-6 lg:border-l lg:border-t-0 lg:p-10">
                     <div className="auth-shell-accent" />
                     <div className="relative z-10 flex h-full flex-col">
-                        <div className="inline-flex w-fit items-center gap-2 rounded-md border border-border/80 bg-card/70 px-3 py-1 text-xs font-semibold uppercase text-muted-foreground">
+                        <div className="inline-flex w-fit items-center gap-2 rounded-md border border-border/70 bg-card/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
                             {panelBadge}
                         </div>
 
@@ -84,9 +84,9 @@ export const AuthShell = ({
                             {panelMetrics.map((metric) => (
                                 <div
                                     key={metric.label}
-                                    className="rounded-lg border border-border/80 bg-card/68 px-4 py-4"
+                                    className="rounded-lg border border-border/80 bg-card/70 px-4 py-4"
                                 >
-                                    <div className="text-xs uppercase text-muted-foreground">
+                                    <div className="text-xs font-medium text-muted-foreground">
                                         {metric.label}
                                     </div>
                                     <div className="mt-2 text-2xl font-semibold text-foreground">
@@ -100,7 +100,7 @@ export const AuthShell = ({
                             {panelHighlights.map((highlight, index) => (
                                 <div
                                     key={highlight.title}
-                                    className="rounded-lg border border-border/80 bg-card/68 px-4 py-4"
+                                    className="rounded-lg border border-border/80 bg-card/70 px-4 py-4"
                                 >
                                     <div className="flex items-start gap-3">
                                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border/80 bg-muted text-xs font-semibold text-muted-foreground">

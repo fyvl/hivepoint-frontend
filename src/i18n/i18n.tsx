@@ -80,6 +80,72 @@ const patternTranslations: PatternTranslation[] = [
     {
         from: "en",
         to: "ru",
+        pattern: /^Open (.+)$/,
+        replace: ([, target]) => `Открыть ${translateText(target, "ru")}`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Requests \((\d+)d\)$/,
+        replace: ([, days]) => `Запросы (${days} д.)`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Page ([\d\s.,-]+)$/,
+        replace: ([, page]) => `Страница ${page}`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^([\d\s.,]+) products$/,
+        replace: ([, count]) => `${count} продуктов`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Showing ([\d\s.,]+) items$/,
+        replace: ([, count]) => `Показано элементов: ${count}`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^0 of 0$/,
+        replace: () => "0 из 0"
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^([\d\s.,]+)-([\d\s.,]+) of ([\d\s.,]+)$/,
+        replace: ([, start, end, total]) => `${start}-${end} из ${total}`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^([\d\s.,]+) visible$/,
+        replace: ([, count]) => `${count} в выдаче`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Search: (.+)$/,
+        replace: ([, value]) => `Поиск: ${value}`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Category: (.+)$/,
+        replace: ([, value]) => `Категория: ${translateText(value, "ru")}`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Tag: (.+)$/,
+        replace: ([, value]) => `Тег: ${value}`
+    },
+    {
+        from: "en",
+        to: "ru",
         pattern: /^Rate limit: (.+)$/,
         replace: ([, value]) => `Лимит скорости: ${translateText(value, "ru")}`
     },
@@ -130,6 +196,12 @@ const patternTranslations: PatternTranslation[] = [
         to: "ru",
         pattern: /^([\d\s.,]+) requests per period$/,
         replace: ([, value]) => `${value} запросов за период`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^([\d\s.,]+) endpoint routes found$/,
+        replace: ([, count]) => `Найдено эндпоинтов: ${count}`
     },
     {
         from: "en",
@@ -286,6 +358,48 @@ const patternTranslations: PatternTranslation[] = [
         to: "en",
         pattern: /^Квота близка к лимиту: (.+)$/,
         replace: ([, product]) => `Quota nearing limit for ${product}`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Metrics history points: ([\d\s.,]+)$/,
+        replace: ([, count]) => `Точек истории метрик: ${count}`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Captured every ([\d\s.,]+)s and retained for ([\d\s.,]+) day\(s\)\.$/,
+        replace: ([, interval, days]) => `Снимок каждые ${interval} с, хранение ${days} дн.`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Latest capture: (.+)$/,
+        replace: ([, value]) => `Последний снимок: ${value}`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Interval ([\d\s.,]+)s, cooldown ([\d\s.,]+)s$/,
+        replace: ([, interval, cooldown]) => `Интервал ${interval} с, пауза ${cooldown} с`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Targets: (.+)$/,
+        replace: ([, value]) => `Цели: ${value}`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Last delivery error: (.+)$/,
+        replace: ([, value]) => `Ошибка последней доставки: ${value}`
+    },
+    {
+        from: "en",
+        to: "ru",
+        pattern: /^Retry #(.+)$/,
+        replace: ([, value]) => `Повтор #${value}`
     },
     {
         from: "en",

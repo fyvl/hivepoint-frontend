@@ -71,7 +71,7 @@ const guestCards: DashboardCard[] = [
         description: "Public API products, versions, and plans in one marketplace.",
         to: "/catalog",
         icon: LayoutGrid,
-        accent: "from-amber-500 via-orange-400 to-cyan-400"
+        accent: "from-amber-500 via-amber-400 to-stone-600"
     },
     {
         title: "Buyer ops",
@@ -79,7 +79,7 @@ const guestCards: DashboardCard[] = [
         description: "Subscriptions, keys, quota, and billing after sign-in.",
         to: "/billing",
         icon: CreditCard,
-        accent: "from-emerald-500 via-teal-400 to-cyan-400",
+        accent: "from-amber-500 via-stone-500 to-slate-700",
         requiresAuth: true
     },
     {
@@ -88,7 +88,7 @@ const guestCards: DashboardCard[] = [
         description: "Package APIs into released products with commercial plans.",
         to: "/seller/studio",
         icon: BriefcaseBusiness,
-        accent: "from-sky-500 via-blue-500 to-violet-500",
+        accent: "from-amber-500 via-orange-500 to-slate-700",
         requiresAuth: true
     }
 ];
@@ -100,7 +100,7 @@ const buyerCards: DashboardCard[] = [
         description: "Compare public products and decide what to integrate next.",
         to: "/catalog",
         icon: LayoutGrid,
-        accent: "from-amber-500 via-orange-400 to-cyan-400"
+        accent: "from-amber-500 via-amber-400 to-stone-600"
     },
     {
         title: "Billing",
@@ -108,7 +108,7 @@ const buyerCards: DashboardCard[] = [
         description: "Review subscriptions, renewals, and active plan status.",
         to: "/billing",
         icon: CreditCard,
-        accent: "from-emerald-500 via-teal-400 to-cyan-400"
+        accent: "from-amber-500 via-stone-500 to-slate-700"
     },
     {
         title: "API Keys",
@@ -116,7 +116,7 @@ const buyerCards: DashboardCard[] = [
         description: "Create and rotate credentials for gateway traffic.",
         to: "/keys",
         icon: Key,
-        accent: "from-violet-500 via-indigo-500 to-blue-500"
+        accent: "from-amber-500 via-stone-500 to-slate-700"
     },
     {
         title: "Usage",
@@ -124,7 +124,7 @@ const buyerCards: DashboardCard[] = [
         description: "Track request volume, quota, and rate-limit pressure.",
         to: "/usage",
         icon: BarChart3,
-        accent: "from-cyan-500 via-sky-500 to-blue-500"
+        accent: "from-amber-400 via-stone-500 to-slate-700"
     }
 ];
 
@@ -135,7 +135,7 @@ const sellerCards: DashboardCard[] = [
         description: "Create products, attach schemas, and release plans.",
         to: "/seller/studio",
         icon: BriefcaseBusiness,
-        accent: "from-sky-500 via-blue-500 to-violet-500"
+        accent: "from-amber-500 via-orange-500 to-slate-700"
     },
     {
         title: "Catalog",
@@ -143,7 +143,7 @@ const sellerCards: DashboardCard[] = [
         description: "See the buyer-facing marketplace view of your APIs.",
         to: "/catalog",
         icon: LayoutGrid,
-        accent: "from-amber-500 via-orange-400 to-cyan-400"
+        accent: "from-amber-500 via-amber-400 to-stone-600"
     },
     {
         title: "Billing",
@@ -151,7 +151,7 @@ const sellerCards: DashboardCard[] = [
         description: "Check subscription context while packaging products.",
         to: "/billing",
         icon: CreditCard,
-        accent: "from-emerald-500 via-teal-400 to-cyan-400"
+        accent: "from-amber-500 via-stone-500 to-slate-700"
     },
     {
         title: "Usage",
@@ -159,7 +159,7 @@ const sellerCards: DashboardCard[] = [
         description: "Watch demand before it becomes a release decision.",
         to: "/usage",
         icon: BarChart3,
-        accent: "from-cyan-500 via-sky-500 to-blue-500"
+        accent: "from-amber-400 via-stone-500 to-slate-700"
     }
 ];
 
@@ -170,7 +170,7 @@ const adminCards: DashboardCard[] = [
         description: "Operational alerts, audit activity, and moderation health.",
         to: "/admin/ops",
         icon: ShieldCheck,
-        accent: "from-indigo-500 via-violet-500 to-fuchsia-500"
+        accent: "from-amber-500 via-stone-600 to-slate-800"
     },
     {
         title: "Catalog",
@@ -178,7 +178,7 @@ const adminCards: DashboardCard[] = [
         description: "Review the same public surface buyers and sellers use.",
         to: "/catalog",
         icon: LayoutGrid,
-        accent: "from-amber-500 via-orange-400 to-cyan-400"
+        accent: "from-amber-500 via-amber-400 to-stone-600"
     },
     {
         title: "Billing",
@@ -186,7 +186,7 @@ const adminCards: DashboardCard[] = [
         description: "Keep subscription operations close to incident context.",
         to: "/billing",
         icon: CreditCard,
-        accent: "from-emerald-500 via-teal-400 to-cyan-400"
+        accent: "from-amber-500 via-stone-500 to-slate-700"
     },
     {
         title: "Usage",
@@ -194,7 +194,7 @@ const adminCards: DashboardCard[] = [
         description: "Spot gateway pressure and quota signals quickly.",
         to: "/usage",
         icon: BarChart3,
-        accent: "from-cyan-500 via-sky-500 to-blue-500"
+        accent: "from-amber-400 via-stone-500 to-slate-700"
     }
 ];
 
@@ -306,7 +306,7 @@ export const DashboardPage = () => {
                 title: "A clean control plane for discovering, buying, and publishing APIs.",
                 description:
                     "HivePoint keeps the marketplace, billing, gateway keys, and usage signals in one focused workspace.",
-                gradient: "from-amber-500 via-cyan-500 to-blue-500",
+                gradient: "from-amber-500 via-amber-400 to-stone-700",
                 ctaLabel: "Create account",
                 ctaTo: "/register",
                 secondaryCtaLabel: "Explore catalog",
@@ -342,7 +342,7 @@ export const DashboardPage = () => {
                 title: "Ship API products with clean releases, plans, and buyer context.",
                 description:
                     "Move from draft product to versioned schema and pricing plan without losing the marketplace view.",
-                gradient: "from-cyan-500 via-blue-500 to-violet-500",
+                gradient: "from-amber-500 via-orange-500 to-slate-700",
                 ctaLabel: "Open Studio",
                 ctaTo: "/seller/studio",
                 secondaryCtaLabel: "Preview catalog",
@@ -378,7 +378,7 @@ export const DashboardPage = () => {
                 title: "Operate the marketplace with alerts, audit context, and governance.",
                 description:
                     "Admin tools stay close to buyer, seller, billing, and gateway activity so incidents are easier to understand.",
-                gradient: "from-indigo-500 via-violet-500 to-fuchsia-500",
+                gradient: "from-amber-500 via-stone-600 to-slate-800",
                 ctaLabel: "Open Admin Ops",
                 ctaTo: "/admin/ops",
                 secondaryCtaLabel: "Review catalog",
@@ -413,7 +413,7 @@ export const DashboardPage = () => {
             title: "Run subscriptions, keys, and usage without switching context.",
             description:
                 "Buyer mode keeps commercial decisions and technical access side by side, from the first plan to live traffic.",
-            gradient: "from-emerald-500 via-teal-500 to-cyan-500",
+            gradient: "from-amber-500 via-stone-500 to-slate-700",
             ctaLabel: "Open Billing",
             ctaTo: "/billing",
             secondaryCtaLabel: "Browse catalog",
@@ -455,6 +455,8 @@ export const DashboardPage = () => {
         }
         return buyerCards;
     }, [accessToken, role]);
+    const primaryCard = cards.find((card) => card.to === hero.ctaTo) ?? cards[0];
+    const secondaryCards = cards.filter((card) => card !== primaryCard);
 
     const workspaceName = accessToken
         ? role === "ADMIN"
@@ -469,7 +471,7 @@ export const DashboardPage = () => {
 
     return (
         <div className="space-y-8">
-            <section className="dashboard-hero">
+            <section className="motion-section dashboard-hero">
                 <div
                     className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", hero.gradient)}
                 />
@@ -483,39 +485,44 @@ export const DashboardPage = () => {
                             {hero.description}
                         </p>
 
-                        <div className="mt-6 flex flex-wrap gap-3">
+                        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                             <Button asChild size="lg">
                                 <Link to={hero.ctaTo}>
                                     {hero.ctaLabel}
                                     <ArrowRight className="h-4 w-4" />
                                 </Link>
                             </Button>
-                            <Button asChild size="lg" variant="outline">
-                                <Link to={hero.secondaryCtaTo}>{hero.secondaryCtaLabel}</Link>
-                            </Button>
-                            {accessToken && role === "BUYER" ? (
-                                <Button
-                                    size="lg"
-                                    variant="outline"
-                                    onClick={handleBecomeSeller}
-                                    disabled={isUpgradingRole}
+                            <div className="flex flex-wrap items-center gap-3 text-sm font-medium">
+                                <Link
+                                    to={hero.secondaryCtaTo}
+                                    className="text-muted-foreground transition hover:text-foreground"
                                 >
-                                    {isUpgradingRole ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            Switching...
-                                        </>
-                                    ) : (
-                                        "Become seller"
-                                    )}
-                                </Button>
-                            ) : null}
+                                    {hero.secondaryCtaLabel}
+                                </Link>
+                                {accessToken && role === "BUYER" ? (
+                                    <button
+                                        type="button"
+                                        className="inline-flex items-center gap-2 text-muted-foreground transition hover:text-foreground disabled:pointer-events-none disabled:opacity-60"
+                                        onClick={handleBecomeSeller}
+                                        disabled={isUpgradingRole}
+                                    >
+                                        {isUpgradingRole ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                Switching...
+                                            </>
+                                        ) : (
+                                            "Become seller"
+                                        )}
+                                    </button>
+                                ) : null}
+                            </div>
                         </div>
 
-                        <div className="mt-7 grid max-w-4xl gap-4 border-y border-border/70 py-4 sm:grid-cols-3 sm:divide-x sm:divide-border/70">
+                        <div className="motion-stagger mt-7 grid max-w-4xl gap-4 border-y border-border/70 py-4 sm:grid-cols-3 sm:divide-x sm:divide-border/70">
                             {hero.stats.map((stat) => (
-                                <div key={stat.label} className="sm:px-4 first:sm:pl-0">
-                                    <div className="text-xs font-medium uppercase text-muted-foreground">
+                                <div key={stat.label} className="motion-metric sm:px-4 first:sm:pl-0">
+                                    <div className="text-xs font-medium text-muted-foreground">
                                         {stat.label}
                                     </div>
                                     <div className="mt-1 text-2xl font-semibold text-foreground">
@@ -531,11 +538,11 @@ export const DashboardPage = () => {
 
                     <aside className="rounded-lg border border-border/80 bg-background/90 p-5 shadow-sm backdrop-blur">
                         <div className="flex items-start gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/15 text-primary">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/20 text-primary">
                                 <Activity className="h-5 w-5" />
                             </div>
                             <div>
-                                <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                <p className="text-xs font-semibold text-muted-foreground">
                                     {hero.focusLabel}
                                 </p>
                                 <h2 className="mt-1 text-lg font-semibold text-foreground">
@@ -568,7 +575,7 @@ export const DashboardPage = () => {
                 </div>
             </section>
 
-            <section className="space-y-4">
+            <section className="motion-section space-y-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                         <div className="section-kicker">Workspace</div>
@@ -581,26 +588,42 @@ export const DashboardPage = () => {
                     </p>
                 </div>
 
-                <div
-                    className={cn(
-                        "grid gap-3 sm:grid-cols-2",
-                        cards.length === 3 ? "xl:grid-cols-3" : "xl:grid-cols-4"
-                    )}
-                >
-                    {cards.map((card) => (
-                        <WorkspaceTile
-                            key={`${card.title}-${card.to}`}
-                            card={card}
-                            isAuthenticated={Boolean(accessToken)}
-                        />
-                    ))}
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,0.86fr)_minmax(360px,1.14fr)]">
+                    <WorkspacePrimaryAction
+                        card={primaryCard}
+                        isAuthenticated={Boolean(accessToken)}
+                    />
+
+                    <div className="motion-section surface-panel border-border/80 bg-background/90 p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h3 className="text-base font-semibold text-foreground">
+                                    Route list
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                    Fast access without another row of equal cards.
+                                </p>
+                            </div>
+                            <Badge variant="secondary">{workspaceName}</Badge>
+                        </div>
+
+                        <div className="motion-stagger mt-3 divide-y divide-border/70">
+                            {secondaryCards.map((card) => (
+                                <WorkspaceRouteRow
+                                    key={`${card.title}-${card.to}`}
+                                    card={card}
+                                    isAuthenticated={Boolean(accessToken)}
+                                />
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
     );
 };
 
-const WorkspaceTile = ({
+const WorkspacePrimaryAction = ({
     card,
     isAuthenticated
 }: {
@@ -612,58 +635,101 @@ const WorkspaceTile = ({
     const Icon = card.icon;
 
     return (
-        <Link to={actionTo} className="group min-w-0">
-            <Card className="relative flex h-full min-h-[210px] flex-col overflow-hidden bg-card/95 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md">
+        <Card className="motion-interactive relative flex min-h-[260px] flex-col overflow-hidden bg-card/95 hover:border-foreground/20 hover:shadow-md">
+            <div
+                className={cn(
+                    "pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r",
+                    card.accent
+                )}
+                aria-hidden="true"
+            />
+            <div
+                className={cn(
+                    "pointer-events-none absolute -left-16 -top-20 h-52 w-64 rounded-full bg-gradient-to-br opacity-[0.14] blur-3xl transition-opacity",
+                    card.accent
+                )}
+                aria-hidden="true"
+            />
+            <CardHeader className="relative p-5">
+                <div className="flex items-start justify-between gap-3">
+                    <Badge variant="secondary" className="bg-muted/80 text-muted-foreground">
+                        {card.eyebrow}
+                    </Badge>
+                    {isLocked ? (
+                        <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                            <Lock className="h-4 w-4" />
+                            Sign in
+                        </div>
+                    ) : null}
+                </div>
+                <div className="mt-8 flex items-start gap-4">
+                    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/80 bg-background text-foreground">
+                        <div
+                            className={cn(
+                                "pointer-events-none absolute inset-0 bg-gradient-to-br opacity-[0.14]",
+                                card.accent
+                            )}
+                            aria-hidden="true"
+                        />
+                        <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 space-y-2">
+                        <CardTitle className="text-2xl">{card.title}</CardTitle>
+                        <CardDescription>{card.description}</CardDescription>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent className="relative mt-auto p-5 pt-0">
+                <Button asChild className="w-full justify-between sm:w-auto">
+                    <Link to={actionTo}>
+                        {isLocked ? "Sign in to open" : `Open ${card.title}`}
+                        <ArrowRight className="h-4 w-4" />
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
+    );
+};
+
+const WorkspaceRouteRow = ({
+    card,
+    isAuthenticated
+}: {
+    card: DashboardCard;
+    isAuthenticated: boolean;
+}) => {
+    const isLocked = card.requiresAuth && !isAuthenticated;
+    const actionTo = isLocked ? "/login" : card.to;
+    const Icon = card.icon;
+
+    return (
+        <Link
+            to={actionTo}
+            className="motion-interactive group flex min-w-0 items-center gap-3 rounded-lg px-2 py-3 hover:bg-accent/70 sm:px-3"
+        >
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border/80 bg-background text-foreground transition group-hover:border-foreground/20">
                 <div
                     className={cn(
-                        "pointer-events-none absolute inset-y-0 left-0 w-1 bg-gradient-to-b",
+                        "pointer-events-none absolute inset-0 bg-gradient-to-br opacity-[0.12]",
                         card.accent
                     )}
                     aria-hidden="true"
                 />
-                <div
-                    className={cn(
-                        "pointer-events-none absolute -left-16 -top-20 h-52 w-64 rounded-full bg-gradient-to-br opacity-[0.14] blur-3xl transition-opacity group-hover:opacity-[0.22]",
-                        card.accent
-                    )}
-                    aria-hidden="true"
-                />
-                <CardHeader className="p-5">
-                    <div className="flex items-start justify-between gap-3">
-                        <Badge variant="secondary" className="bg-muted/80 text-muted-foreground">
-                            {card.eyebrow}
-                        </Badge>
-                        {isLocked ? (
-                            <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                                <Lock className="h-4 w-4" />
-                                Sign in
-                            </div>
-                        ) : null}
-                    </div>
-                    <div className="mt-5 flex items-start gap-4">
-                        <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border/80 bg-background text-foreground">
-                            <div
-                                className={cn(
-                                    "pointer-events-none absolute inset-0 bg-gradient-to-br opacity-[0.14]",
-                                    card.accent
-                                )}
-                                aria-hidden="true"
-                            />
-                            <Icon className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0 space-y-2">
-                            <CardTitle className="text-lg">{card.title}</CardTitle>
-                            <CardDescription>{card.description}</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="mt-auto p-5 pt-0">
-                    <div className="flex items-center justify-between border-t border-border/70 pt-4 text-sm font-medium text-foreground">
-                        <span>{isLocked ? "Unlock" : "Open"}</span>
-                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </div>
-                </CardContent>
-            </Card>
+                <Icon className="relative h-4 w-4" />
+            </div>
+
+            <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <span className="font-semibold text-foreground">{card.title}</span>
+                    <span className="text-xs font-medium text-muted-foreground">{card.eyebrow}</span>
+                    {isLocked ? <Lock className="h-3.5 w-3.5 text-muted-foreground" /> : null}
+                </div>
+                <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+                    {card.description}
+                </p>
+            </div>
+
+            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-foreground" />
         </Link>
     );
 };

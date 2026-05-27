@@ -418,37 +418,45 @@ export const AdminOpsPage = () => {
     const latestHistoryPoint = metricsHistory?.items.at(-1) ?? null
 
     return (
-        <div className="flex flex-col gap-8">
-            <section className="relative overflow-hidden rounded-3xl border border-sky-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-sky-900 p-8 text-white shadow-2xl">
-                <div className="absolute -right-16 top-0 h-40 w-40 rounded-full bg-sky-400/15 blur-3xl" />
-                <div className="absolute -bottom-24 left-10 h-48 w-48 rounded-full bg-amber-300/10 blur-3xl" />
-                <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                    <div className="space-y-4">
-                        <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/80">
+        <div className="flex flex-col gap-7">
+            <section className="motion-section surface-panel-strong relative overflow-hidden p-5 sm:p-6">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-amber-400 to-stone-700" />
+                <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="space-y-3">
+                        <p className="section-kicker">
                             <ShieldCheck className="h-3.5 w-3.5" />
-                            Admin Ops
+                            Monitoring console
                         </p>
                         <div className="space-y-2">
-                            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-                                Monitor platform health and moderate live catalog state
+                            <h1 className="display-title text-3xl font-semibold text-foreground md:text-4xl">
+                                Platform health, alerts, and moderation
                             </h1>
-                            <p className="max-w-3xl text-sm text-white/80 md:text-base">
-                                Review operational alerts, audit trail, and admin moderation actions from one workspace.
+                            <p className="max-w-3xl text-sm leading-7 text-muted-foreground md:text-base">
+                                Watch queue pressure, billing signals, alert delivery, audit events,
+                                and catalog moderation from one operational surface.
                             </p>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                            <StatChip label="Open alerts" value={String(alerts.length)} />
-                            <StatChip label="Danger alerts" value={String(dangerAlertsCount)} />
-                            <StatChip label="Managed products" value={String(products.length)} />
-                            <StatChip label="Recent audit events" value={String(auditLogs.length)} />
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Badge
+                            variant={
+                                dangerAlertsCount > 0
+                                    ? "destructive"
+                                    : alerts.length > 0
+                                        ? "warning"
+                                        : "success"
+                            }
+                        >
+                            {dangerAlertsCount > 0
+                                ? "Danger"
+                                : alerts.length > 0
+                                    ? "Warning"
+                                    : "Clear"}
+                        </Badge>
                         <Button
                             type="button"
                             variant="outline"
-                            className="border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white"
                             onClick={() => void refreshAll()}
                             disabled={isRefreshingAll}
                         >
@@ -457,10 +465,42 @@ export const AdminOpsPage = () => {
                         </Button>
                     </div>
                 </div>
+                <div className="motion-stagger relative z-10 mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-6">
+                    <StatChip
+                        label="Open alerts"
+                        value={String(alerts.length)}
+                        tone={alerts.length > 0 ? "warning" : "default"}
+                    />
+                    <StatChip
+                        label="Danger"
+                        value={String(dangerAlertsCount)}
+                        tone={dangerAlertsCount > 0 ? "danger" : "default"}
+                    />
+                    <StatChip
+                        label="Queue pending"
+                        value={formatNumber(metricsSnapshot?.usageIngestPendingJobs ?? 0)}
+                        tone={
+                            (metricsSnapshot?.usageIngestPendingJobs ?? 0) > 0
+                                ? "warning"
+                                : "default"
+                        }
+                    />
+                    <StatChip
+                        label="Queue failed"
+                        value={formatNumber(metricsSnapshot?.usageIngestFailedJobs ?? 0)}
+                        tone={
+                            (metricsSnapshot?.usageIngestFailedJobs ?? 0) > 0
+                                ? "danger"
+                                : "default"
+                        }
+                    />
+                    <StatChip label="Products" value={String(products.length)} tone="secondary" />
+                    <StatChip label="Audit events" value={String(auditLogs.length)} tone="secondary" />
+                </div>
             </section>
 
             <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList className="grid h-auto w-full grid-cols-2 gap-2 rounded-2xl bg-muted/70 p-2 md:grid-cols-4">
+                <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl border border-border/80 bg-background/80 p-1 shadow-sm md:grid-cols-4">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="alerts">Alerts</TabsTrigger>
                     <TabsTrigger value="audit">Audit Trail</TabsTrigger>
@@ -468,9 +508,9 @@ export const AdminOpsPage = () => {
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-6">
-                    <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                        <Card>
-                            <CardHeader>
+                    <div className="motion-stagger grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                        <Card className="overflow-hidden">
+                            <CardHeader className="border-b border-border/70 bg-muted/20">
                                 <CardTitle>Operational status</CardTitle>
                                 <CardDescription>
                                     Current alert pressure across queue workers, billing leases, and subscription state.
@@ -544,8 +584,8 @@ export const AdminOpsPage = () => {
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
+                        <Card className="overflow-hidden">
+                            <CardHeader className="border-b border-border/70 bg-muted/20">
                                 <CardTitle>Managed catalog</CardTitle>
                                 <CardDescription>
                                     Current moderation surface visible from the catalog management endpoints.
@@ -584,9 +624,9 @@ export const AdminOpsPage = () => {
                         </Card>
                     </div>
 
-                    <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-                        <Card>
-                            <CardHeader>
+                    <div className="motion-stagger grid gap-6 xl:grid-cols-[1fr_1fr]">
+                        <Card className="overflow-hidden">
+                            <CardHeader className="border-b border-border/70 bg-muted/20">
                                 <CardTitle>Latest audit events</CardTitle>
                                 <CardDescription>
                                     Most recent admin actions recorded by the backend audit log.
@@ -617,8 +657,8 @@ export const AdminOpsPage = () => {
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
+                        <Card className="overflow-hidden">
+                            <CardHeader className="border-b border-border/70 bg-muted/20">
                                 <CardTitle>External alert delivery</CardTitle>
                                 <CardDescription>
                                     Webhook delivery status, cooldown policy, and the most recent tracked alert states.
@@ -648,7 +688,7 @@ export const AdminOpsPage = () => {
                                         </div>
                                         <div className="rounded-xl border bg-muted/30 p-4">
                                             <p className="text-sm font-medium">
-                                                Interval {formatNumber(alertDeliveryStatus.intervalSeconds)}s, cooldown {formatNumber(alertDeliveryStatus.cooldownSeconds)}s
+                                                {`Interval ${formatNumber(alertDeliveryStatus.intervalSeconds)}s, cooldown ${formatNumber(alertDeliveryStatus.cooldownSeconds)}s`}
                                             </p>
                                             <p className="mt-1 text-sm text-muted-foreground">
                                                 Active alerts are pushed to the configured webhook, with reminder sends after the cooldown window.
@@ -732,7 +772,7 @@ export const AdminOpsPage = () => {
                                     icon={Siren}
                                 />
                             ) : (
-                                <div className="grid gap-4">
+                                <div className="motion-stagger grid gap-4">
                                     {alerts.map((alert) => (
                                         <AlertCard key={alert.kind} alert={alert} />
                                     ))}
@@ -767,7 +807,7 @@ export const AdminOpsPage = () => {
                                     icon={ScrollText}
                                 />
                             ) : (
-                                <div className="grid gap-4">
+                                <div className="motion-stagger grid gap-4">
                                     {auditLogs.map((item) => (
                                         <AuditLogRow key={item.id} item={item} />
                                     ))}
@@ -778,7 +818,7 @@ export const AdminOpsPage = () => {
                 </TabsContent>
 
                 <TabsContent value="moderation" className="space-y-6">
-                    <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+                    <div className="motion-stagger grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Managed products</CardTitle>
@@ -803,7 +843,7 @@ export const AdminOpsPage = () => {
                                         icon={SquareTerminal}
                                     />
                                 ) : (
-                                    <div className="grid gap-3">
+                                    <div className="motion-stagger grid max-h-[620px] gap-2 overflow-y-auto pr-1">
                                         {products.map((product, index) => {
                                             const record = isRecord(product) ? product : null
                                             const productId = getProductId(product)
@@ -817,12 +857,15 @@ export const AdminOpsPage = () => {
                                                     key={productId ?? `product-${index}`}
                                                     type="button"
                                                     className={cn(
-                                                        "rounded-xl border p-4 text-left transition-all",
+                                                        "motion-interactive relative rounded-lg border p-3 text-left",
                                                         "hover:border-primary/40 hover:bg-muted/30",
-                                                        isSelected && "border-primary bg-primary/5"
+                                                        isSelected && "border-primary bg-primary/5 shadow-soft"
                                                     )}
                                                     onClick={() => setSelectedProductId(productId)}
                                                 >
+                                                    {isSelected ? (
+                                                        <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-primary" />
+                                                    ) : null}
                                                     <div className="mb-2 flex items-start justify-between gap-3">
                                                         <p className="font-medium">{title}</p>
                                                         {status ? (
@@ -866,7 +909,7 @@ export const AdminOpsPage = () => {
                                                 <StatusBadge kind="product" value={selectedProductStatus} />
                                             </div>
 
-                                            <div className="grid gap-3 sm:grid-cols-2">
+                                            <div className="grid gap-2 sm:grid-cols-2">
                                                 <MetadataRow label="Product ID" value={selectedProductId ?? "-"} />
                                                 <MetadataRow label="Owner ID" value={selectedProductOwnerId} />
                                                 <MetadataRow label="Category" value={selectedProductCategory} />
@@ -877,7 +920,7 @@ export const AdminOpsPage = () => {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                <p className="text-xs font-semibold text-muted-foreground">
                                                     Tags
                                                 </p>
                                                 {selectedProductTags.length > 0 ? (
@@ -954,7 +997,7 @@ export const AdminOpsPage = () => {
                                                 const createdAt = getString(record, "createdAt") ?? null
 
                                                 return (
-                                                    <div key={versionId ?? `${versionLabel}-${index}`} className="rounded-xl border p-4">
+                                                    <div key={versionId ?? `${versionLabel}-${index}`} className="rounded-xl border bg-background/70 p-4">
                                                         <div className="flex flex-wrap items-start justify-between gap-3">
                                                             <div className="space-y-1">
                                                                 <p className="font-medium">{versionLabel}</p>
@@ -1028,11 +1071,28 @@ export const AdminOpsPage = () => {
     )
 }
 
-const StatChip = ({ label, value }: { label: string; value: string }) => {
+const StatChip = ({
+    label,
+    value,
+    tone = "default"
+}: {
+    label: string
+    value: string
+    tone?: "default" | "secondary" | "warning" | "danger"
+}) => {
+    const toneClassName =
+        tone === "danger"
+            ? "border-destructive/25 bg-destructive/5"
+            : tone === "warning"
+                ? "border-amber-500/25 bg-amber-500/5"
+                : tone === "secondary"
+                    ? "border-border/70 bg-muted/30"
+                    : "border-emerald-500/20 bg-emerald-500/5"
+
     return (
-        <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
-            <p className="text-[11px] uppercase tracking-wide text-white/60">{label}</p>
-            <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
+        <div className={cn("motion-metric rounded-xl border px-4 py-3 shadow-sm", toneClassName)}>
+            <p className="text-xs font-medium text-muted-foreground">{label}</p>
+            <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
         </div>
     )
 }
@@ -1048,24 +1108,35 @@ const OverviewStat = ({
 }) => {
     const toneClassName =
         tone === "warning"
-            ? "border-amber-500/20 bg-amber-500/5"
+            ? "border-amber-500/25 bg-amber-500/5"
             : tone === "secondary"
-                ? "border-border bg-muted/40"
-                : "border-emerald-500/20 bg-emerald-500/5"
+                ? "border-border bg-muted/30"
+                : "border-border/70 bg-background/70"
 
     return (
-        <div className={cn("rounded-xl border p-4", toneClassName)}>
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+        <div className={cn("motion-metric rounded-xl border p-4 shadow-sm", toneClassName)}>
+            <p className="text-xs font-medium text-muted-foreground">{label}</p>
             <p className="mt-2 text-2xl font-semibold">{value}</p>
         </div>
     )
 }
 
 const AlertCard = ({ alert, compact = false }: { alert: OperationalAlert; compact?: boolean }) => {
+    const severityClassName =
+        alert.severity === "DANGER"
+            ? "border-destructive/30 bg-destructive/5"
+            : "border-amber-500/30 bg-amber-500/5"
+
     return (
-        <div className="rounded-xl border p-4">
+        <div className={cn("motion-pop motion-interactive relative overflow-hidden rounded-xl border p-4 shadow-sm", severityClassName)}>
+            <div
+                className={cn(
+                    "absolute inset-y-3 left-0 w-1 rounded-r-full",
+                    alert.severity === "DANGER" ? "bg-destructive" : "bg-amber-500"
+                )}
+            />
             <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="space-y-1">
+                <div className="space-y-1 pl-2">
                     <p className="font-medium">{alert.title}</p>
                     <p className="text-sm text-muted-foreground">{alert.message}</p>
                 </div>
@@ -1091,7 +1162,7 @@ const AuditLogRow = ({ item, compact = false }: { item: AuditLogItem; compact?: 
     const actorRoleSuffix = item.actorRole ? ` (${item.actorRole})` : ""
 
     return (
-        <div className="rounded-xl border p-4">
+        <div className="motion-pop motion-interactive rounded-xl border border-border/70 bg-background/70 p-4 shadow-sm hover:border-foreground/20">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -1109,7 +1180,7 @@ const AuditLogRow = ({ item, compact = false }: { item: AuditLogItem; compact?: 
 
             {!compact && details ? (
                 <div className="mt-4 rounded-lg bg-muted/40 p-3">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <p className="mb-2 text-xs font-semibold text-muted-foreground">
                         Details
                     </p>
                     <pre className="overflow-x-auto whitespace-pre-wrap break-words text-xs text-muted-foreground">
@@ -1130,7 +1201,7 @@ const DeliveryStateRow = ({
     const statusVariant = item.resolvedAt ? "secondary" : item.lastDeliveryError ? "warning" : "default"
 
     return (
-        <div className="rounded-xl border p-4">
+        <div className="motion-pop rounded-xl border border-border/70 bg-background/70 p-4 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="space-y-1">
                     <p className="font-medium">{item.title}</p>
@@ -1159,8 +1230,8 @@ const DeliveryStateRow = ({
 
 const MetadataRow = ({ label, value }: { label: string; value: string }) => {
     return (
-        <div className="rounded-xl border bg-muted/25 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+        <div className="rounded-lg border border-border/70 bg-background/70 p-3">
+            <p className="text-xs font-medium text-muted-foreground">{label}</p>
             <p className="mt-1 break-all text-sm font-medium">{value}</p>
         </div>
     )

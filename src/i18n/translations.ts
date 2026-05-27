@@ -44,10 +44,12 @@ export const translationPairs: TranslationPair[] = [
     { en: "Checking session...", ru: "Проверяем сессию..." },
     { en: "Something went wrong", ru: "Что-то пошло не так" },
     { en: "We could not load this data.", ru: "Не удалось загрузить данные." },
+    { en: "An unexpected error occurred. Try reloading the page.", ru: "Произошла непредвиденная ошибка. Обновите страницу." },
     { en: "Try again", ru: "Повторить" },
     { en: "Unexpected error", ru: "Непредвиденная ошибка" },
     { en: "Error", ru: "Ошибка" },
     { en: "Reload", ru: "Обновить" },
+    { en: "Scroll to top", ru: "Наверх" },
     { en: "Progress", ru: "Прогресс" },
     { en: "Copy", ru: "Скопировать" },
     { en: "Copied!", ru: "Скопировано" },
@@ -188,13 +190,22 @@ export const translationPairs: TranslationPair[] = [
     { en: "Go Back", ru: "Назад" },
     { en: "Back to Dashboard", ru: "На панель" },
     { en: "Public marketplace", ru: "Каталог API" },
+    { en: "Marketplace catalog", ru: "Каталог API" },
     {
         en: "Find API products that are already shaped for real traffic.",
         ru: "Находите API, готовые к реальным интеграциям."
     },
     {
+        en: "Find API products ready for real traffic.",
+        ru: "Находите API-продукты, готовые к реальному трафику."
+    },
+    {
         en: "Search the catalog, move from product metadata into versions, then step into billing and gateway workflows without context switching.",
         ru: "Ищите продукты, смотрите версии и тарифы, а затем переходите к оплате и ключам без лишних шагов."
+    },
+    {
+        en: "Search by name, category, or tag. Use filters first, then open a product for versions, plans, and gateway access.",
+        ru: "Ищите по названию, категории или тегу. Сначала сузьте выдачу фильтрами, затем откройте продукт с версиями, тарифами и доступом через шлюз."
     },
     { en: "Visible products", ru: "Найдено продуктов" },
     { en: "Matching the current query and filters.", ru: "С учетом текущего поиска и фильтров." },
@@ -202,17 +213,26 @@ export const translationPairs: TranslationPair[] = [
     { en: "A quick read on breadth inside the current slice.", ru: "Сколько разделов попало в текущую выдачу." },
     { en: "Page", ru: "Страница" },
     { en: "Refine discovery", ru: "Фильтры каталога" },
+    { en: "Filter catalog", ru: "Фильтры каталога" },
+    { en: "Narrow the list before scanning cards.", ru: "Сузьте выдачу перед просмотром карточек." },
     { en: "Search", ru: "Поиск" },
+    { en: "Search:", ru: "Поиск:" },
     { en: "Name, category, tag...", ru: "Название, категория, тег..." },
     { en: "Density", ru: "Плотность" },
+    { en: "Cards per page", ru: "Карточек на странице" },
+    { en: "Clear", ru: "Очистить" },
     { en: "Clear filters", ru: "Очистить фильтры" },
     { en: "Categories", ru: "Категории" },
+    { en: "Category:", ru: "Категория:" },
     { en: "Main marketplace sections.", ru: "Основные разделы маркетплейса." },
     { en: "Reset", ru: "Сбросить" },
     { en: "Tags", ru: "Теги" },
+    { en: "Tag:", ru: "Тег:" },
     { en: "Smaller signals for stack, protocol, or use case.", ru: "Теги для стека, протокола или сценария." },
     { en: "Current filters are tightening the marketplace view.", ru: "Фильтры сейчас сужают выдачу каталога." },
     { en: "Showing the catalog without extra constraints.", ru: "Каталог показан без дополнительных ограничений." },
+    { en: "active", ru: "активно" },
+    { en: "on", ru: "вкл." },
     { en: "Catalog unavailable", ru: "Каталог недоступен" },
     { en: "Unable to fetch products.", ru: "Не удалось загрузить продукты." },
     { en: "No products found", ru: "Продукты не найдены" },
@@ -264,6 +284,7 @@ export const translationPairs: TranslationPair[] = [
     { en: "Version", ru: "Версия" },
     { en: "Pick a version", ru: "Выберите версию" },
     { en: "Loading schema snapshot...", ru: "Загрузка снимка схемы..." },
+    { en: "Snapshot fetched", ru: "Снимок получен" },
     { en: "Schema snapshot not stored yet", ru: "Снимок схемы еще не сохранен" },
     {
         en: "This version has a source OpenAPI document, but HivePoint does not have a stored schema snapshot yet. Use the source OpenAPI or refresh the version in Seller Studio.",
@@ -283,10 +304,17 @@ export const translationPairs: TranslationPair[] = [
     { en: "Upstream response", ru: "Ответ сервиса" },
     { en: "Usage context", ru: "Данные использования" },
     { en: "Status", ru: "Статус" },
+    { en: "Status:", ru: "Статус:" },
     { en: "Subscription", ru: "Подписка" },
+    { en: "Subscription:", ru: "Подписка:" },
+    { en: "Requests used in call:", ru: "Запросов в вызове:" },
     { en: "Remaining requests", ru: "Осталось запросов" },
+    { en: "Remaining requests:", ru: "Осталось запросов:" },
     { en: "Unlimited", ru: "Без лимита" },
     { en: "Period end", ru: "Конец периода" },
+    { en: "Period end:", ru: "Конец периода:" },
+    { en: "Remaining this minute:", ru: "Осталось в эту минуту:" },
+    { en: "Rate limit:", ru: "Лимит скорости:" },
     { en: "Resolved upstream", ru: "Целевой сервис" },
     { en: "Loading plans...", ru: "Загрузка тарифов..." },
     { en: "Plans unavailable", ru: "Тарифы недоступны" },
@@ -307,12 +335,20 @@ export const translationPairs: TranslationPair[] = [
     { en: "Payment link", ru: "Платежная ссылка" },
     { en: "Copy link", ru: "Скопировать ссылку" },
     { en: "Invoice ID", ru: "ID счета" },
+    { en: "Invoice ID:", ru: "ID счета:" },
     { en: "Open payment link", ru: "Открыть платежную ссылку" },
     { en: "No subscription data.", ru: "Данных подписки нет." },
     { en: "Workspace", ru: "Раздел" },
     { en: "Primary actions", ru: "Основные действия" },
+    { en: "Route list", ru: "Список разделов" },
+    { en: "Fast access without another row of equal cards.", ru: "Быстрый доступ без еще одного ряда одинаковых карточек." },
     { en: "Unlock", ru: "Открыть доступ" },
     { en: "Open", ru: "Открыть" },
+    { en: "Open Catalog", ru: "Открыть каталог" },
+    { en: "Open API Keys", ru: "Открыть API-ключи" },
+    { en: "Open Usage", ru: "Открыть использование" },
+    { en: "Open Seller Studio", ru: "Открыть студию продавца" },
+    { en: "Sign in to open", ru: "Войдите, чтобы открыть" },
     { en: "Checkout was canceled", ru: "Оплата была отменена" },
     {
         en: "No payment was completed. You can return to the product page and try again whenever you are ready.",
@@ -331,6 +367,11 @@ export const translationPairs: TranslationPair[] = [
     { en: "Could not verify checkout status.", ru: "Не удалось проверить статус оплаты." },
     { en: "Waiting for checkout confirmation...", ru: "Ждем подтверждение оплаты..." },
     { en: "Manage your subscriptions and billing status", ru: "Управляйте подписками и оплатой" },
+    { en: "Account finance", ru: "Финансы аккаунта" },
+    {
+        en: "Manage subscriptions, renewal state, invoices, and recovery actions from one place.",
+        ru: "Управляйте подписками, продлениями, счетами и восстановлением оплаты в одном месте."
+    },
     { en: "Opening...", ru: "Открываем..." },
     { en: "Open customer portal", ru: "Открыть портал клиента" },
     { en: "Subscriptions unavailable", ru: "Подписки недоступны" },
@@ -371,6 +412,12 @@ export const translationPairs: TranslationPair[] = [
     { en: "Usage unavailable", ru: "Использование недоступно" },
     { en: "Unable to fetch usage summary.", ru: "Не удалось загрузить сводку использования." },
     { en: "No usage data", ru: "Данных использования нет" },
+    { en: "Traffic health", ru: "Состояние трафика" },
+    { en: "Usage analytics", ru: "Аналитика использования" },
+    {
+        en: "Track request volume, quota pressure, and billing-period usage for active subscriptions.",
+        ru: "Следите за объемом запросов, нагрузкой на квоту и использованием за платежный период по активным подпискам."
+    },
     { en: "No active or in-grace subscriptions were found for this account.", ru: "Для этого аккаунта не найдены активные подписки или подписки в льготном периоде." },
     { en: "Usage alerts", ru: "Предупреждения по использованию" },
     { en: "Quota and billing alerts derived from the current billing period.", ru: "Предупреждения по квотам и оплате за текущий платежный период." },
@@ -385,10 +432,17 @@ export const translationPairs: TranslationPair[] = [
     { en: "Send usage record", ru: "Отправить запись использования" },
     { en: "Plan quota", ru: "Квота тарифа" },
     { en: "Rate limit", ru: "Лимит скорости" },
+    { en: "Retry #", ru: "Повтор #" },
     { en: "Period", ru: "Период" },
     { en: "Quota exceeded", ru: "Квота превышена" },
     { en: "API Keys", ru: "API-ключи" },
+    { en: "API keys", ru: "API-ключи" },
+    { en: "Gateway access", ru: "Доступ через шлюз" },
     { en: "Create and manage keys for accessing your subscriptions", ru: "Создавайте ключи и управляйте доступом к подпискам" },
+    {
+        en: "Create, rotate, and revoke credentials used by the gateway for subscription access.",
+        ru: "Создавайте, обновляйте и отзывайте ключи, через которые шлюз проверяет доступ к подпискам."
+    },
     { en: "Create API key", ru: "Создать API-ключ" },
     {
         en: "The raw key is shown only once. HivePoint also keeps the latest created key in this browser session for the product playground.",
@@ -406,6 +460,10 @@ export const translationPairs: TranslationPair[] = [
     { en: "Active and revoked keys for this account.", ru: "Активные и отозванные ключи этого аккаунта." },
     { en: "New API key", ru: "Новый API-ключ" },
     { en: "This key is shown only once. Store it securely.", ru: "Этот ключ показывается только один раз. Сохраните его безопасно." },
+    {
+        en: "Saved for this browser session so product playgrounds can reuse it without another copy step.",
+        ru: "Сохранено на время этой сессии браузера, чтобы тестовые запросы к продуктам могли использовать ключ без повторного копирования."
+    },
     { en: "No key available.", ru: "Ключ недоступен." },
     { en: "Revoke API key", ru: "Отозвать API-ключ" },
     { en: "This action cannot be undone. The key will stop working immediately.", ru: "Это действие нельзя отменить. Ключ сразу перестанет работать." },
@@ -415,6 +473,12 @@ export const translationPairs: TranslationPair[] = [
     { en: "Revoking...", ru: "Отзываем..." },
     { en: "Created", ru: "Создан" },
     { en: "Manage your account role, security, and activity snapshot.", ru: "Управляйте ролью аккаунта, безопасностью и сводкой активности." },
+    { en: "Account settings", ru: "Настройки аккаунта" },
+    {
+        en: "Manage your role, security settings, and account activity snapshot.",
+        ru: "Управляйте ролью, настройками безопасности и сводкой активности аккаунта."
+    },
+    { en: "Profile unavailable", ru: "Профиль недоступен" },
     { en: "Identity and access role", ru: "Профиль и роль доступа" },
     { en: "Role", ru: "Роль" },
     { en: "User ID", ru: "ID пользователя" },
@@ -437,16 +501,23 @@ export const translationPairs: TranslationPair[] = [
     { en: "Updating...", ru: "Обновляем..." },
     { en: "Seller Studio", ru: "Студия продавца" },
     { en: "Products, releases, and plans", ru: "Продукты, версии и тарифы" },
+    { en: "Product workspace for releases and pricing", ru: "Рабочая область продукта: версии и тарифы" },
     {
         en: "Select a product, check what is missing, then publish versions and pricing from the same workspace.",
         ru: "Выберите продукт, проверьте готовность и настройте версии с тарифами в одном месте."
+    },
+    {
+        en: "Pick one product, read its readiness, then move through versions, plans, and performance without losing the selected context.",
+        ru: "Выберите продукт, проверьте его готовность и переходите к версиям, тарифам и метрикам, не теряя контекст."
     },
     { en: "New product", ru: "Новый продукт" },
     { en: "Create new product", ru: "Создать новый продукт" },
     { en: "Create a separate catalog listing. This does not edit the currently selected product.", ru: "Создает отдельную карточку в каталоге. Выбранный продукт не изменится." },
     { en: "Title", ru: "Название" },
+    { en: "Payments API", ru: "API платежей" },
     { en: "Category", ru: "Категория" },
     { en: "Tags (comma separated)", ru: "Теги через запятую" },
+    { en: "payments, cards, invoices", ru: "платежи, карты, счета" },
     { en: "Description", ru: "Описание" },
     { en: "Suggest category", ru: "Предложить категорию" },
     { en: "Suggesting...", ru: "Предлагаем..." },
@@ -464,17 +535,32 @@ export const translationPairs: TranslationPair[] = [
     { en: "Existing products", ru: "Мои продукты" },
     { en: "Select the listing you want to configure.", ru: "Выберите карточку, которую хотите настроить." },
     { en: "Manage a selected product", ru: "Настройка продукта" },
+    { en: "Product workspace", ru: "Рабочая область продукта" },
+    { en: "One selected product drives the page", ru: "Страница работает с одним выбранным продуктом" },
+    {
+        en: "The rail chooses the product. The main workspace shows status, readiness, versions, pricing, and analytics for that selection.",
+        ru: "Список выбирает продукт. Основная область показывает статус, готовность, версии, тарифы и аналитику для этого выбора."
+    },
     {
         en: "Choose a product from the list. Status, versions, plans, and analytics in the workspace below all apply to that selected product.",
         ru: "Выберите продукт из списка. Статус, версии, тарифы и аналитика ниже относятся к выбранному продукту."
     },
     { en: "Selected product", ru: "Выбранный продукт" },
+    {
+        en: "Review current metadata and apply moderation to the selected product.",
+        ru: "Проверьте текущие данные и примените модерацию к выбранному продукту."
+    },
     { en: "Current status, release readiness, and product controls.", ru: "Статус, готовность к публикации и действия с продуктом." },
+    {
+        en: "Current status, release readiness, and product controls stay tied to the product rail.",
+        ru: "Статус, готовность к публикации и действия остаются привязаны к выбранному продукту."
+    },
     { en: "Copy product ID", ru: "Скопировать ID продукта" },
     { en: "Set draft", ru: "В черновик" },
     { en: "Publish", ru: "Опубликовать" },
     { en: "Hide", ru: "Скрыть" },
     { en: "No product selected", ru: "Продукт не выбран" },
+    { en: "Choose a managed product from the list to inspect it.", ru: "Выберите управляемый продукт из списка, чтобы просмотреть его." },
     { en: "Create or choose a product to manage releases and plans.", ru: "Создайте или выберите продукт, чтобы управлять версиями и тарифами." },
     { en: "Selected product workspace", ru: "Раздел выбранного продукта" },
     { en: "Work on one product at a time", ru: "Работайте с одним продуктом" },
@@ -487,6 +573,7 @@ export const translationPairs: TranslationPair[] = [
     { en: "Release snapshot", ru: "Готовность к публикации" },
     { en: "Quick read on the selected product before editing versions and plans.", ru: "Короткая сводка перед настройкой версий и тарифов." },
     { en: "Published version", ru: "Опубликованная версия" },
+    { en: "Pricing plans", ru: "Тарифы" },
     { en: "Schema", ru: "Схема" },
     { en: "Ready", ru: "Готово" },
     { en: "Connected", ru: "Подключена" },
@@ -521,6 +608,7 @@ export const translationPairs: TranslationPair[] = [
         ru: "Добавьте версию и ссылку на OpenAPI. Новые версии создаются как черновики, затем их можно опубликовать ниже."
     },
     { en: "Create version", ru: "Создать версию" },
+    { en: "OpenAPI URL", ru: "URL OpenAPI" },
     { en: "Loading versions...", ru: "Загрузка версий..." },
     { en: "Could not load versions", ru: "Не удалось загрузить версии" },
     { en: "Please select another product.", ru: "Выберите другой продукт." },
@@ -537,12 +625,27 @@ export const translationPairs: TranslationPair[] = [
     { en: "Price / month", ru: "Цена в месяц" },
     { en: "Currency", ru: "Валюта" },
     { en: "Quota requests / month", ru: "Квота запросов в месяц" },
+    { en: "Quota / month", ru: "Квота в месяц" },
     { en: "Rate limit / minute", ru: "Лимит скорости в минуту" },
+    { en: "RPM limit", ru: "Лимит RPM" },
     { en: "Optional", ru: "Необязательно" },
     { en: "Create plan", ru: "Создать тариф" },
+    { en: "Loading products...", ru: "Загружаем продукты..." },
+    { en: "Could not load products", ru: "Не удалось загрузить продукты" },
+    { en: "No products yet", ru: "Продуктов пока нет" },
+    {
+        en: "Create your first product to start building your seller catalog.",
+        ru: "Создайте первый продукт, чтобы начать собирать каталог продавца."
+    },
     { en: "Admin Ops", ru: "Администрирование" },
     { en: "Monitor platform health and moderate live catalog state", ru: "Следите за состоянием платформы и модерируйте каталог" },
+    { en: "Monitoring console", ru: "Мониторинг" },
+    { en: "Platform health, alerts, and moderation", ru: "Состояние платформы, предупреждения и модерация" },
     { en: "Review operational alerts, audit trail, and admin moderation actions from one workspace.", ru: "Проверяйте предупреждения, аудит и модерацию в одном разделе." },
+    {
+        en: "Watch queue pressure, billing signals, alert delivery, audit events, and catalog moderation from one operational surface.",
+        ru: "Следите за очередями, оплатой, доставкой предупреждений, аудитом и модерацией каталога из одного рабочего раздела."
+    },
     { en: "Open alerts", ru: "Открытые предупреждения" },
     { en: "Danger alerts", ru: "Критичные предупреждения" },
     { en: "Managed products", ru: "Управляемые продукты" },
@@ -552,6 +655,20 @@ export const translationPairs: TranslationPair[] = [
     { en: "Audit Trail", ru: "Аудит" },
     { en: "Moderation", ru: "Модерация" },
     { en: "Operational status", ru: "Состояние сервиса" },
+    {
+        en: "Current alert pressure across queue workers, billing leases, and subscription state.",
+        ru: "Текущее давление предупреждений по очередям, задачам биллинга и состоянию подписок."
+    },
+    { en: "Loading operational status...", ru: "Загружаем состояние сервиса..." },
+    { en: "Operational status unavailable", ru: "Состояние сервиса недоступно" },
+    { en: "No operational alerts", ru: "Сервисных предупреждений нет" },
+    {
+        en: "The current monitoring rules are not reporting warnings or danger signals.",
+        ru: "Текущие правила мониторинга не сообщают о предупреждениях или критичных сигналах."
+    },
+    { en: "Metrics history points:", ru: "Точек истории метрик:" },
+    { en: "Latest capture:", ru: "Последний снимок:" },
+    { en: "Persistent metrics history is disabled.", ru: "Постоянная история метрик отключена." },
     { en: "Managed catalog", ru: "Управляемый каталог" },
     { en: "Current moderation surface visible from the catalog management endpoints.", ru: "Текущий список продуктов, доступный через служебный API каталога." },
     { en: "Loading managed products...", ru: "Загружаем продукты..." },
@@ -561,11 +678,81 @@ export const translationPairs: TranslationPair[] = [
     { en: "There are no products available through the managed catalog endpoint.", ru: "Через служебный API каталога пока нет доступных продуктов." },
     { en: "Admin users can review all managed products and select one for moderation.", ru: "Администратор может просмотреть все продукты и выбрать один для модерации." },
     { en: "Latest audit events", ru: "Последние события аудита" },
+    {
+        en: "Most recent admin actions recorded by the backend audit log.",
+        ru: "Последние действия администраторов из серверного журнала аудита."
+    },
+    { en: "Loading audit trail...", ru: "Загружаем аудит..." },
+    { en: "Audit trail unavailable", ru: "Аудит недоступен" },
+    { en: "No audit entries yet", ru: "Записей аудита пока нет" },
+    { en: "No audit entries", ru: "Записей аудита нет" },
+    {
+        en: "Admin actions will appear here after the first moderation event.",
+        ru: "Действия администратора появятся здесь после первого события модерации."
+    },
+    {
+        en: "Run an admin action and its audit log entry will appear here.",
+        ru: "Выполните админское действие, и запись аудита появится здесь."
+    },
     { en: "External alert delivery", ru: "Внешняя доставка предупреждений" },
+    {
+        en: "Webhook delivery status, cooldown policy, and the most recent tracked alert states.",
+        ru: "Состояние доставки webhook, паузы между отправками и последние отслеживаемые предупреждения."
+    },
+    { en: "Loading delivery status...", ru: "Загружаем состояние доставки..." },
+    {
+        en: "Active alerts are pushed to the configured webhook, with reminder sends after the cooldown window.",
+        ru: "Активные предупреждения отправляются в настроенный webhook, а напоминания уходят после паузы."
+    },
+    { en: "Targets:", ru: "Цели:" },
+    { en: "No delivery state yet", ru: "Состояния доставки пока нет" },
+    {
+        en: "Tracked alert delivery state will appear after the first webhook cycle.",
+        ru: "Состояние доставки предупреждений появится после первого цикла webhook."
+    },
+    { en: "Delivery status unavailable", ru: "Состояние доставки недоступно" },
+    {
+        en: "Refresh the workspace after the observability backend is reachable.",
+        ru: "Обновите раздел, когда backend наблюдаемости станет доступен."
+    },
     { en: "Operational alerts", ru: "Сервисные предупреждения" },
+    {
+        en: "Prioritized warnings and danger states derived from queue backlog, leases, and billing health.",
+        ru: "Приоритетные предупреждения и критичные состояния по очередям, служебным задачам и оплате."
+    },
+    { en: "Loading operational alerts...", ru: "Загружаем сервисные предупреждения..." },
+    { en: "Operational alerts unavailable", ru: "Сервисные предупреждения недоступны" },
+    { en: "No active alerts", ru: "Активных предупреждений нет" },
+    { en: "Nothing currently exceeds the configured warning thresholds.", ru: "Сейчас ни один показатель не превышает настроенные пороги." },
     { en: "Audit trail", ru: "Аудит" },
+    {
+        en: "Recent admin actions with actor identity, request correlation, and serialized details.",
+        ru: "Недавние действия администраторов с автором, request ID и деталями."
+    },
+    { en: "Selected product versions", ru: "Версии выбранного продукта" },
+    { en: "Hide actions on versions are implemented as rollback to draft.", ru: "Скрытие версии выполняется как откат в черновик." },
+    { en: "Select a product first", ru: "Сначала выберите продукт" },
+    { en: "Version moderation appears after you choose a product.", ru: "Модерация версий появится после выбора продукта." },
+    { en: "Versions unavailable", ru: "Версии недоступны" },
+    { en: "No versions for this product", ru: "У продукта пока нет версий" },
+    { en: "Create a version in Seller Studio before using version moderation.", ru: "Создайте версию в студии продавца перед модерацией версий." },
     { en: "Direct API key revoke", ru: "Прямой отзыв API-ключа" },
+    {
+        en: "The backend currently exposes revoke-by-ID only. Paste a key ID from support or abuse workflows.",
+        ru: "Сейчас backend поддерживает отзыв только по ID. Вставьте ID ключа из поддержки или разбора нарушений."
+    },
     { en: "API key ID", ru: "ID API-ключа" },
+    { en: "Product ID", ru: "ID продукта" },
+    { en: "Owner ID", ru: "ID владельца" },
+    { en: "Version ID", ru: "ID версии" },
+    { en: "Copy version ID", ru: "Скопировать ID версии" },
+    { en: "Copy request ID", ru: "Скопировать request ID" },
+    { en: "Already hidden", ru: "Уже скрыт" },
+    { en: "Hiding...", ru: "Скрываем..." },
+    { en: "Hide product", ru: "Скрыть продукт" },
+    { en: "No tags assigned.", ru: "Теги не назначены." },
+    { en: "Last delivery error:", ru: "Ошибка последней доставки:" },
+    { en: "Please retry.", ru: "Попробуйте еще раз." },
     { en: "Debug connection", ru: "Отладка соединения" },
     { en: "Verify credentials, refresh cookies, and the /users/me response.", ru: "Проверьте учетные данные, refresh-cookie и ответ /users/me." },
     { en: "Session notes", ru: "Заметки сессии" },
@@ -599,6 +786,7 @@ export const translationPairs: TranslationPair[] = [
     { en: "No", ru: "Нет" },
     { en: "Queue pending", ru: "В очереди" },
     { en: "Queue failed", ru: "Ошибки очереди" },
+    { en: "Audit events", ru: "События аудита" },
     { en: "Overage worker", ru: "Обработка перерасхода" },
     { en: "Lease ok", ru: "Обновляется" },
     { en: "Missing", ru: "Отсутствует" },

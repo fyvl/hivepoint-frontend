@@ -557,20 +557,21 @@ export const SellerStudioPage = () => {
             : `${formatNumber(quotaRequests)} requests / month`;
 
     return (
-        <div className="flex flex-col gap-8">
-            <section className="surface-panel-strong p-6">
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-7">
+            <section className="motion-section surface-panel-strong relative overflow-hidden p-5 sm:p-6">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-amber-400 to-stone-700" />
+                <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                     <div className="max-w-2xl">
                         <div className="section-kicker">
                             <Rocket className="h-3.5 w-3.5" />
                             Seller Studio
                         </div>
-                        <h1 className="mt-3 text-3xl font-semibold text-foreground">
-                            Products, releases, and plans
+                        <h1 className="display-title mt-3 max-w-4xl text-3xl text-foreground sm:text-4xl">
+                            Product workspace for releases and pricing
                         </h1>
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                            Select a product, check what is missing, then publish versions and
-                            pricing from the same workspace.
+                            Pick one product, read its readiness, then move through versions,
+                            plans, and performance without losing the selected context.
                         </p>
                     </div>
                     <div className="flex flex-col gap-3 lg:min-w-[520px] lg:items-end">
@@ -698,7 +699,7 @@ export const SellerStudioPage = () => {
                                 </form>
                             </DialogContent>
                         </Dialog>
-                        <div className="grid w-full gap-3 sm:grid-cols-3">
+                        <div className="motion-stagger grid w-full gap-2 sm:grid-cols-3">
                             <StatChip label="Visible products" value={String(products.length)} />
                             <StatChip label="Published" value={String(publishedCount)} />
                             <StatChip
@@ -720,7 +721,7 @@ export const SellerStudioPage = () => {
                     onRetry={() => setRetryKey((prev) => prev + 1)}
                 />
             ) : analytics ? (
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div className="motion-stagger grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                     <OverviewMetric
                         label={t("Active clients")}
                         value={formatNumber(analytics.totals.activeClients)}
@@ -741,17 +742,27 @@ export const SellerStudioPage = () => {
             ) : null}
 
             <StudioSectionHeader
-                eyebrow="Existing products"
-                title="Manage a selected product"
-                description="Choose a product from the list. Status, versions, plans, and analytics in the workspace below all apply to that selected product."
+                eyebrow="Product workspace"
+                title="One selected product drives the page"
+                description="The rail chooses the product. The main workspace shows status, readiness, versions, pricing, and analytics for that selection."
             />
 
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
-                <Card>
+            <div className="motion-section grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
+                <ProductListPanel
+                    products={products}
+                    isLoading={isProductsLoading}
+                    error={productsError}
+                    selectedProductId={selectedProductId}
+                    onSelect={setSelectedProductId}
+                    onRetry={() => setRetryKey((prev) => prev + 1)}
+                />
+
+                <Card className="motion-section min-h-full">
                     <CardHeader>
                         <CardTitle>Selected product</CardTitle>
                         <CardDescription>
-                            Current status, release readiness, and product controls.
+                            Current status, release readiness, and product controls stay tied to
+                            the product rail.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
@@ -776,6 +787,10 @@ export const SellerStudioPage = () => {
                                             {getString(selectedProductRecord, "title") ??
                                                 "Untitled product"}
                                         </h2>
+                                        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                                            {getString(selectedProductRecord, "description") ??
+                                                "No description available yet."}
+                                        </p>
                                         <div className="mt-3 flex flex-wrap gap-2">
                                             {selectedTags.slice(0, 5).map((tag) => (
                                                 <span
@@ -796,14 +811,29 @@ export const SellerStudioPage = () => {
                                     ) : null}
                                 </div>
 
-                                <div className="grid gap-2 sm:grid-cols-4">
+                                <div className="motion-stagger grid gap-3 sm:grid-cols-3">
+                                    <AnalyticsStat
+                                        label="Versions"
+                                        value={formatNumber(versions.length)}
+                                    />
+                                    <AnalyticsStat
+                                        label="Pricing plans"
+                                        value={formatNumber(plans.length)}
+                                    />
+                                    <AnalyticsStat
+                                        label="Published"
+                                        value={hasPublishedVersion ? "Ready" : "Missing"}
+                                    />
+                                </div>
+
+                                <div className="motion-stagger grid gap-2 md:grid-cols-4">
                                     {setupSteps.map((step) => (
                                         <div
                                             key={step.label}
                                             className={cn(
-                                                "rounded-lg border px-3 py-3",
+                                                "rounded-lg border px-3 py-2.5 transition-colors",
                                                 step.done
-                                                    ? "border-emerald-500/35 bg-emerald-500/5"
+                                                    ? "border-emerald-500/30 bg-emerald-500/5"
                                                     : "border-border bg-muted/20"
                                             )}
                                         >
@@ -861,25 +891,16 @@ export const SellerStudioPage = () => {
                         )}
                     </CardContent>
                 </Card>
-
-                <ProductListPanel
-                    products={products}
-                    isLoading={isProductsLoading}
-                    error={productsError}
-                    selectedProductId={selectedProductId}
-                    onSelect={setSelectedProductId}
-                    onRetry={() => setRetryKey((prev) => prev + 1)}
-                />
             </div>
 
             <Tabs defaultValue="overview" className="space-y-4">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <div className="motion-section surface-panel flex flex-col gap-3 border-border/80 bg-background/90 p-4 lg:flex-row lg:items-end lg:justify-between">
                     <StudioSectionHeader
                         eyebrow={t("Selected product workspace")}
                         title={t("Work on one product at a time")}
                         description={t("Use the tabs to switch between readiness, releases, plans, and performance for the selected product.")}
                     />
-                    <TabsList className="h-10 w-full justify-start lg:w-auto">
+                    <TabsList className="h-10 w-full justify-start rounded-lg lg:w-auto">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="releases">Releases</TabsTrigger>
                         <TabsTrigger value="plans">Plans</TabsTrigger>
@@ -887,7 +908,7 @@ export const SellerStudioPage = () => {
                 </div>
 
                 <TabsContent value="overview" className="mt-0">
-                    <div className="grid gap-6 lg:grid-cols-2">
+                    <div className="motion-stagger grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Release snapshot</CardTitle>
@@ -899,7 +920,7 @@ export const SellerStudioPage = () => {
                             <CardContent className="space-y-4">
                                 {selectedProductRecord ? (
                                     <>
-                                        <div className="grid gap-3 sm:grid-cols-2">
+                                        <div className="motion-stagger grid gap-3 sm:grid-cols-2">
                                             <AnalyticsStat
                                                 label="Versions"
                                                 value={formatNumber(versions.length)}
@@ -941,7 +962,7 @@ export const SellerStudioPage = () => {
                             <CardContent className="space-y-4">
                                 {selectedProductAnalytics ? (
                                     <>
-                                        <div className="grid gap-3 sm:grid-cols-2">
+                                        <div className="motion-stagger grid gap-3 sm:grid-cols-2">
                                             <AnalyticsStat
                                                 label="Views (30d)"
                                                 value={formatNumber(
@@ -979,7 +1000,7 @@ export const SellerStudioPage = () => {
                                         </div>
 
                                         <div className="rounded-lg border p-3">
-                                            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                            <p className="text-xs font-medium text-muted-foreground">
                                                 Latest published version
                                             </p>
                                             <p className="mt-1 text-sm font-medium">
@@ -1000,7 +1021,7 @@ export const SellerStudioPage = () => {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                            <p className="text-xs font-medium text-muted-foreground">
                                                 Top endpoints
                                             </p>
                                             {selectedProductAnalytics.topEndpoints.length > 0 ? (
@@ -1051,7 +1072,10 @@ export const SellerStudioPage = () => {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <form className="space-y-3" onSubmit={handleCreateVersion}>
+                            <form
+                                className="grid gap-3 lg:grid-cols-[minmax(130px,0.35fr)_minmax(0,1fr)_auto] lg:items-end"
+                                onSubmit={handleCreateVersion}
+                            >
                                 <div className="space-y-2">
                                     <Label htmlFor="version-label">Version</Label>
                                     <Input
@@ -1073,6 +1097,7 @@ export const SellerStudioPage = () => {
                                 <Button
                                     type="submit"
                                     size="sm"
+                                    className="w-full lg:w-auto"
                                     disabled={isCreatingVersion || !selectedProductId}
                                 >
                                     {isCreatingVersion ? t("Creating...") : t("Create version")}
@@ -1098,7 +1123,7 @@ export const SellerStudioPage = () => {
                             ) : null}
 
                             {!isDetailsLoading && !detailsError && versions.length > 0 ? (
-                                <div className="space-y-2">
+                                <div className="motion-stagger grid gap-2 lg:grid-cols-2">
                                     {versions.slice(0, 4).map((version, index) => {
                                         const record = isRecord(version) ? version : null;
                                         const versionId = getVersionId(version);
@@ -1108,7 +1133,7 @@ export const SellerStudioPage = () => {
                                         return (
                                             <div
                                                 key={versionId ?? `${versionName}-${index}`}
-                                                className="space-y-2 rounded-lg border px-3 py-2"
+                                                className="space-y-3 rounded-lg border bg-background/60 px-3 py-3"
                                             >
                                                 <div className="flex items-center justify-between gap-3">
                                                     <span className="text-sm font-medium">
@@ -1187,8 +1212,8 @@ export const SellerStudioPage = () => {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <form className="space-y-3" onSubmit={handleCreatePlan}>
-                                <div className="space-y-2">
+                            <form className="grid gap-3 lg:grid-cols-6 lg:items-end" onSubmit={handleCreatePlan}>
+                                <div className="space-y-2 lg:col-span-2">
                                     <Label htmlFor="plan-name">Plan name</Label>
                                     <Input
                                         id="plan-name"
@@ -1197,76 +1222,73 @@ export const SellerStudioPage = () => {
                                         onChange={(event) => setPlanName(event.target.value)}
                                     />
                                 </div>
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="plan-price">Price / month</Label>
-                                        <Input
-                                            id="plan-price"
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            placeholder="19.99"
-                                            value={planPrice}
-                                            onChange={(event) => setPlanPrice(event.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="plan-currency">Currency</Label>
-                                        <Input
-                                            id="plan-currency"
-                                            maxLength={3}
-                                            placeholder="USD"
-                                            value={planCurrency}
-                                            onChange={(event) =>
-                                                setPlanCurrency(event.target.value)
-                                            }
-                                        />
-                                    </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="plan-price">Price / month</Label>
+                                    <Input
+                                        id="plan-price"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        placeholder="19.99"
+                                        value={planPrice}
+                                        onChange={(event) => setPlanPrice(event.target.value)}
+                                    />
                                 </div>
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="plan-quota">Quota requests / month</Label>
-                                        <Input
-                                            id="plan-quota"
-                                            type="number"
-                                            min="1"
-                                            step="1"
-                                            placeholder="10000"
-                                            value={planQuota}
-                                            onChange={(event) => setPlanQuota(event.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="plan-rate-limit">Rate limit / minute</Label>
-                                        <Input
-                                            id="plan-rate-limit"
-                                            type="number"
-                                            min="1"
-                                            step="1"
-                                            placeholder="Optional"
-                                            value={planRateLimitRpm}
-                                            onChange={(event) =>
-                                                setPlanRateLimitRpm(event.target.value)
-                                            }
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            {t("Leave blank to allow unrestricted burst traffic inside the monthly quota.")}
-                                        </p>
-                                    </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="plan-currency">Currency</Label>
+                                    <Input
+                                        id="plan-currency"
+                                        maxLength={3}
+                                        placeholder="USD"
+                                        value={planCurrency}
+                                        onChange={(event) =>
+                                            setPlanCurrency(event.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="plan-quota">Quota / month</Label>
+                                    <Input
+                                        id="plan-quota"
+                                        type="number"
+                                        min="1"
+                                        step="1"
+                                        placeholder="10000"
+                                        value={planQuota}
+                                        onChange={(event) => setPlanQuota(event.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="plan-rate-limit">RPM limit</Label>
+                                    <Input
+                                        id="plan-rate-limit"
+                                        type="number"
+                                        min="1"
+                                        step="1"
+                                        placeholder="Optional"
+                                        value={planRateLimitRpm}
+                                        onChange={(event) =>
+                                            setPlanRateLimitRpm(event.target.value)
+                                        }
+                                    />
                                 </div>
                                 <Button
                                     type="submit"
                                     size="sm"
+                                    className="w-full"
                                     disabled={isCreatingPlan || !selectedProductId}
                                 >
                                     {isCreatingPlan ? "Creating..." : "Create plan"}
                                 </Button>
                             </form>
+                            <p className="text-xs text-muted-foreground">
+                                {t("Leave blank to allow unrestricted burst traffic inside the monthly quota.")}
+                            </p>
 
                             {!isDetailsLoading && plans.length > 0 ? (
-                                <div className="space-y-2">
+                                <div className="motion-stagger grid gap-2 lg:grid-cols-2">
                                     {plans.slice(0, 4).map((plan) => (
-                                        <div key={plan.id} className="rounded-lg border px-3 py-2">
+                                        <div key={plan.id} className="rounded-lg border bg-background/60 px-3 py-3">
                                             <div className="flex items-center justify-between gap-2">
                                                 <p className="text-sm font-medium">{plan.name}</p>
                                                 {plan.isActive ? (
@@ -1317,10 +1339,12 @@ const ProductListPanel = ({
     const { t } = useI18n();
 
     return (
-        <Card className="h-full">
+        <Card className="h-full xl:sticky xl:top-4">
             <CardHeader>
                 <CardTitle>{t("Existing products")}</CardTitle>
-                <CardDescription>{t("Select the listing you want to configure.")}</CardDescription>
+                <CardDescription>
+                    {t("Select the listing you want to configure.")}
+                </CardDescription>
             </CardHeader>
             <CardContent>
                 {isLoading ? <LoadingBlock title="Loading products..." count={3} /> : null}
@@ -1343,7 +1367,7 @@ const ProductListPanel = ({
                 ) : null}
 
                 {!isLoading && !error && products.length > 0 ? (
-                    <div className="grid max-h-[420px] gap-2 overflow-y-auto pr-1">
+                    <div className="motion-stagger grid max-h-[560px] gap-2 overflow-y-auto pr-1">
                         {products.map((product, index) => {
                             const record = isRecord(product) ? product : null;
                             const productId = getProductId(product);
@@ -1360,12 +1384,15 @@ const ProductListPanel = ({
                                     key={productId ?? `product-${index}`}
                                     type="button"
                                     className={cn(
-                                        "rounded-lg border px-3 py-3 text-left transition-[background-color,border-color]",
+                                        "motion-interactive relative rounded-lg border px-3 py-3 text-left",
                                         "hover:border-foreground/20 hover:bg-muted/40",
-                                        isSelected && "border-primary/70 bg-primary/10"
+                                        isSelected && "border-primary/70 bg-primary/10 shadow-soft"
                                     )}
                                     onClick={() => onSelect(productId)}
                                 >
+                                    {isSelected ? (
+                                        <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-primary" />
+                                    ) : null}
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
                                             <p className="truncate text-sm font-semibold">
@@ -1400,7 +1427,7 @@ const StudioSectionHeader = ({
 }) => {
     return (
         <div className="flex flex-col gap-1 border-l-2 border-primary/70 pl-4">
-            <p className="text-xs font-semibold uppercase text-primary">{eyebrow}</p>
+            <p className="text-xs font-semibold text-primary">{eyebrow}</p>
             <h2 className="text-xl font-semibold text-foreground">{title}</h2>
             <p className="max-w-3xl text-sm leading-6 text-muted-foreground">{description}</p>
         </div>
@@ -1409,8 +1436,8 @@ const StudioSectionHeader = ({
 
 const StatChip = ({ label, value }: { label: string; value: string }) => {
     return (
-        <div className="rounded-lg border border-border/80 bg-background/70 px-4 py-3">
-            <p className="text-xs uppercase text-muted-foreground">{label}</p>
+        <div className="motion-metric rounded-lg border border-border/80 bg-background/70 px-4 py-3 shadow-sm">
+            <p className="text-xs font-medium text-muted-foreground">{label}</p>
             <p className="mt-1 text-xl font-semibold text-foreground">{value}</p>
         </div>
     );
@@ -1418,19 +1445,17 @@ const StatChip = ({ label, value }: { label: string; value: string }) => {
 
 const OverviewMetric = ({ label, value }: { label: string; value: string }) => {
     return (
-        <Card>
-            <CardHeader className="flex min-h-[84px] justify-center py-4">
-                <CardDescription>{label}</CardDescription>
-                <CardTitle>{value}</CardTitle>
-            </CardHeader>
-        </Card>
+        <div className="motion-metric rounded-xl border border-border/70 bg-card/95 px-4 py-3 shadow-soft">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
+        </div>
     );
 };
 
 const AnalyticsStat = ({ label, value }: { label: string; value: string }) => {
     return (
-        <div className="rounded-lg border bg-muted/20 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+        <div className="motion-metric rounded-lg border border-border/70 bg-background/70 p-3 shadow-sm">
+            <p className="text-xs font-medium text-muted-foreground">{label}</p>
             <p className="mt-1 text-lg font-semibold">{value}</p>
         </div>
     );

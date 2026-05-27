@@ -94,7 +94,7 @@ export const CopyIconButton = ({
             onClick={handleCopy}
             disabled={disabled || !value}
             className={cn(
-                "inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                "motion-interactive inline-flex h-8 w-8 items-center justify-center rounded-md",
                 "text-muted-foreground hover:bg-muted hover:text-foreground",
                 "disabled:pointer-events-none disabled:opacity-50",
                 copied && "text-emerald-500",

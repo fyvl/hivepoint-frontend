@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { CreditCard } from "lucide-react"
 
 import {
     createBillingApi,
@@ -8,6 +9,7 @@ import {
 } from "@/api/billing"
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
+import { PageHeader } from "@/components/layout/page-header"
 import { SubscriptionsSkeleton } from "@/components/skeletons/subscriptions-skeleton"
 import { StatusBadge } from "@/components/status-badge"
 import { Badge } from "@/components/ui/badge"
@@ -158,24 +160,24 @@ export const BillingPage = () => {
 
     return (
         <div className="flex flex-col gap-8">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
-                    <p className="text-muted-foreground">
-                        Manage your subscriptions and billing status
-                    </p>
-                </div>
-                {billingConfig?.customerPortalAvailable ? (
-                    <Button
-                        type="button"
-                        variant="outline"
-                        disabled={isOpeningPortal}
-                        onClick={handleOpenPortal}
-                    >
-                        {isOpeningPortal ? "Opening..." : "Open customer portal"}
-                    </Button>
-                ) : null}
-            </div>
+            <PageHeader
+                eyebrow="Account finance"
+                title="Billing"
+                description="Manage subscriptions, renewal state, invoices, and recovery actions from one place."
+                icon={<CreditCard className="h-5 w-5" />}
+                actions={
+                    billingConfig?.customerPortalAvailable ? (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isOpeningPortal}
+                            onClick={handleOpenPortal}
+                        >
+                            {isOpeningPortal ? "Opening..." : "Open customer portal"}
+                        </Button>
+                    ) : null
+                }
+            />
 
             {isLoading ? <SubscriptionsSkeleton /> : null}
 
@@ -386,29 +388,29 @@ const SubscriptionCard = ({
                     </div>
                 ) : null}
                 <div>
-                    <div className="text-xs uppercase">Billing period</div>
+                    <div className="text-xs font-medium">Billing period</div>
                     <div>
                         {formatDate(subscription.currentPeriodStart)} - {formatDate(subscription.currentPeriodEnd)}
                     </div>
                 </div>
                 <div>
-                    <div className="text-xs uppercase">Plan</div>
+                    <div className="text-xs font-medium">Plan</div>
                     <div>
                         {formatCurrency(plan.priceCents, plan.currency)} / {formatNumber(plan.quotaRequests)} requests
                     </div>
                     <div>Rate limit: {formatRequestsPerMinute(plan.rateLimitRpm)}</div>
                 </div>
                 <div>
-                    <div className="text-xs uppercase">Cancel at period end</div>
+                    <div className="text-xs font-medium">Cancel at period end</div>
                     <div>{subscription.cancelAtPeriodEnd ? "Yes" : "No"}</div>
                 </div>
                 <div>
-                    <div className="text-xs uppercase">Provider</div>
+                    <div className="text-xs font-medium">Provider</div>
                     <div>{subscription.paymentProvider ?? "Unknown"}</div>
                 </div>
                 {subscription.status === "PAST_DUE" || subscription.gracePeriodEndsAt ? (
                     <div>
-                        <div className="text-xs uppercase">Grace period</div>
+                        <div className="text-xs font-medium">Grace period</div>
                         <div>
                             {subscription.gracePeriodEndsAt
                                 ? `Active through ${formatDate(subscription.gracePeriodEndsAt)}`
@@ -417,7 +419,7 @@ const SubscriptionCard = ({
                     </div>
                 ) : null}
                 <div>
-                    <div className="text-xs uppercase">Latest invoice</div>
+                    <div className="text-xs font-medium">Latest invoice</div>
                     <div>
                         {latestInvoice
                             ? `${latestInvoice.status} / ${formatCurrency(
@@ -429,7 +431,7 @@ const SubscriptionCard = ({
                 </div>
                 {latestInvoice?.status === "PAST_DUE" || latestInvoice?.nextPaymentAttemptAt ? (
                     <div>
-                        <div className="text-xs uppercase">Retry status</div>
+                        <div className="text-xs font-medium">Retry status</div>
                         <div>
                             {latestInvoice?.nextPaymentAttemptAt
                                 ? `Retry #${latestInvoice.attemptCount ?? 0} scheduled for ${formatDate(latestInvoice.nextPaymentAttemptAt)}`
@@ -440,7 +442,7 @@ const SubscriptionCard = ({
                     </div>
                 ) : null}
                 <div className="sm:col-span-2">
-                    <div className="text-xs uppercase">Invoice history</div>
+                    <div className="text-xs font-medium">Invoice history</div>
                     {invoices.length > 0 ? (
                         <div className="mt-2 grid gap-2">
                             {invoices.map((invoice) => (

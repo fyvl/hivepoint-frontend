@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { BarChart3 } from "lucide-react"
 import { Link } from "react-router-dom"
 
 import {
@@ -9,6 +10,7 @@ import {
 } from "@/api/usage"
 import { ApiError } from "@/api/http"
 import { useAuth } from "@/auth/auth-context"
+import { PageHeader } from "@/components/layout/page-header"
 import { Badge } from "@/components/ui/badge"
 import { UsageSkeleton } from "@/components/skeletons/usage-skeleton"
 import { StatusBadge } from "@/components/status-badge"
@@ -158,32 +160,32 @@ export const UsagePage = () => {
 
     return (
         <div className="flex flex-col gap-8">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Usage Analytics</h1>
-                    <p className="text-muted-foreground">
-                        Track API usage for the current billing period
-                    </p>
-                </div>
-                {items.length > 1 ? (
-                    <div className="w-full max-w-xs space-y-1">
-                        <Label htmlFor="usage-filter">Filter</Label>
-                        <Select value={selectedId} onValueChange={setSelectedId}>
-                            <SelectTrigger id="usage-filter">
-                                <SelectValue placeholder="All subscriptions" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All subscriptions</SelectItem>
-                                {items.map((item) => (
-                                    <SelectItem key={item.subscriptionId} value={item.subscriptionId}>
-                                        {item.product.title} - {item.plan.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                ) : null}
-            </div>
+            <PageHeader
+                eyebrow="Traffic health"
+                title="Usage analytics"
+                description="Track request volume, quota pressure, and billing-period usage for active subscriptions."
+                icon={<BarChart3 className="h-5 w-5" />}
+                actions={
+                    items.length > 1 ? (
+                        <div className="w-full min-w-[17rem] space-y-1 sm:w-80">
+                            <Label htmlFor="usage-filter">Filter</Label>
+                            <Select value={selectedId} onValueChange={setSelectedId}>
+                                <SelectTrigger id="usage-filter">
+                                    <SelectValue placeholder="All subscriptions" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All subscriptions</SelectItem>
+                                    {items.map((item) => (
+                                        <SelectItem key={item.subscriptionId} value={item.subscriptionId}>
+                                            {item.product.title} - {item.plan.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    ) : null
+                }
+            />
 
             {isLoading ? <UsageSkeleton /> : null}
 
@@ -360,26 +362,26 @@ const UsageCard = ({ item }: UsageCardProps) => {
                 ) : null}
                 <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
                     <div>
-                        <div className="text-xs uppercase">Subscription</div>
+                        <div className="text-xs font-medium">Subscription</div>
                         <div>{getUsageSubscriptionLabel(subscriptionStatus)}</div>
                     </div>
                     <div>
-                        <div className="text-xs uppercase">Usage</div>
+                        <div className="text-xs font-medium">Usage</div>
                         <div>
                             {formatNumber(item.usedRequests)} / {formatNumber(item.quotaRequests)} requests
                         </div>
                     </div>
                     <div>
-                        <div className="text-xs uppercase">Plan quota</div>
+                        <div className="text-xs font-medium">Plan quota</div>
                         <div>{formatNumber(item.plan.quotaRequests)} requests</div>
                     </div>
                     <div>
-                        <div className="text-xs uppercase">Rate limit</div>
+                        <div className="text-xs font-medium">Rate limit</div>
                         <div>{formatRequestsPerMinute(item.plan.rateLimitRpm)}</div>
                     </div>
                     {item.status === "PAST_DUE" || item.gracePeriodEndsAt ? (
                         <div>
-                            <div className="text-xs uppercase">Grace period</div>
+                            <div className="text-xs font-medium">Grace period</div>
                             <div>
                                 {item.gracePeriodEndsAt
                                     ? `Active through ${formatDate(item.gracePeriodEndsAt)}`
@@ -388,7 +390,7 @@ const UsageCard = ({ item }: UsageCardProps) => {
                         </div>
                     ) : null}
                     <div className="sm:col-span-2">
-                        <div className="text-xs uppercase">Period</div>
+                        <div className="text-xs font-medium">Period</div>
                         <div>
                             {formatDate(item.periodStart)} - {formatDate(item.periodEnd)}
                         </div>

@@ -11,6 +11,7 @@ import {
     updateMyRole as updateMyRoleApi
 } from "@/api/users"
 import { useAuth } from "@/auth/auth-context"
+import { PageHeader } from "@/components/layout/page-header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -166,10 +167,13 @@ export const ProfilePage = () => {
 
     return (
         <div className="flex flex-col gap-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-                <p className="text-muted-foreground">Manage your account role, security, and activity snapshot.</p>
-            </div>
+            <PageHeader
+                eyebrow="Account settings"
+                title="Profile"
+                description="Manage your role, security settings, and account activity snapshot."
+                icon={<UserRound className="h-5 w-5" />}
+                actions={<Badge variant="secondary">{roleLabel(me.role ?? null)}</Badge>}
+            />
 
             <div className="grid gap-6 lg:grid-cols-3">
                 <Card className="lg:col-span-1">
@@ -319,7 +323,7 @@ export const ProfilePage = () => {
 const SummaryItem = ({ label, value }: { label: string; value: number }) => {
     return (
         <div className="rounded-lg border bg-muted/30 p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-xs font-medium text-muted-foreground">{label}</p>
             <p className="mt-2 text-2xl font-semibold">{value}</p>
         </div>
     )

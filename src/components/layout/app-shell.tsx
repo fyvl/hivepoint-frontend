@@ -134,7 +134,7 @@ export const AppShell = ({ children }: AppShellProps) => {
 
                                 <div className="mt-8 flex flex-col gap-5">
                                     <div className="rounded-lg border border-border/80 bg-card/75 px-4 py-4">
-                                        <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                        <p className="text-xs font-semibold text-muted-foreground">
                                             {workspaceLabel}
                                         </p>
                                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -145,7 +145,7 @@ export const AppShell = ({ children }: AppShellProps) => {
                                     </div>
 
                                     <div className="flex flex-col gap-1">
-                                        <p className="px-2 text-xs font-semibold uppercase text-muted-foreground">
+                                        <p className="px-2 text-xs font-semibold text-muted-foreground">
                                             Navigation
                                         </p>
                                         {shellNav.map((item) => (
@@ -278,7 +278,7 @@ export const AppShell = ({ children }: AppShellProps) => {
                                         variant="outline"
                                         className="h-12 max-w-[280px] px-3.5 sm:px-4"
                                     >
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/15 text-primary">
+                                        <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/20 text-primary">
                                             <User className="h-4 w-4" />
                                         </span>
                                         <span className="hidden min-w-0 flex-col items-start pr-1 text-left sm:flex">
@@ -286,7 +286,7 @@ export const AppShell = ({ children }: AppShellProps) => {
                                                 {accountLabel}
                                             </span>
                                             {accountRole ? (
-                                                <span className="text-[11px] uppercase text-muted-foreground">
+                                                <span className="text-[11px] font-medium text-muted-foreground">
                                                     {accountRole}
                                                 </span>
                                             ) : null}

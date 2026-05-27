@@ -19,7 +19,7 @@ export const NotFoundPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">Page not found</h1>
+                    <h1 className="text-3xl font-semibold">Page not found</h1>
                     <p className="mx-auto max-w-md text-muted-foreground">
                         The page you&apos;re looking for doesn&apos;t exist or has been moved.
                         Let&apos;s get you back on track.

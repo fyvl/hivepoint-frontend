@@ -183,7 +183,7 @@ export const BillingSuccessPage = () => {
 const StatusRow = ({ label, value }: { label: string; value: string }) => {
     return (
         <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-xs font-medium text-muted-foreground">{label}</p>
             <p className="mt-1 font-medium">{value}</p>
         </div>
     )

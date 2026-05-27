@@ -13,19 +13,19 @@ type StatusConfig = {
 
 const statusMaps: Record<StatusBadgeKind, Record<string, StatusConfig>> = {
     product: {
-        PUBLISHED: { variant: "default", label: { en: "Published", ru: "Опубликован" } },
+        PUBLISHED: { variant: "success", label: { en: "Published", ru: "Опубликован" } },
         DRAFT: { variant: "secondary", label: { en: "Draft", ru: "Черновик" } },
         HIDDEN: { variant: "outline", label: { en: "Hidden", ru: "Скрыт" } },
         ARCHIVED: { variant: "secondary", label: { en: "Archived", ru: "В архиве" } }
     },
     version: {
-        PUBLISHED: { variant: "default", label: { en: "Published", ru: "Опубликована" } },
+        PUBLISHED: { variant: "success", label: { en: "Published", ru: "Опубликована" } },
         DRAFT: { variant: "secondary", label: { en: "Draft", ru: "Черновик" } },
         HIDDEN: { variant: "outline", label: { en: "Hidden", ru: "Скрыта" } },
         ARCHIVED: { variant: "secondary", label: { en: "Archived", ru: "В архиве" } }
     },
     subscription: {
-        ACTIVE: { variant: "default", label: { en: "Active", ru: "Активна" } },
+        ACTIVE: { variant: "success", label: { en: "Active", ru: "Активна" } },
         PENDING: { variant: "secondary", label: { en: "Pending", ru: "Ожидает" } },
         CANCELLED: { variant: "secondary", label: { en: "Canceled", ru: "Отменена" } },
         CANCELED: { variant: "secondary", label: { en: "Canceled", ru: "Отменена" } },
@@ -34,12 +34,12 @@ const statusMaps: Record<StatusBadgeKind, Record<string, StatusConfig>> = {
         FAILED: { variant: "destructive", label: { en: "Failed", ru: "Ошибка" } }
     },
     key: {
-        ACTIVE: { variant: "default", label: { en: "Active", ru: "Активен" } },
+        ACTIVE: { variant: "success", label: { en: "Active", ru: "Активен" } },
         REVOKED: { variant: "secondary", label: { en: "Revoked", ru: "Отозван" } }
     },
     usage: {
-        OK: { variant: "default", label: { en: "OK", ru: "OK" } },
-        NEAR_LIMIT: { variant: "secondary", label: { en: "Near limit", ru: "Близко к лимиту" } },
+        OK: { variant: "success", label: { en: "OK", ru: "OK" } },
+        NEAR_LIMIT: { variant: "warning", label: { en: "Near limit", ru: "Близко к лимиту" } },
         EXCEEDED: { variant: "destructive", label: { en: "Exceeded", ru: "Лимит превышен" } }
     }
 }

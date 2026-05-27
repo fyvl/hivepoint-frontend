@@ -7,7 +7,6 @@ import {
     FilterX,
     LayoutGrid,
     Search,
-    Sparkles,
     Tags
 } from "lucide-react";
 
@@ -41,20 +40,20 @@ const clampStyle: CSSProperties = {
 
 const accentPalettes = [
     {
-        gradient: "from-amber-500 via-orange-400 to-yellow-300",
+        gradient: "from-amber-500 via-amber-400 to-stone-600",
         badge: "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
     },
     {
-        gradient: "from-emerald-500 via-teal-400 to-cyan-400",
-        badge: "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+        gradient: "from-amber-500 via-stone-500 to-slate-700",
+        badge: "border-stone-500/20 bg-stone-500/10 text-stone-700 dark:text-stone-300"
     },
     {
-        gradient: "from-sky-500 via-cyan-400 to-blue-500",
-        badge: "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+        gradient: "from-amber-400 via-orange-500 to-stone-700",
+        badge: "border-orange-500/20 bg-orange-500/10 text-orange-700 dark:text-orange-300"
     },
     {
-        gradient: "from-violet-500 via-fuchsia-400 to-indigo-400",
-        badge: "border-violet-500/20 bg-violet-500/10 text-violet-700 dark:text-violet-300"
+        gradient: "from-amber-500 via-slate-500 to-slate-800",
+        badge: "border-slate-500/20 bg-slate-500/10 text-slate-700 dark:text-slate-300"
     }
 ];
 
@@ -237,18 +236,6 @@ export const CatalogPage = () => {
             : `Showing ${state.items.length} items`;
     const hasFilters = Boolean(search) || Boolean(category) || Boolean(tag);
 
-    const categoriesInView = useMemo(() => {
-        const categories = new Set<string>();
-        state.items.forEach((product) => {
-            const record = isRecord(product) ? product : null;
-            const value = getString(record, "category");
-            if (value) {
-                categories.add(value);
-            }
-        });
-        return Array.from(categories).slice(0, 6);
-    }, [state.items]);
-
     const categoryFilters = useMemo<FilterOption[]>(() => {
         const counts = new Map<string, number>();
         state.items.forEach((product) => {
@@ -298,52 +285,58 @@ export const CatalogPage = () => {
 
     return (
         <div className="flex flex-col gap-8">
-            <section className="surface-panel-strong relative overflow-hidden px-6 py-6 md:px-8 md:py-8">
-                <div className="catalog-hero-accent" />
-
-                <div className="relative z-10 grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_400px]">
+            <section className="motion-section surface-panel-strong relative overflow-hidden px-5 py-5 md:px-6 md:py-6">
+                <div className="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,0.84fr)_minmax(320px,1fr)] lg:items-end">
                     <div>
                         <div className="section-kicker">
-                            <Sparkles className="h-3.5 w-3.5" />
-                            Public marketplace
+                            <LayoutGrid className="h-3.5 w-3.5" />
+                            Marketplace catalog
                         </div>
-                        <h1 className="display-title mt-5 text-4xl text-foreground sm:text-5xl">
-                            Find API products that are already shaped for real traffic.
+                        <h1 className="display-title mt-4 max-w-4xl text-3xl text-foreground sm:text-4xl lg:text-5xl">
+                            Find API products ready for real traffic.
                         </h1>
-                        <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-                            Search the catalog, move from product metadata into versions, then step
-                            into billing and gateway workflows without context switching.
+                        <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+                            Search by name, category, or tag. Use filters first, then open a product
+                            for versions, plans, and gateway access.
                         </p>
 
-                        <div className="mt-7 grid gap-3 sm:grid-cols-3">
-                            <StatPanel
-                                label="Visible products"
-                                value={totalProductsLabel}
-                                caption="Matching the current query and filters."
-                            />
-                            <StatPanel
-                                label="Categories in view"
-                                value={formatNumber(categoriesInView.length)}
-                                caption="A quick read on breadth inside the current slice."
-                            />
-                            <StatPanel
-                                label="Page"
-                                value={pageLabel}
-                                caption={`${limit} cards per page right now.`}
-                            />
+                        <div className="motion-stagger mt-5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                            <Badge variant="secondary">{totalProductsLabel} products</Badge>
+                            <Badge variant="outline">Page {pageLabel}</Badge>
+                            <span>{showingText}</span>
                         </div>
                     </div>
 
-                    <div className="surface-panel border-border/80 bg-background/86 px-5 py-5">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                            Refine discovery
+                    <div className="motion-section rounded-xl border border-border/80 bg-background/90 p-4 shadow-sm">
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <div className="text-sm font-semibold text-foreground">
+                                    Filter catalog
+                                </div>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Narrow the list before scanning cards.
+                                </p>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    setSearch("");
+                                    setCategory("");
+                                    setTag("");
+                                }}
+                                disabled={!hasFilters}
+                            >
+                                Clear
+                                <FilterX className="h-4 w-4" />
+                            </Button>
                         </div>
 
-                        <div className="mt-5 grid gap-4">
+                        <div className="mt-4 grid gap-4">
                             <div className="space-y-1.5">
                                 <Label
                                     htmlFor="catalog-search"
-                                    className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground"
+                                    className="text-xs font-semibold text-muted-foreground"
                                 >
                                     Search
                                 </Label>
@@ -359,9 +352,9 @@ export const CatalogPage = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                                    Density
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div className="text-xs font-semibold text-muted-foreground">
+                                    Cards per page
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {limitOptions.map((value) => (
@@ -376,31 +369,17 @@ export const CatalogPage = () => {
                                     ))}
                                 </div>
                             </div>
-
-                            <Button
-                                variant="outline"
-                                className="justify-between"
-                                onClick={() => {
-                                    setSearch("");
-                                    setCategory("");
-                                    setTag("");
-                                }}
-                                disabled={!hasFilters}
-                            >
-                                Clear filters
-                                <FilterX className="h-4 w-4" />
-                            </Button>
                         </div>
                     </div>
                 </div>
 
                 {categoryFilters.length > 0 || tagFilters.length > 0 ? (
-                    <div className="relative z-10 mt-8 grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                    <div className="motion-stagger relative z-10 mt-6 grid gap-3 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
                         {categoryFilters.length > 0 ? (
-                            <div className="rounded-[1.2rem] border border-border/70 bg-background/76 px-4 py-4">
+                            <div className="rounded-xl border border-border/70 bg-background/70 px-4 py-4">
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
-                                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                                        <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                                             <LayoutGrid className="h-3.5 w-3.5" />
                                             Categories
                                         </div>
@@ -432,12 +411,12 @@ export const CatalogPage = () => {
                                                         current === value ? "" : value
                                                     )
                                                 }
-                                                className={cn(
-                                                    "group flex min-h-[68px] items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition",
-                                                    isActive
-                                                        ? "border-primary bg-primary text-primary-foreground shadow-soft"
-                                                        : "border-border/80 bg-card/78 text-foreground hover:-translate-y-0.5 hover:border-foreground/20 hover:bg-accent/55"
-                                                )}
+                                                    className={cn(
+                                                    "motion-interactive group flex min-h-[68px] items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left",
+                                                        isActive
+                                                            ? "border-primary bg-primary text-primary-foreground shadow-soft"
+                                                            : "border-border/80 bg-card/80 text-foreground hover:border-foreground/20 hover:bg-accent/60"
+                                                    )}
                                             >
                                                 <span className="min-w-0">
                                                     <span className="block truncate text-sm font-semibold">
@@ -447,7 +426,7 @@ export const CatalogPage = () => {
                                                         className={cn(
                                                             "mt-1 block text-xs",
                                                             isActive
-                                                                ? "text-primary-foreground/72"
+                                                                ? "text-primary-foreground/70"
                                                                 : "text-muted-foreground"
                                                         )}
                                                     >
@@ -472,10 +451,10 @@ export const CatalogPage = () => {
                         ) : null}
 
                         {tagFilters.length > 0 ? (
-                            <div className="rounded-[1.2rem] border border-border/70 bg-background/76 px-4 py-4">
+                            <div className="rounded-xl border border-border/70 bg-background/70 px-4 py-4">
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
-                                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                                        <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                                             <Tags className="h-3.5 w-3.5" />
                                             Tags
                                         </div>
@@ -508,10 +487,10 @@ export const CatalogPage = () => {
                                                     )
                                                 }
                                                 className={cn(
-                                                    "inline-flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-medium transition",
+                                                    "motion-interactive inline-flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-medium",
                                                     isActive
                                                         ? "border-foreground bg-foreground text-background shadow-soft"
-                                                        : "border-border/80 bg-card/82 text-muted-foreground hover:-translate-y-0.5 hover:border-foreground/20 hover:text-foreground"
+                                                        : "border-border/80 bg-card/80 text-muted-foreground hover:border-foreground/20 hover:text-foreground"
                                                 )}
                                             >
                                                 <span>{value}</span>
@@ -519,7 +498,7 @@ export const CatalogPage = () => {
                                                     className={cn(
                                                         "rounded-full px-1.5 py-0.5 text-[11px]",
                                                         isActive
-                                                            ? "bg-background/18 text-background"
+                                                            ? "bg-background/20 text-background"
                                                             : "bg-muted text-muted-foreground"
                                                     )}
                                                 >
@@ -586,7 +565,7 @@ export const CatalogPage = () => {
             ) : null}
 
             {!isLoading && state.items.length > 0 ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="motion-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {state.items.map((product, index) => (
                         <CatalogCard key={getCardKey(product, index)} product={product} />
                     ))}
@@ -624,26 +603,6 @@ export const CatalogPage = () => {
     );
 };
 
-const StatPanel = ({
-    label,
-    value,
-    caption
-}: {
-    label: string;
-    value: string;
-    caption: string;
-}) => {
-    return (
-        <div className="rounded-[1.2rem] border border-border/70 bg-background/72 px-4 py-4">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-                {label}
-            </div>
-            <div className="mt-2 text-2xl font-semibold text-foreground">{value}</div>
-            <div className="mt-2 text-sm leading-6 text-muted-foreground">{caption}</div>
-        </div>
-    );
-};
-
 const CatalogCard = ({ product }: { product: CatalogProduct }) => {
     const record = isRecord(product) ? product : null;
     const title = getString(record, "title") ?? "Untitled product";
@@ -656,7 +615,7 @@ const CatalogCard = ({ product }: { product: CatalogProduct }) => {
     const palette = getPalette(category);
 
     const content = (
-        <Card className="relative flex h-full min-h-[270px] flex-col overflow-hidden border-border/80 bg-card/95 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md">
+        <Card className="motion-interactive relative flex h-full min-h-[270px] flex-col overflow-hidden border-border/80 bg-card/95 hover:border-foreground/20 hover:shadow-md">
             <div
                 className={cn("absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r", palette.gradient)}
             />
