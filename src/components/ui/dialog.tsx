@@ -41,7 +41,7 @@ const DialogContent = React.forwardRef<
             ref={ref}
             className={cn(
                 "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%]",
-                "gap-4 border bg-background p-6 shadow-xl duration-200 ease-out dark:border-border/90 dark:bg-popover dark:shadow-[0_28px_80px_-42px_hsl(var(--shadow-color)/1),inset_0_1px_0_hsl(var(--foreground)/0.06)]",
+                "gap-4 border bg-popover p-6 shadow-xl duration-200 ease-out dark:border-border/90 dark:bg-popover dark:shadow-[0_28px_80px_-42px_hsl(var(--shadow-color)/1),inset_0_1px_0_hsl(var(--foreground)/0.06)]",
                 "rounded-xl sm:rounded-2xl",
                 "data-[state=open]:animate-in data-[state=closed]:animate-out",
                 "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",

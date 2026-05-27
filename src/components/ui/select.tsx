@@ -19,7 +19,7 @@ const SelectTrigger = React.forwardRef<
     <SelectPrimitive.Trigger
         ref={ref}
         className={cn(
-            "motion-field flex h-10 w-full items-center justify-between whitespace-nowrap rounded-lg border border-border/75 bg-card/70 px-3 py-2 text-sm shadow-[0_10px_24px_-22px_hsl(var(--shadow-color)/0.45)] data-[placeholder]:text-muted-foreground focus:border-primary/50 focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+            "motion-field flex h-10 w-full items-center justify-between whitespace-nowrap rounded-lg border border-border/75 bg-background px-3 py-2 text-sm shadow-[inset_0_1px_2px_hsl(var(--shadow-color)/0.07)] data-[placeholder]:text-muted-foreground focus:border-primary/50 focus:bg-card focus:shadow-none focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
             "dark:border-input/90 dark:bg-background/55 dark:shadow-[inset_0_1px_0_hsl(var(--foreground)/0.035)] dark:focus:border-primary/55 dark:focus:bg-card dark:focus:ring-primary/[0.18] dark:focus:shadow-[0_0_0_1px_hsl(var(--primary)/0.14),0_14px_34px_-24px_hsl(var(--shadow-color)/0.88),inset_0_1px_0_hsl(var(--foreground)/0.06)] dark:data-[state=open]:border-primary/55 dark:data-[state=open]:bg-card",
             className
         )}

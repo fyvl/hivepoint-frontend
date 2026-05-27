@@ -4,7 +4,7 @@
 
 @layer base {
     :root {
-        --background: 214 24% 98%;
+        --background: 214 28% 95%;
         --foreground: 222 35% 10%;
         --card: 0 0% 100%;
         --card-foreground: 222 35% 10%;
@@ -16,12 +16,12 @@
         --secondary-foreground: 218 28% 16%;
         --muted: 216 22% 93%;
         --muted-foreground: 217 12% 40%;
-        --accent: 216 18% 90%;
+        --accent: 216 20% 88%;
         --accent-foreground: 222 35% 10%;
         --destructive: 0 74% 54%;
         --destructive-foreground: 0 0% 98%;
-        --border: 215 20% 86%;
-        --input: 215 20% 86%;
+        --border: 215 22% 82%;
+        --input: 215 22% 82%;
         --ring: 36 79% 47%;
         --radius: 0.625rem;
         --chart-1: 36 79% 47%;
@@ -195,11 +195,11 @@
     }
 
     .surface-panel {
-        @apply rounded-lg border border-border/70 bg-card shadow-soft;
+        @apply rounded-lg border border-border/70 bg-card;
         background-color: hsl(var(--card) / 0.92);
         box-shadow:
-            0 18px 48px -42px hsl(var(--shadow-color) / 0.32),
-            inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            0 1px 2px -1px hsl(var(--shadow-color) / 0.13),
+            0 10px 24px -14px hsl(var(--shadow-color) / 0.22);
     }
 
     .dark .surface-panel {
@@ -214,8 +214,8 @@
         @apply rounded-lg border border-border/70 bg-card;
         background-color: hsl(var(--card) / 0.96);
         box-shadow:
-            0 22px 64px -48px hsl(var(--shadow-color) / 0.38),
-            inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            0 1px 3px -1px hsl(var(--shadow-color) / 0.15),
+            0 16px 34px -16px hsl(var(--shadow-color) / 0.28);
     }
 
     .dark .surface-panel-strong {
@@ -229,8 +229,8 @@
     .dashboard-hero {
         @apply relative overflow-hidden rounded-lg border border-border/80 bg-card;
         box-shadow:
-            0 24px 70px -52px hsl(var(--shadow-color) / 0.42),
-            inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            0 2px 4px -1px hsl(var(--shadow-color) / 0.15),
+            0 24px 48px -20px hsl(var(--shadow-color) / 0.32);
     }
 
     .dark .dashboard-hero {
